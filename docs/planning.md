@@ -1,6 +1,6 @@
 # Doctor, wizard and deployment planning
 
-Phase 2 provides a planning tool, **not an installer**. All 21 catalog modules remain planned. Every generated plan has `execution_allowed: false` and an empty `deployment_operations` array. No command pulls images, starts/stops containers, writes Compose files, changes system settings or generates credentials.
+The Phase 2 commands described here provide application planning, **not an installer**. All 21 catalog modules remain planned. Application review plans have `execution_allowed: false` and an empty `deployment_operations` array. These planning commands do not pull images, start/stop containers, write Compose files, change system settings or generate credentials. Version 0.4.0's separately gated [sandbox commands](safe-execution.md) can create private synthetic files and a test credential; application plans cannot be executed by that interface.
 
 ## Quick start
 

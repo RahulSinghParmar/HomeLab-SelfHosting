@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Release 0.3.0 adds a settings wizard, read-only doctor and deterministic planner, not a working installer.** Choose services, propose storage and resource budgets, and review conflicts. No application deployment, adoption, backup, or restore command is implemented yet. Existing deployments are not modified by these tools.
+**Release 0.4.0 adds protected storage, credentials, locking and resumable execution for one synthetic file module only.** The service-selection wizard, doctor and application planner remain available. No real application deployment, adoption, backup, or restore command is implemented yet. Existing deployments are not modified by these tools.
 
 ## What this project is building
 
@@ -22,6 +22,7 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | Read | Purpose |
 | --- | --- |
 | [Planning CLI guide](docs/planning.md) | Run the wizard, check your host and review a redacted plan |
+| [Synthetic execution guide](docs/safe-execution.md) | Phase 3 permissions, ownership, secrets, retries and data-preserving retirement |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
 | [Current inventory](docs/inventory.md) | What was observed and what still needs verification |
 | [Phase 1 findings](docs/discovery/findings.md) | Recovery risks and reproducibility gaps found in the real configuration |
@@ -73,7 +74,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules. Incl
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and [release notes](docs/releases/v0.3.0.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and [release notes](docs/releases/v0.4.0.md).
 
 ## License
 

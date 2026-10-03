@@ -1,4 +1,4 @@
-"""Command-line interface for non-deploying homelab planning."""
+"""Application planning and separately gated synthetic-only execution."""
 
 import argparse
 import json
@@ -40,7 +40,7 @@ def display(value: dict, json_output: bool) -> None:
 
 
 def main(arguments=None) -> int:
-    parser = argparse.ArgumentParser(prog="homelab", description="Select, check and plan. No deployment commands are implemented.")
+    parser = argparse.ArgumentParser(prog="homelab", description="Plan applications; execute only the isolated synthetic sandbox.")
     parser.add_argument("--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="command", required=True)
     listing = sub.add_parser("catalog", help="List all selectable, not-yet-deployable modules")
@@ -58,8 +58,35 @@ def main(arguments=None) -> int:
     for command in (doctor, plan):
         command.add_argument("--json", action="store_true")
         command.add_argument("--output", type=Path, help="Save redacted report outside Git; never overwrite")
+    sandbox = sub.add_parser("sandbox", help="Synthetic local files only; no Docker or real applications")
+    actions = sandbox.add_subparsers(dest="action", required=True)
+    proposal = actions.add_parser("plan", help="Propose dedicated synthetic storage; save private plan")
+    for name in ("root", "data-root", "backup-root", "output"):
+        proposal.add_argument("--" + name, type=Path, required=True)
+    for verb in ("apply", "status", "retire"):
+        action = actions.add_parser(verb)
+        action.add_argument("--plan", type=Path, required=True)
+        if verb != "status":
+            action.add_argument("--confirm", required=True, help="Exact full plan ID from the reviewed plan")
     args = parser.parse_args(arguments)
     try:
+        if args.command == "sandbox":
+            from . import sandbox as engine
+            if args.action == "plan":
+                result = engine.make_plan(args.root, args.data_root, args.backup_root)
+                # The plan itself must not occupy future runtime storage.
+                destination = args.output.resolve()
+                need_outside = all(not destination.is_relative_to(Path(value)) for value in result['paths'].values())
+                if not need_outside:
+                    raise ConfigError("Plan output must be outside all proposed storage roots")
+                write_private(args.output, result)
+                result = engine.public_plan(result)
+            else:
+                reviewed = engine.validate_plan(load_json(args.plan))
+                result = (engine.status(reviewed) if args.action == "status" else
+                          getattr(engine, args.action)(reviewed, args.confirm))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
         modules, planning = catalogs()
         if args.command == "catalog":
             rows = [{"id": key, "name": value["name"], "kind": value["kind"], "status": value["status"]} for key, value in sorted(modules.items())]
@@ -93,8 +120,8 @@ def main(arguments=None) -> int:
         print("ERROR: " + str(error), file=sys.stderr)
         return 2
     except (OSError, ValueError, TypeError, KeyError):
-        print("ERROR: Input or host evidence could not be interpreted safely; no deployment performed.", file=sys.stderr)
+        print("ERROR: Input, host evidence or private state could not be processed safely. Sandbox work may be incomplete; retain files and inspect before retrying.", file=sys.stderr)
         return 2
     except (KeyboardInterrupt, EOFError):
-        print("Cancelled. No deployment performed.", file=sys.stderr)
+        print("Cancelled. Retain any sandbox files and retry only with the same reviewed plan.", file=sys.stderr)
         return 130

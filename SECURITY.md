@@ -2,6 +2,8 @@
 
 This repository is currently a pre-release blueprint, not a production installer.
 
+Version 0.4.0's opt-in synthetic executor creates local test credentials and owned files only. Read its [security and recovery boundaries](docs/safe-execution.md) before use. Private files are permission-protected, not encrypted, and privileged/same-account tampering is outside the threat model. Do not publish sandbox state or treat its backup-staging directory as a recovery copy.
+
 Never publish credentials or recovery bundles in issues, pull requests, screenshots, logs, or workflow artifacts. If a credential is exposed, revoke or rotate it first; deleting the file or commit is not sufficient.
 
 Report vulnerabilities through the repository's private vulnerability reporting feature if enabled. If unavailable, open a minimal issue requesting a private contact without disclosing exploit details or sensitive configuration.

@@ -8,6 +8,7 @@ No application module is deployment-tested by this project yet. The existing Win
 | --- | --- | --- | --- |
 | Repository validation | Local execution plus CI | CI | CI |
 | Settings wizard / offline planner | Implemented; local and CI tests | Implemented; CI tests | Implemented; CI tests |
+| Synthetic file executor | Actual Windows ACL/lock tests | Actual POSIX mode/lock tests in CI | Actual POSIX mode/lock tests in CI |
 | Read-only doctor | Live local Docker Desktop check plus mocked tests | Probe implementation; mocked tests only | Probe implementation; mocked tests only |
 | Docker application installation | Planned: Docker Desktop with Linux containers/WSL2 | Planned: supported Docker Engine + Compose | Planned: Docker Desktop Linux VM |
 | Native metrics / startup / scheduling | PowerShell, services, Task Scheduler adapter planned | Native tools and systemd adapter planned | Native tools and launchd adapter planned |
@@ -33,3 +34,5 @@ Preflight must check image architecture before pull or build. The reference code
 - **Unsupported:** known incompatible or outside the maintained matrix.
 
 Every release carries its matrix. Never imply "all platforms supported" because a wrapper script exists.
+
+Phase 3's local filesystem adapter is not a general-purpose native-service or Docker adapter. Use local storage with hard links, atomic replacement and supported permission semantics; network shares, unusual filesystems, concurrent privileged tampering and power-loss durability are not certified. Windows tests do not require SACL/audit-policy changes or blanket administrator rights. If scoped DACL/owner checks fail, execution stops rather than elevating or repairing existing permissions.

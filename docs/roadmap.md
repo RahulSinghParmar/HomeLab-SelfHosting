@@ -48,6 +48,8 @@ Exit: unit tests on all three operating systems and a reviewed plan; no applicat
 
 ## Phase 3 — Safe installation primitives
 
+Delivered in the 0.4.0 synthetic-files milestone: [safe execution guide](safe-execution.md). The executor has no Docker/network operations and accepts no production module. Recovery at completed operation boundaries is tested; incomplete initialization or atomic-publication residue is preserved and requires manual review.
+
 - Implement private storage setup, permissions, credentials, protected manifests, operation locking and ownership tracking.
 - Execute only a synthetic disposable module first. Test interruption, retry, failed dependencies, occupied resources and cleanup.
 - Add reviewed-plan confirmation and per-operation scoped elevation; no global always-admin requirement.

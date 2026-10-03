@@ -1,3 +1,3 @@
-"""Local-first, non-deploying homelab planning tools."""
+"""Local-first planning and isolated synthetic execution primitives."""
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"

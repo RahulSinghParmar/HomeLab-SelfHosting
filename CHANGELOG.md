@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0 — 2026-10-03
+
+- Added separately gated synthetic file-module planning, apply, verified status and non-destructive retirement.
+- Added private local storage with Windows owner/DACL verification and POSIX owner/mode enforcement; no automatic elevation or existing-folder permission repair.
+- Added reusable 256-bit generated credentials, reference-only reports, ownership markers and fingerprint checks.
+- Added kernel operation locks, atomic state snapshots, ordered journals, retry reconciliation and fail-closed handling of ambiguous partial writes.
+- Added real filesystem, lock contention/process death, interruption, tampering, retention and CLI privacy tests.
+- Application deployment remains disabled; no existing containers, service settings or user data were changed.
+
 ## 0.3.0 — 2026-10-03
 
 - Added a Python 3.12+ selection wizard, strict private settings validation, offline deterministic plans and read-only host doctor.

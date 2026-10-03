@@ -41,6 +41,8 @@ Coolify-managed proxy, sentinel, and generated applications must remain under th
 
 In 0.3.0, `python -m homelab configure`, `validate`, `doctor` and `plan` are implemented. See the [planning guide](planning.md). They save explicit settings/reports and query the host read-only; they do not implement the deployment coordinator, ownership journal or recovery system shown above. The complete workflow remains a design target:
 
+Version 0.4.0 adds the separate `sandbox plan/apply/status/retire` interface for a synthetic **file-based** module. It implements local ownership, private permissions, reusable secrets, process locking and ordered journal transitions without Docker or application execution. See [safe execution](safe-execution.md) for the explicit boundary and interruption cases that require manual review.
+
 ```text
 bootstrap.ps1 or bootstrap.sh
   -> doctor: OS, architecture, runtime, resources, storage, port conflicts
