@@ -33,6 +33,15 @@ jobs:
         run: python tools/check_publication.py
       - name: Run regression tests
         run: python -m unittest discover -s tests -v
+      - name: Exercise offline planning
+        run: python -m homelab plan --config examples/windows.settings.example.json --json
+      - name: Exercise PowerShell entry point
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./bootstrap.ps1 validate --config examples/windows.settings.example.json
+      - name: Exercise POSIX entry point
+        if: runner.os != 'Windows'
+        run: sh ./bootstrap.sh validate --config examples/linux.settings.example.json
       - name: Test Windows discovery privacy and output guards
         if: runner.os == 'Windows'
         shell: pwsh

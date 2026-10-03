@@ -53,7 +53,7 @@ class RepositoryTests(unittest.TestCase):
             validate_discovery(discovery, self.ids, ROOT)
 
     def test_all_platform_examples_pass(self):
-        for path in (ROOT / "examples").glob("*.json"):
+        for path in (ROOT / "examples").glob("*.plan.example.json"):
             with self.subTest(path=path.name):
                 validate_example(read_json(path), self.ids)
 

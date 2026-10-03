@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 — 2026-10-03
+
+- Added a Python 3.12+ selection wizard, strict private settings validation, offline deterministic plans and read-only host doctor.
+- Added thin PowerShell/POSIX launchers and runnable Windows/Linux/macOS settings examples.
+- Added provisional module budgets, dependency ordering, TCP/UDP range conflicts, per-service storage proposals and redacted input-bound plan hashes.
+- Refuse remote Docker endpoints, ambiguous environment overrides, occupied fresh-install paths, overlapping paths, Git-contained output and output overwrites.
+- Added Windows live read-only evidence and cross-platform mocked regression/launcher checks; application runtime support remains unverified.
+- No containers, live configuration, services, firewall rules or global Docker limits were changed.
+
 ## 0.2.0 — 2026-10-03
 
 - Added a metadata-only Windows collector with outside-checkout output guards and mocked privacy tests.

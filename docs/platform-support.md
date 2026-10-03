@@ -2,11 +2,13 @@
 
 ## Current status
 
-No application module is deployment-tested by this project yet. The existing Windows homelab is design evidence, not proof that the future installer can recreate it. Static CI checks only repository structure and Python tests.
+No application module is deployment-tested by this project yet. The existing Windows homelab is design evidence, not proof that the future installer can recreate it. CI checks repository structure, mocked/Python regression tests, offline plans and platform launchers; it does not deploy applications.
 
 | Capability | Windows | Linux | macOS |
 | --- | --- | --- | --- |
 | Repository validation | Local execution plus CI | CI | CI |
+| Settings wizard / offline planner | Implemented; local and CI tests | Implemented; CI tests | Implemented; CI tests |
+| Read-only doctor | Live local Docker Desktop check plus mocked tests | Probe implementation; mocked tests only | Probe implementation; mocked tests only |
 | Docker application installation | Planned: Docker Desktop with Linux containers/WSL2 | Planned: supported Docker Engine + Compose | Planned: Docker Desktop Linux VM |
 | Native metrics / startup / scheduling | PowerShell, services, Task Scheduler adapter planned | Native tools and systemd adapter planned | Native tools and launchd adapter planned |
 | GPU acceleration | Conditional, driver/runtime/app dependent | Conditional, driver/runtime/app dependent | Not assumed; CPU fallback |
@@ -19,7 +21,7 @@ Coolify officially supports Linux servers; a Linux VM is the documented route on
 
 For each released module record OS/version, CPU architecture, Docker/runtime version, image digest, filesystem/storage type, fresh install result, restart result, restore result, and application-level content checks.
 
-Core unit tests will target Windows/Linux/macOS with Python 3.12 and a current Python release. Runtime tests require actual supported Docker environments; CI host names alone are insufficient.
+Core unit tests target Windows/Linux/macOS with Python 3.12 and 3.14. Runtime tests require actual supported Docker environments; CI host names alone are insufficient. The Phase 2 Windows reference check used Python 3.14.6, Compose 5.5.1 and a Linux-container Docker Desktop engine. Linux/macOS live Docker checks, ARM64 runtime support, filesystem suitability and actual clock offset remain unverified.
 
 Preflight must check image architecture before pull or build. The reference code-server image contains a hard-coded Linux x64 Node download; this must be replaced or the module must explicitly refuse unsupported architectures. Emulation is not an automatic production fallback.
 

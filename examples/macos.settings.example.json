@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "kind": "homelab-settings",
+  "installation_id": "example-lab",
+  "platform": "macos",
+  "architecture": "arm64",
+  "mode": "fresh",
+  "access": "loopback",
+  "services": [
+    "glance",
+    "uptime-kuma"
+  ],
+  "paths": {
+    "installation_root": "/Users/example/Homelab/Installation",
+    "media_root": "/Users/example/Homelab/Media",
+    "backup_root": "/Users/example/Homelab/BackupStaging",
+    "database_root": null
+  },
+  "database_storage": "docker-named-volumes",
+  "service_paths": {},
+  "port_overrides": {},
+  "resource_budget": {
+    "cpu_limit": 4,
+    "memory_gib": 6,
+    "reserve_host_gib": 4
+  },
+  "storage_reserve_gib": {
+    "installation_root": 5,
+    "media_root": 5,
+    "backup_root": 5,
+    "database_root": 5
+  },
+  "gpu": "disabled"
+}

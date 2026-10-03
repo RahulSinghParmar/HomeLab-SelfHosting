@@ -39,7 +39,7 @@ Coolify-managed proxy, sentinel, and generated applications must remain under th
 
 ## Planned user workflow
 
-These are **design targets, not available commands in 0.2.0**:
+In 0.3.0, `python -m homelab configure`, `validate`, `doctor` and `plan` are implemented. See the [planning guide](planning.md). They save explicit settings/reports and query the host read-only; they do not implement the deployment coordinator, ownership journal or recovery system shown above. The complete workflow remains a design target:
 
 ```text
 bootstrap.ps1 or bootstrap.sh
@@ -50,7 +50,7 @@ bootstrap.ps1 or bootstrap.sh
   -> status: display health, URLs, storage and backup status
 ```
 
-Equivalent future commands: `homelab doctor`, `configure`, `plan`, `apply`, `status`, `backup`, `restore`, and `update`. The noninteractive path will consume the same validated plan as the wizard.
+Future commands include `apply`, `status`, `backup`, `restore`, and `update`. The implemented noninteractive settings path uses the same validation as the wizard. Only fresh-install intent is accepted; a Phase 2 plan has no executable operations.
 
 ### Required operating modes
 
@@ -108,10 +108,13 @@ Export nonsecret settings separately from a portable encrypted secret bundle. Wi
 ```text
 catalog/             sanitized module inventory
 examples/            design plans, never real credentials
+homelab/             implemented Python settings, doctor and planner
+homelab_cli.py       entry point usable from another working directory
+bootstrap.ps1/.sh    prerequisite-only platform launchers
 docs/                architecture, runbooks, phases, release evidence
 tools/               implemented repository validation
 tests/               implemented regression tests
 .github/workflows/   static validation, not deployment
 ```
 
-Future phases will add `src/`, `modules/`, `bootstrap/`, and disposable integration fixtures only when implemented. Empty folders and placeholder installers are not capabilities.
+Future phases will add application modules, execution adapters and disposable integration fixtures only when implemented. Empty folders and placeholder installers are not capabilities.

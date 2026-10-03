@@ -11,6 +11,10 @@ from urllib.parse import unquote, urlsplit
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from homelab.config import validate_config, validate_planning
+from homelab.planner import create_plan
+
 ID_PATTERN = re.compile(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*\Z")
 
 
@@ -36,7 +40,7 @@ def validate_catalog(catalog: object) -> set[str]:
     fields(catalog, {"schema_version", "release", "inventory_date", "modules"}, "catalog")
     require(type(catalog["schema_version"]) is int and catalog["schema_version"] == 1,
             "catalog: unsupported schema")
-    require(catalog["release"] == "0.2.0", "catalog: update validation contract for a new release")
+    require(catalog["release"] == "0.3.0", "catalog: update validation contract for a new release")
     require(isinstance(catalog["inventory_date"], str), "catalog: expected ISO date string")
     date.fromisoformat(catalog["inventory_date"])
     modules = catalog["modules"]
@@ -199,7 +203,8 @@ def validate_links(root: Path) -> int:
 
 
 def validate_repository(root: Path = ROOT) -> str:
-    ids = validate_catalog(read_json(root / "catalog" / "services.json"))
+    catalog = read_json(root / "catalog" / "services.json")
+    ids = validate_catalog(catalog)
     validate_discovery(read_json(root / "catalog" / "discovery.json"), ids, root)
     examples = sorted((root / "examples").glob("*.plan.example.json"))
     require(len(examples) == 3, "expected three platform design examples")
@@ -209,8 +214,20 @@ def validate_repository(root: Path = ROOT) -> str:
         validate_example(plan, ids)
         platforms.add(plan["platform"])
     require(platforms == {"windows", "linux", "macos"}, "missing platform design example")
+    planning = read_json(root / "catalog" / "planning.json")
+    validate_planning(planning, ids)
+    modules = {entry["id"]: entry for entry in catalog["modules"]}
+    settings = sorted((root / "examples").glob("*.settings.example.json"))
+    require(len(settings) == 3, "expected three runnable settings examples")
+    platforms = set()
+    for example in settings:
+        config = validate_config(read_json(example), modules, planning["modules"])
+        platforms.add(config["platform"])
+        plan = create_plan(config, modules, planning["modules"])
+        require(not plan["issues"] and plan["execution_allowed"] is False, "settings example must be a valid non-deploying plan")
+    require(platforms == {"windows", "linux", "macos"}, "missing platform settings example")
     docs = validate_links(root)
-    return f"PASS: {len(ids)} planned modules with discovery/runbooks, {len(examples)} design examples, {docs} documents. No deployment performed."
+    return f"PASS: {len(ids)} planned modules with discovery/runbooks, {len(examples)} design examples, {len(settings)} runnable settings examples, {docs} documents. No deployment performed."
 
 
 def main() -> int:

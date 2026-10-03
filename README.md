@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Release 0.2.0 adds read-only discovery and configuration mapping, not a working installer.** No application deployment, adoption, backup, or restore command is implemented yet. Repository validation and a Windows metadata collector are implemented. Existing deployments are not modified by these tools.
+**Release 0.3.0 adds a settings wizard, read-only doctor and deterministic planner, not a working installer.** Choose services, propose storage and resource budgets, and review conflicts. No application deployment, adoption, backup, or restore command is implemented yet. Existing deployments are not modified by these tools.
 
 ## What this project is building
 
@@ -21,6 +21,7 @@ One entry point does **not** mean one giant container or one shared database. Ea
 
 | Read | Purpose |
 | --- | --- |
+| [Planning CLI guide](docs/planning.md) | Run the wizard, check your host and review a redacted plan |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
 | [Current inventory](docs/inventory.md) | What was observed and what still needs verification |
 | [Phase 1 findings](docs/discovery/findings.md) | Recovery risks and reproducibility gaps found in the real configuration |
@@ -38,15 +39,20 @@ One entry point does **not** mean one giant container or one shared database. Ea
 With Python 3.12 or newer, from the repository root:
 
 ```sh
+python -m homelab catalog
+python -m homelab plan --config examples/windows.settings.example.json
+python -m homelab doctor
 python tools/validate_repository.py
 python -m unittest discover -s tests -v
 ```
 
-These commands validate the repository's catalog, example plans, and documentation. They do not access Docker or change your server. Example plans are design fixtures, **not deployable configurations**.
+The planner is offline by default. `doctor` makes read-only local host/Docker queries; it does not start Docker, deploy anything or change settings. The example above can be planned on any platform; select the corresponding Linux or macOS settings file for live host checks. Do not point fresh-install settings at an existing deployment.
+
+Windows also supports `./bootstrap.ps1 catalog`; Linux/macOS supports `sh ./bootstrap.sh catalog`. These launchers find Python 3.12+ without installing anything. The [guide](docs/planning.md) explains wizard output locations, port overrides, resource estimates, exit codes and limitations. Older `*.plan.example.json` files remain architecture fixtures; the CLI accepts `*.settings.example.json` files instead.
 
 For the opt-in Windows/PowerShell 7 read-only metadata collector, see [evidence and privacy instructions](docs/discovery/evidence.md). Its report belongs outside Git. Windows collector regression tests use mocks and can be run with `./tests/Test-ReferenceCollector.ps1`.
 
-The future interface is intentionally documented separately in [architecture](docs/architecture.md#planned-user-workflow). Do not run a remotely downloaded script with administrator privileges on trust alone.
+Deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Do not run a remotely downloaded script with administrator privileges on trust alone.
 
 ## Service families
 
@@ -67,7 +73,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules. Incl
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and [release notes](docs/releases/v0.2.0.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and [release notes](docs/releases/v0.3.0.md).
 
 ## License
 

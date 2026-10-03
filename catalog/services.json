@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "release": "0.2.0",
+  "release": "0.3.0",
   "inventory_date": "2026-10-03",
   "modules": [
     {"id": "glance", "name": "Glance", "kind": "compose", "phase": 4, "status": "planned", "dependencies": [], "components": ["dashboard"], "state": ["configuration", "custom widgets"], "upstream": "https://github.com/glanceapp/glance"},

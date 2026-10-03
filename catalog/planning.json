@@ -1,0 +1,399 @@
+{
+  "schema_version": 1,
+  "estimate_basis": "Provisional planning allowances, not measured minimums or configured limits. Runtime modules and per-platform image validation are not implemented.",
+  "modules": {
+    "glance": {
+      "memory_mib": 128,
+      "cpu_millicores": 250,
+      "database_data": false,
+      "ports": [
+        {
+          "name": "http",
+          "port": 8081,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Application templates, image locks and restore tests are pending."
+    },
+    "uptime-kuma": {
+      "memory_mib": 512,
+      "cpu_millicores": 500,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "http",
+          "port": 3001,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Application templates, image locks and restore tests are pending."
+    },
+    "host-metrics": {
+      "memory_mib": 256,
+      "cpu_millicores": 500,
+      "database_data": false,
+      "ports": [],
+      "manual": "Native OS integration and startup adapter required."
+    },
+    "beszel": {
+      "memory_mib": 768,
+      "cpu_millicores": 750,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "http",
+          "port": 8090,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Custom Windows agent and licensed source patch require a platform build."
+    },
+    "glances": {
+      "memory_mib": 128,
+      "cpu_millicores": 250,
+      "database_data": false,
+      "ports": [
+        {
+          "name": "http",
+          "port": 61208,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Native OS integration and startup adapter required."
+    },
+    "affine": {
+      "memory_mib": 3072,
+      "cpu_millicores": 2000,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "http",
+          "port": 3010,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Application templates, image locks and restore tests are pending."
+    },
+    "paperless-ngx": {
+      "memory_mib": 3072,
+      "cpu_millicores": 2000,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "http",
+          "port": 8010,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Application templates, image locks and restore tests are pending."
+    },
+    "nextcloud": {
+      "memory_mib": 3072,
+      "cpu_millicores": 2000,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "http",
+          "port": 8080,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Application templates, image locks and restore tests are pending."
+    },
+    "firefly-iii": {
+      "memory_mib": 1536,
+      "cpu_millicores": 1000,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "http",
+          "port": 8085,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Application templates, image locks and restore tests are pending."
+    },
+    "vaultwarden": {
+      "memory_mib": 512,
+      "cpu_millicores": 500,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "http",
+          "port": 9445,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Application templates, image locks and restore tests are pending."
+    },
+    "karakeep": {
+      "memory_mib": 2048,
+      "cpu_millicores": 1500,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "http",
+          "port": 3030,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Application templates, image locks and restore tests are pending."
+    },
+    "immich": {
+      "memory_mib": 4096,
+      "cpu_millicores": 2500,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "http",
+          "port": 22830,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Application templates, image locks and restore tests are pending."
+    },
+    "media-management": {
+      "memory_mib": 4096,
+      "cpu_millicores": 2000,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "sonarr",
+          "port": 8989,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "radarr",
+          "port": 7878,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "lidarr",
+          "port": 8686,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "prowlarr",
+          "port": 9696,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "bazarr",
+          "port": 6767,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "seerr",
+          "port": 5055,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "flaresolverr",
+          "port": 8191,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "qbittorrent",
+          "port": 8095,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "peer-tcp",
+          "port": 6881,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "peer-udp",
+          "port": 6881,
+          "protocol": "udp",
+          "span": 1
+        }
+      ],
+      "manual": "Application templates, image locks and restore tests are pending."
+    },
+    "jellyfin": {
+      "memory_mib": 1024,
+      "cpu_millicores": 1000,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "http",
+          "port": 8096,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Native OS integration and startup adapter required."
+    },
+    "code-server": {
+      "memory_mib": 4096,
+      "cpu_millicores": 2000,
+      "database_data": false,
+      "ports": [
+        {
+          "name": "http",
+          "port": 8443,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Custom toolchains/extensions and architecture-aware build required."
+    },
+    "coolify": {
+      "memory_mib": 4096,
+      "cpu_millicores": 2000,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "http",
+          "port": 8000,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "realtime",
+          "port": 6001,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "terminal",
+          "port": 6002,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "proxy-http",
+          "port": 80,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "proxy-https",
+          "port": 443,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "proxy-quic",
+          "port": 443,
+          "protocol": "udp",
+          "span": 1
+        }
+      ],
+      "manual": "Linux controller baseline; Windows/macOS require an experimental VM/host adapter."
+    },
+    "matrix": {
+      "memory_mib": 4096,
+      "cpu_millicores": 2000,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "client",
+          "port": 8008,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "element",
+          "port": 8089,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "admin",
+          "port": 8448,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "turn-tcp",
+          "port": 3478,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "turn-udp",
+          "port": 3478,
+          "protocol": "udp",
+          "span": 1
+        },
+        {
+          "name": "relay",
+          "port": 49160,
+          "protocol": "udp",
+          "span": 41
+        }
+      ],
+      "manual": "Identity/signing keys, optional bridges and TURN require explicit review."
+    },
+    "stirling-pdf": {
+      "memory_mib": 2048,
+      "cpu_millicores": 1500,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "http",
+          "port": 9000,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Application templates, image locks and restore tests are pending."
+    },
+    "portainer": {
+      "memory_mib": 512,
+      "cpu_millicores": 500,
+      "database_data": true,
+      "ports": [
+        {
+          "name": "http",
+          "port": 9090,
+          "protocol": "tcp",
+          "span": 1
+        },
+        {
+          "name": "https",
+          "port": 9443,
+          "protocol": "tcp",
+          "span": 1
+        }
+      ],
+      "manual": "Application templates, image locks and restore tests are pending."
+    },
+    "cloudflare-tunnel": {
+      "memory_mib": 128,
+      "cpu_millicores": 250,
+      "database_data": false,
+      "ports": [],
+      "manual": "Owner enrollment and external account configuration required."
+    },
+    "tailscale": {
+      "memory_mib": 128,
+      "cpu_millicores": 250,
+      "database_data": false,
+      "ports": [],
+      "manual": "Owner enrollment and external account configuration required."
+    }
+  }
+}

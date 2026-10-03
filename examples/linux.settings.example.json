@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "kind": "homelab-settings",
+  "installation_id": "example-lab",
+  "platform": "linux",
+  "architecture": "amd64",
+  "mode": "fresh",
+  "access": "loopback",
+  "services": [
+    "glance",
+    "uptime-kuma",
+    "paperless-ngx"
+  ],
+  "paths": {
+    "installation_root": "/srv/homelab/installation",
+    "media_root": "/srv/homelab/media",
+    "backup_root": "/srv/homelab/backup-staging",
+    "database_root": null
+  },
+  "database_storage": "docker-named-volumes",
+  "service_paths": {},
+  "port_overrides": {},
+  "resource_budget": {
+    "cpu_limit": 4,
+    "memory_gib": 6,
+    "reserve_host_gib": 4
+  },
+  "storage_reserve_gib": {
+    "installation_root": 5,
+    "media_root": 5,
+    "backup_root": 5,
+    "database_root": 5
+  },
+  "gpu": "disabled"
+}

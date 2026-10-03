@@ -37,6 +37,8 @@ Exit: coverage ledger explains every discovered component, including intentional
 
 ## Phase 2 — Coordinator and planning
 
+Delivered in the 0.3.0 planning milestone: [CLI and safety boundaries](planning.md). This implements selection and review, not application execution. No module is deployment-certified by this milestone.
+
 - Implement shared Python CLI, thin platform bootstrap wrappers, interactive and file-based configuration, and schema validation.
 - Doctor checks OS/architecture/runtime/context, available resources, free disk, path permissions, port conflicts, time synchronization and prerequisite readiness.
 - Resolve selected modules and dependencies; calculate a resource budget and emit a redacted deterministic execution plan.
