@@ -1,5 +1,7 @@
 # Reference inventory
 
+Phase 1 follow-up: [evidence register](discovery/evidence.md), [configuration mapping](discovery/configuration-mapping.md), [21 runbooks](discovery/runbooks.md), and [findings](discovery/findings.md). The foundation notes below are retained as initial context; the newer evidence takes precedence.
+
 ## Evidence and limits
 
 Read-only discovery on 2026-10-03 observed 54 Docker containers: 53 running and one successfully exited AFFiNE migration job. Configured health checks reported healthy at that snapshot. This is not a functional audit of every application, a backup guarantee, or a claim that future users need 54 containers.
@@ -46,4 +48,4 @@ Existing application documents describe prior AFFiNE and Paperless restore exerc
 - Custom dashboards and metrics may contain private endpoints, tokens, identifiers, or personal financial/media statistics.
 - Machine-generated project names and monitoring records are installation state, not universal defaults.
 
-Phase 1 will produce a private detailed inventory and a reviewed public configuration mapping. No live files have been bulk-copied into this repository.
+Phase 1 produced a private detailed inventory and a reviewed public configuration mapping. No live files have been bulk-copied into this repository. Native Jellyfin and Glances listeners and Jellyfin's user-startup registration were subsequently verified; remaining unknowns are explicit in their runbooks.

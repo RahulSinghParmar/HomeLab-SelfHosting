@@ -17,4 +17,6 @@ Report vulnerabilities through the repository's private vulnerability reporting 
 - Backups and exported support bundles are sensitive even when credentials have been removed.
 - Never disable TLS verification to make a deployment appear healthy.
 
-The current validator performs structural and limited publication checks. It is not a complete secret detector, vulnerability scanner, or security audit. A dedicated secret scanner and dependency/image checks are release gates in later phases.
+The repository validator performs structural checks. `python tools/check_publication.py --history` checks the staged index and locally reachable history for a small explicit set of credential patterns and prohibited artifact paths, without printing matched values. It requires a Git checkout and intentionally fails on unreviewed binary artifacts. A synthetic credentialed-URL fixture has one narrow allowlist entry.
+
+These tools are not a complete secret detector, vulnerability scanner, or security audit. Manual staged-diff review and installation-specific private-identifier checks remain mandatory. A dedicated maintained secret scanner and dependency/image checks are release gates in later phases. No raw private reports are uploaded by CI.

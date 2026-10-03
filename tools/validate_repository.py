@@ -36,7 +36,7 @@ def validate_catalog(catalog: object) -> set[str]:
     fields(catalog, {"schema_version", "release", "inventory_date", "modules"}, "catalog")
     require(type(catalog["schema_version"]) is int and catalog["schema_version"] == 1,
             "catalog: unsupported schema")
-    require(catalog["release"] == "0.1.0", "catalog: update validation contract for a new release")
+    require(catalog["release"] == "0.2.0", "catalog: update validation contract for a new release")
     require(isinstance(catalog["inventory_date"], str), "catalog: expected ISO date string")
     date.fromisoformat(catalog["inventory_date"])
     modules = catalog["modules"]
@@ -131,6 +131,59 @@ def read_json(path: Path) -> object:
     return json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=no_duplicates)
 
 
+def validate_discovery(discovery: object, ids: set[str], root: Path) -> None:
+    fields(discovery, {"schema_version", "release", "observed_on", "scope", "container_count",
+                       "running_count", "compose_source_groups", "resolved_compose_source_groups",
+                       "excluded", "modules"}, "discovery")
+    require(type(discovery["schema_version"]) is int and discovery["schema_version"] == 1,
+            "discovery: unsupported schema")
+    require(discovery["release"] == "0.2.0", "discovery: release mismatch")
+    date.fromisoformat(discovery["observed_on"])
+    require(isinstance(discovery["scope"], str) and bool(discovery["scope"].strip()), "discovery: scope required")
+    for key in ("container_count", "running_count", "compose_source_groups", "resolved_compose_source_groups"):
+        require(type(discovery[key]) is int and discovery[key] >= 0, f"discovery: invalid {key}")
+    require(discovery["running_count"] <= discovery["container_count"], "discovery: invalid runtime totals")
+    require(discovery["resolved_compose_source_groups"] <= discovery["compose_source_groups"],
+            "discovery: invalid source totals")
+    require(isinstance(discovery["modules"], list), "discovery: modules required")
+    found = set()
+    total = 0
+    for module in discovery["modules"]:
+        fields(module, {"id", "container_count", "owner", "sources", "observed", "storage",
+                        "secret_requirements", "mapping", "backup", "verification", "risks", "runbook"},
+               "discovery module")
+        key = module["id"]
+        require(isinstance(key, str) and key in ids and key not in found, "discovery: unknown/duplicate module")
+        found.add(key)
+        require(type(module["container_count"]) is int and module["container_count"] >= 0,
+                f"{key}: invalid coverage count")
+        total += module["container_count"]
+        for field in ("owner", "observed", "storage", "secret_requirements", "backup", "verification", "risks"):
+            require(isinstance(module[field], str) and bool(module[field].strip()), f"{key}: missing {field}")
+        strings(module["sources"], f"{key} evidence sources")
+        for source in module["sources"]:
+            require(not source.startswith(("/", "\\")) and ":" not in source and "\\" not in source
+                    and ".." not in PurePosixPath(source).parts, f"{key}: source must be a logical private locator")
+        fields(module["mapping"], {"reusable", "private", "manual"}, f"{key} mapping")
+        require(all(isinstance(v, str) and bool(v.strip()) for v in module["mapping"].values()),
+                f"{key}: incomplete configuration mapping")
+        require(module["runbook"] == f"docs/runbooks/{key}.md", f"{key}: invalid runbook locator")
+        require((root / module["runbook"]).is_file(), f"{key}: missing runbook")
+    require(found == ids, "discovery: incomplete module coverage")
+    require(isinstance(discovery["excluded"], list), "discovery: explicit exclusion list required")
+    exclusions = set()
+    for excluded in discovery["excluded"]:
+        fields(excluded, {"id", "container_count", "reason"}, "exclusion")
+        require(isinstance(excluded["id"], str) and bool(ID_PATTERN.fullmatch(excluded["id"]))
+                and excluded["id"] not in found | exclusions, "invalid exclusion identity")
+        exclusions.add(excluded["id"])
+        require(type(excluded["container_count"]) is int and excluded["container_count"] >= 0,
+                "invalid excluded count")
+        require(isinstance(excluded["reason"], str) and bool(excluded["reason"].strip()), "exclusion reason required")
+        total += excluded["container_count"]
+    require(total == discovery["container_count"], "discovery: container coverage does not reconcile")
+
+
 def validate_links(root: Path) -> int:
     documents = list(root.glob("*.md")) + list((root / "docs").rglob("*.md"))
     for document in documents:
@@ -147,6 +200,7 @@ def validate_links(root: Path) -> int:
 
 def validate_repository(root: Path = ROOT) -> str:
     ids = validate_catalog(read_json(root / "catalog" / "services.json"))
+    validate_discovery(read_json(root / "catalog" / "discovery.json"), ids, root)
     examples = sorted((root / "examples").glob("*.plan.example.json"))
     require(len(examples) == 3, "expected three platform design examples")
     platforms = set()
@@ -156,7 +210,7 @@ def validate_repository(root: Path = ROOT) -> str:
         platforms.add(plan["platform"])
     require(platforms == {"windows", "linux", "macos"}, "missing platform design example")
     docs = validate_links(root)
-    return f"PASS: {len(ids)} planned modules, {len(examples)} design examples, {docs} documents. No deployment performed."
+    return f"PASS: {len(ids)} planned modules with discovery/runbooks, {len(examples)} design examples, {docs} documents. No deployment performed."
 
 
 def main() -> int:

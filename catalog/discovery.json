@@ -1,0 +1,504 @@
+{
+  "schema_version": 1,
+  "release": "0.2.0",
+  "observed_on": "2026-10-03",
+  "scope": "read-only reference discovery; not deployment certification",
+  "container_count": 54,
+  "running_count": 53,
+  "compose_source_groups": 19,
+  "resolved_compose_source_groups": 17,
+  "excluded": [
+    {
+      "id": "controller-generated-applications",
+      "container_count": 2,
+      "reason": "Personal Coolify workloads. Runtime inspected; transient /artifacts Compose sources unavailable on host. Recreate through controller, not blueprint templates."
+    }
+  ],
+  "modules": [
+    {
+      "id": "glance",
+      "container_count": 1,
+      "owner": "Compose: glance",
+      "sources": [
+        "glance/docker-compose.yml",
+        "glance/config/glance.yml",
+        "glance/assets/",
+        "glance/README-PRODUCTION.md"
+      ],
+      "observed": "Digest-pinned dashboard; host port 8081.",
+      "storage": "Read-only dashboard YAML and assets; integrations consume the metrics sidecar.",
+      "secret_requirements": "GLANCE_CLOUDFLARE_AUTHORIZATION, GLANCE_IMMICH_API_KEY, GLANCE_JELLYFIN_API_KEY, GLANCE_NEXTDNS_API_KEY.",
+      "mapping": {
+        "reusable": "Layout/pages, widget structure and stale-data handling.",
+        "private": "Domains, API keys, account IDs, private feeds and personal statistics.",
+        "manual": "Re-register owner-selected feeds and API permissions; inspect every widget before export."
+      },
+      "backup": "Local backups-host directory exists; no dedicated scheduled Glance backup was identified. Include YAML, assets and private integration-secret bundle.",
+      "verification": "Verify each page renders real values and handles unavailable backends; restore synthetic widgets without revealing tokens.",
+      "risks": "Never copy rendered screenshots or YAML wholesale into public templates; host collector paths are installation-specific.",
+      "runbook": "docs/runbooks/glance.md"
+    },
+    {
+      "id": "uptime-kuma",
+      "container_count": 1,
+      "owner": "Compose: glance",
+      "sources": [
+        "glance/docker-compose.yml",
+        "glance/uptime-kuma/",
+        "glance/maintenance/kuma-windows.ps1",
+        "glance/maintenance/Set-KumaPublicStatusPage.js"
+      ],
+      "observed": "Digest-pinned Kuma; loopback port 3001; currently shares the Glance Compose project.",
+      "storage": "Persistent /app/data bind mount; monitoring history, users, notification settings and status-page configuration.",
+      "secret_requirements": "Push-monitor tokens in a Windows-protected CLIXML file; notification credentials and account state in the application store.",
+      "mapping": {
+        "reusable": "Idempotent monitor registration and explicit public-status selection.",
+        "private": "Check URLs, push tokens, monitor IDs, notifications and historical statistics.",
+        "manual": "Recreate host-specific checks and notification integrations; provide portable encrypted token recovery."
+      },
+      "backup": "No dedicated scheduled Kuma backup identified. Preserve the complete application data with a version-compatible consistent backup; do not copy a live SQLite file alone.",
+      "verification": "Create a synthetic check, observe up/down transitions, restore settings/history and confirm only selected checks appear publicly.",
+      "risks": "Separating from Glance later requires explicit ownership migration; never re-import checks on every run.",
+      "runbook": "docs/runbooks/uptime-kuma.md"
+    },
+    {
+      "id": "host-metrics",
+      "container_count": 2,
+      "owner": "Compose: glance; native scheduled tasks",
+      "sources": [
+        "glance/docker-compose.yml",
+        "glance/metrics/",
+        "glance/maintenance/resource_collector.py",
+        "glance/maintenance/application_collector.py",
+        "glance/maintenance/storage_collector.py",
+        "glance/maintenance/media_dev_collector.py",
+        "glance/maintenance/security_collector.py"
+      ],
+      "observed": "Python metrics sidecar plus restricted socket-proxy; resource collector scheduled task running.",
+      "storage": "Collector source/configuration and generated resource-data; generated readings are replaceable, not authoritative app data.",
+      "secret_requirements": "Application API credentials and Windows task identity; review collector-specific secret carriers during extraction.",
+      "mapping": {
+        "reusable": "Schema, caching, redaction, freshness indicators and read-only Docker API permissions.",
+        "private": "Drive letters, process/service lists, application endpoints and generated resource payloads.",
+        "manual": "Replace Windows probes with per-platform adapters; preserve unknown/unavailable rather than reporting false zero."
+      },
+      "backup": "Preserve approved source/configuration and task definition. Regenerate readings after recovery; never restore stale success results as live evidence.",
+      "verification": "Compare Windows host, Docker VM and container readings; simulate missing sources and confirm stale/error indicators.",
+      "risks": "Runtime metrics, dashboard and socket-proxy containers currently have no explicit CPU/RAM caps; this is not a safe universal resource preset.",
+      "runbook": "docs/runbooks/host-metrics.md"
+    },
+    {
+      "id": "beszel",
+      "container_count": 1,
+      "owner": "Compose: beszel; Windows service BeszelAgent",
+      "sources": [
+        "beszel/docker-compose.yml",
+        "beszel/custom-src/Dockerfile.production",
+        "beszel/custom-src/Dockerfile.agent-windows",
+        "beszel/custom-src/AUTH-ORIGIN-PATCH.md",
+        "beszel/Deploy-BeszelWindowsMetricsAgent.ps1",
+        "beszel/README-PRODUCTION.md"
+      ],
+      "observed": "Local 0.18.7-windows-metrics-v2 image; hub port 8090; native agent running.",
+      "storage": "Hub named volume /beszel_data, separate backup bind mount, socket directory and native agent identity.",
+      "secret_requirements": "Agent authentication keys/tokens and hub notification/SMTP credentials; do not export live database records.",
+      "mapping": {
+        "reusable": "Auth-origin retention of 50, Windows service discovery and GPU counter fallback.",
+        "private": "System names, agent endpoints, credentials and alert history.",
+        "manual": "Extract a reviewed patch against recorded upstream commit; retain Beszel and PocketBase MIT notices. Build currently hard-codes amd64."
+      },
+      "backup": "Existing documentation describes PocketBase backups; backup files are mounted separately. No new restore or live schedule-setting verification performed.",
+      "verification": "Restore synthetic hub state, pair an isolated agent, verify same-origin/new-origin alert behavior and unavailable GPU semantics.",
+      "risks": "Modified tracked and untracked source both matter; a Git diff alone omits Windows collector files and vendored PocketBase.",
+      "runbook": "docs/runbooks/beszel.md"
+    },
+    {
+      "id": "glances",
+      "container_count": 0,
+      "owner": "Windows scheduled task",
+      "sources": [
+        "glance/glances/Start-Glances.ps1",
+        "glance/glances/glances.conf",
+        "glance/glances/README.md"
+      ],
+      "observed": "Native Python listener confirmed on loopback 61208; task running.",
+      "storage": "Configuration, Python dependency lock and startup definition; no authoritative user-content database identified.",
+      "secret_requirements": "No credential values inspected; keep endpoint private and review future authentication requirements.",
+      "mapping": {
+        "reusable": "Three-second sampling; public-info hiding; autodiscovery/config execution disabled; process listing disabled in current startup.",
+        "private": "Executable paths and host-specific sensor labels.",
+        "manual": "Build Linux/macOS startup and sensor adapters; lock actual Python package versions before packaging."
+      },
+      "backup": "Back up configuration and reproducible environment manifest; recreate generated runtime data.",
+      "verification": "Read live hardware statistics and test restart/startup recovery on the target OS.",
+      "risks": "Host metrics are not equivalent to metrics from a container; existing process-list suppression is intentional, not missing data.",
+      "runbook": "docs/runbooks/glances.md"
+    },
+    {
+      "id": "affine",
+      "container_count": 4,
+      "owner": "Compose: affine",
+      "sources": [
+        "affine/compose.yaml",
+        "affine/config/config.json",
+        "affine/config/private.key",
+        "affine/maintenance/Backup-Affine.ps1",
+        "affine/maintenance/Test-AffineRestore.ps1",
+        "affine/maintenance/Invoke-ScheduledAffineBackup.ps1"
+      ],
+      "observed": "Digest-pinned stable image, PostgreSQL pg16/pgvector and Redis 8; LAN bind port 3010. Migration exited 0.",
+      "storage": "Named PostgreSQL and Redis volumes; config and workspace-storage bind mounts.",
+      "secret_requirements": "DATABASE_URL/POSTGRES_PASSWORD and config/private.key; owner-configured SMTP and integration credentials.",
+      "mapping": {
+        "reusable": "Dependency readiness, one-shot migration, persistent config/storage and bounded resources.",
+        "private": "Workspace identity, origins, public hostname, signing material and users.",
+        "manual": "Choose signup/guest/AI/SMTP policy deliberately; confirm settings in config and application state before templating."
+      },
+      "backup": "Daily/monthly metadata reports passed restore tests. Script stops app for dump/file snapshot; table counts are captured before stop. Weekly task has not yet run.",
+      "verification": "Create nonempty synthetic document, restore database/config/storage, verify document and asset content across two sessions.",
+      "risks": "Preserve private.key securely. Rework stopped/paused-state handling and concurrent-write inventory ordering before adopting backup script.",
+      "runbook": "docs/runbooks/affine.md"
+    },
+    {
+      "id": "paperless-ngx",
+      "container_count": 3,
+      "owner": "Compose: paperless-ngx",
+      "sources": [
+        "paperless-ngx/compose.yaml",
+        "paperless-ngx/maintenance/Backup-Paperless.ps1",
+        "paperless-ngx/maintenance/Test-PaperlessRestore.ps1",
+        "paperless-ngx/maintenance/Invoke-ScheduledPaperlessBackup.ps1"
+      ],
+      "observed": "3.2.1 image pinned by digest; PostgreSQL 18 and Valkey 9; loopback port 8010.",
+      "storage": "Named database/broker volumes; consume, data, media and export bind mounts.",
+      "secret_requirements": "PAPERLESS_SECRET_KEY, PAPERLESS_DBPASS, POSTGRES_PASSWORD, VALKEY_PASSWORD and credential-bearing broker URL.",
+      "mapping": {
+        "reusable": "Low-concurrency OCR, polling/stability delay, duplicate protection and explicit proxy configuration.",
+        "private": "Documents, mail credentials, owner origins, accounts and branding.",
+        "manual": "Select OCR languages and optional parsers; never enable batch OCR or imports during discovery."
+      },
+      "backup": "Daily/monthly metadata reports passed restore tests. Exporter and content inventory run before webserver stops, then database/files are copied. Weekly has not yet run.",
+      "verification": "Use nonempty synthetic PDFs and metadata; verify download/search after isolated restore. Existing pass metadata alone does not prove representative content recovery.",
+      "risks": "Exporter and database snapshots can represent different instants under concurrent writes; declare restore paths and consistency boundaries.",
+      "runbook": "docs/runbooks/paperless-ngx.md"
+    },
+    {
+      "id": "nextcloud",
+      "container_count": 4,
+      "owner": "Compose: nextcloud-stack",
+      "sources": [
+        "nextcloud/docker-compose.yml",
+        "nextcloud/Dockerfile",
+        "nextcloud/config/config.php",
+        "nextcloud/NEXTCLOUD-OPTIMIZATION-REPORT.md"
+      ],
+      "observed": "Custom app/cron images; PostgreSQL 15; Redis alpine; app port 8080.",
+      "storage": "Named HTML volume; config/custom-app binds; separate user-data drive; database bind; external drive mounts.",
+      "secret_requirements": "POSTGRES_PASSWORD; config.php secret, passwordsalt, database/SMTP credentials and external-storage credentials.",
+      "mapping": {
+        "reusable": "SMB client build additions, app/cron separation and cache configuration.",
+        "private": "Instance ID, trusted domains, database credentials, SMTP identity and all drive mappings.",
+        "manual": "Inventory external storage and enabled apps without reading user files; replace broad drive mounts with deliberate selections."
+      },
+      "backup": "No dedicated Nextcloud scheduled backup identified in scoped discovery. Full consistent database/data/config recovery must be implemented and rehearsed.",
+      "verification": "Synthetic upload/download and WebDAV test; verify cron and external-storage mapping without traversing production files.",
+      "risks": "Dockerfile uses floating nextcloud:stable and unpinned OS packages; rebuilding today need not reproduce the running images.",
+      "runbook": "docs/runbooks/nextcloud.md"
+    },
+    {
+      "id": "firefly-iii",
+      "container_count": 3,
+      "owner": "Compose: firefly",
+      "sources": [
+        "firefly/docker-compose.yml",
+        "firefly/firefly-backup.ps1",
+        "firefly/firefly-recover.ps1",
+        "firefly/nginx/remoteip.conf",
+        "firefly/FIREFLY-PRODUCTION.md"
+      ],
+      "observed": "Core 6.6.6, MariaDB 10.11.18 and cron image pinned by digest; loopback 8085.",
+      "storage": "Database and secrets named volumes; upload/export binds; reverse-proxy configuration.",
+      "secret_requirements": "app_key, db_password and static_cron_token secret files; DPAPI-encrypted backup bundle.",
+      "mapping": {
+        "reusable": "File-based secret injection, single cron owner and trusted-proxy configuration.",
+        "private": "APP_KEY, finance data, user identity, hostname and SMTP configuration.",
+        "manual": "Create portable encrypted secret export while original Windows identity is available; never test with real finance data."
+      },
+      "backup": "Daily task result 0. Script dumps database and saves configuration/DPAPI secrets; upload/export directories are not copied by the inspected script.",
+      "verification": "Restore synthetic transactions and uploads with the original test APP_KEY; separately validate database dump and archive.",
+      "risks": "Dump pipeline can mask the database command failing because gzip determines pipeline success. DPAPI alone is not portable disaster recovery.",
+      "runbook": "docs/runbooks/firefly-iii.md"
+    },
+    {
+      "id": "vaultwarden",
+      "container_count": 1,
+      "owner": "Compose: vaultwarden",
+      "sources": [
+        "vaultwarden/docker-compose.yml",
+        "vaultwarden/vw-data/config.json",
+        "vaultwarden/maintenance/Apply-ProductionConfig.ps1"
+      ],
+      "observed": "Server 1.37.1; host port 9445; db.sqlite3 exists and no database URL found in inspected config/runtime env.",
+      "storage": "Complete /data bind including SQLite state, attachments, sends, configuration and RSA/key material.",
+      "secret_requirements": "config.json admin_token and SMTP credentials; vault database/key material is sensitive.",
+      "mapping": {
+        "reusable": "Rate limits and application security-policy structure, after review.",
+        "private": "All vault content, administrative token, SMTP identity and hostname.",
+        "manual": "Confirm database backend authoritatively before backup implementation; detected files strongly indicate SQLite but no SQL/content queries were run."
+      },
+      "backup": "No dedicated scheduled Vaultwarden backup identified. Use a consistent SQLite backup plus all required file assets and keys.",
+      "verification": "Use only a synthetic vault for decryption/login/attachment/restore checks.",
+      "risks": "Configuration JSON contains secrets and must never be published; file existence alone is not database-integrity evidence.",
+      "runbook": "docs/runbooks/vaultwarden.md"
+    },
+    {
+      "id": "karakeep",
+      "container_count": 3,
+      "owner": "Compose: karakeep",
+      "sources": [
+        "karakeep/docker-compose.yml",
+        "karakeep/.env"
+      ],
+      "observed": "App and browser use release tags; Meilisearch 1.11.1; port 3030. db.db and queue.db filenames observed in data root.",
+      "storage": "App /data bind on separate storage drive; search-index bind; browser has no persistent mount.",
+      "secret_requirements": "NEXTAUTH_SECRET, MEILI_MASTER_KEY, OPENAI_API_KEY and any provider credentials; key presence is not proof a feature is active.",
+      "mapping": {
+        "reusable": "Independent browser/search services and configurable AI endpoint contract.",
+        "private": "Bookmarks/assets, account identity, provider keys and data-root mapping.",
+        "manual": "Determine authoritative SQLite/assets versus rebuildable search/queue data before implementing restore."
+      },
+      "backup": "No dedicated scheduled backup identified. Preserve consistent app database/assets and declared search recovery policy.",
+      "verification": "Create synthetic bookmark with attachment, restore, then verify browsing and search.",
+      "risks": "Floating release tags and optional external AI integration need explicit opt-in and compatible version locking.",
+      "runbook": "docs/runbooks/karakeep.md"
+    },
+    {
+      "id": "immich",
+      "container_count": 4,
+      "owner": "Compose: immich",
+      "sources": [
+        "immich/docker-compose.yml",
+        "immich/IMMICH-OPTIMIZATION.md",
+        "immich/immich-recover.ps1",
+        "immich/jobs-start.ps1",
+        "immich/jobs-stop.ps1"
+      ],
+      "observed": "Server/ML v3.2.2; PostgreSQL 14 with vector extensions; Valkey 9. Server uncapped; ML 2 CPUs/2 GiB.",
+      "storage": "Separate /data, thumbnails, encoded-video and ML-cache binds; named PostgreSQL volume.",
+      "secret_requirements": "DB_PASSWORD and owner integration API credentials; preserve account/application state.",
+      "mapping": {
+        "reusable": "Separate ML budget, priority for server, manual heavy-job controls.",
+        "private": "Originals, account/album metadata, drive mappings and credentials.",
+        "manual": "Verify complete originals path map and extension-compatible image set; GPU remains opt-in."
+      },
+      "backup": "No dedicated scheduled Immich host backup task identified. App-internal backup policy was not queried; database-only copies cannot recover originals.",
+      "verification": "Restore synthetic originals/albums/metadata and compare hashes; no production thumbnail or ML job is triggered.",
+      "risks": "Additional mounts under /data mean backing up only one host directory can omit thumbnails/encoded files; declare full policy explicitly.",
+      "runbook": "docs/runbooks/immich.md"
+    },
+    {
+      "id": "media-management",
+      "container_count": 8,
+      "owner": "Compose: arr-stack",
+      "sources": [
+        "arr-stack/docker-compose.yml",
+        "arr-stack/backup-arr.ps1",
+        "arr-stack/test-stack.ps1"
+      ],
+      "observed": "Eight services use floating latest tags. UI ports 8989, 7878, 8686, 9696, 6767, 5055, 8191, 8095; torrent 6881 TCP/UDP.",
+      "storage": "Per-app config binds; shared /data for library/download paths; FlareSolverr has anonymous /config volume.",
+      "secret_requirements": "Per-app API keys and provider/download credentials stored in private application configuration.",
+      "mapping": {
+        "reusable": "Common paths, selective module model and health-check structure.",
+        "private": "Library roots, indexers, credentials, preferences and historical state.",
+        "manual": "Prove filesystem hardlinks/atomic moves where wanted; initiate no searches/downloads automatically."
+      },
+      "backup": "Scheduled ZIP job reports success but only Compress-Archive runs: its freeze-state comment is not implemented; age-based deletion follows without restore verification.",
+      "verification": "Restore synthetic configuration consistently; verify shared-path semantics without scanning/downloading production media.",
+      "risks": "Live SQLite/config archiving and unverified retention are not a validated recovery plan; anonymous volume ownership needs explicit treatment.",
+      "runbook": "docs/runbooks/media-management.md"
+    },
+    {
+      "id": "jellyfin",
+      "container_count": 0,
+      "owner": "Native Windows tray/user startup",
+      "sources": [
+        "NATIVE/Jellyfin/Server/config/",
+        "NATIVE/Jellyfin/Server/data/",
+        "NATIVE/Jellyfin/Server/metadata/",
+        "NATIVE/Windows/Run/JellyfinTray"
+      ],
+      "observed": "Native jellyfin process and 0.0.0.0:8096 listener confirmed; user Run entry JellyfinTray discovered.",
+      "storage": "Native data/config/metadata/plugins and separately mapped media; no media contents inspected.",
+      "secret_requirements": "Administrative/API credentials and integration tokens; private application database.",
+      "mapping": {
+        "reusable": "Native-versus-container choice and synthetic playback checks.",
+        "private": "Media paths, library IDs, users, playback history and playlist state.",
+        "manual": "Resolve exact data-root/version and startup user context privately before migration; native service conversion is not automatic."
+      },
+      "backup": "No dedicated scheduled Jellyfin backup identified in scoped task discovery. Preserve consistent database/config plus media mappings.",
+      "verification": "Recover synthetic library and playlist state, verify playback and optional hardware transcode on target OS.",
+      "risks": "Tray startup is user-context dependent and must not be described as a Windows service with unattended boot guarantees.",
+      "runbook": "docs/runbooks/jellyfin.md"
+    },
+    {
+      "id": "code-server",
+      "container_count": 1,
+      "owner": "Compose: code-server",
+      "sources": [
+        "code-server/docker-compose.yml",
+        "code-server/Dockerfile",
+        "code-server/extensions.txt",
+        "code-server/scripts/install-extensions.sh",
+        "code-server/data/code-server/config.yaml"
+      ],
+      "observed": "Custom 4.131.0 image; upstream base digest pinned; runtime limit 6 CPUs/6 GiB; host port 8443 maps HTTP 8080.",
+      "storage": "Config and local extension/tool state binds; named secure SSH/GPG volume; user-workspace bind.",
+      "secret_requirements": "Config password, SSH/GPG keys, Git credentials and private repositories.",
+      "mapping": {
+        "reusable": "Autosave/reconnect configuration, curated extension manifest and server-side toolchain layout.",
+        "private": "Workspace paths, auth material, Git identities and extension state.",
+        "manual": "Replace hard-coded Node linux-x64 tarball and verify architecture-specific hashes; review extension licenses/availability."
+      },
+      "backup": "No dedicated scheduled backup identified. Preserve workspaces, settings/manifests and encrypted private credentials separately.",
+      "verification": "Rebuild isolated image, compile sample project, reconnect from another device and restore settings/workspace.",
+      "risks": "Pinned base alone does not pin apt packages or unversioned extensions. Port number 8443 does not establish TLS.",
+      "runbook": "docs/runbooks/code-server.md"
+    },
+    {
+      "id": "coolify",
+      "container_count": 7,
+      "owner": "Compose: coolify / coolify-proxy; Coolify controller owns sentinel",
+      "sources": [
+        "coolify/docker-compose.yml",
+        "coolify/source/docker-compose.yml",
+        "coolify/source/docker-compose.prod.yml",
+        "coolify/source/docker-compose.custom.yml",
+        "coolify/proxy/docker-compose.yml",
+        "coolify/proxy/docker-compose.override.yml",
+        "coolify/maintenance/Manage-Coolify.ps1",
+        "coolify/maintenance/Backup-Coolify.ps1"
+      ],
+      "observed": "Live/root Compose app 4.3.23; resolving source Compose set reports 4.3.19. Proxy 3.7; sentinel 1.0.1. Loopback 8000/6001/6002; proxy 80/443.",
+      "storage": "Database/cache/proxy named volumes; application/service definitions, SSH/config/source binds; controller-managed sentinel path.",
+      "secret_requirements": "APP_KEY, DB_PASSWORD, REDIS_PASSWORD, PUSHER_APP_SECRET, SSH keys, root bootstrap credentials and tunnel/provider credentials.",
+      "mapping": {
+        "reusable": "Windows path adapter and management workflow as an explicitly experimental adapter.",
+        "private": "Controller identity, project IDs, user apps, SSH credentials, canonical URL and routing rules.",
+        "manual": "Reconcile exact effective source/override/env invocation before offering an update command. Exclude personal generated applications from starter templates."
+      },
+      "backup": "Daily task reports success. Script dumps database and copies configuration including raw .env and SSH keys; it warns to copy to encrypted second storage.",
+      "verification": "Restore isolated controller with outbound deployment disabled; verify dashboard, terminal, realtime and one synthetic deployment.",
+      "risks": "Source drift can select a different app version. Generated resources and sentinel must retain controller ownership; backup is not encrypted by this script.",
+      "runbook": "docs/runbooks/coolify.md"
+    },
+    {
+      "id": "matrix",
+      "container_count": 7,
+      "owner": "Compose: matrix-synapse",
+      "sources": [
+        "matrix-synapse/docker-compose.yml",
+        "matrix-synapse/data/homeserver.yaml",
+        "matrix-synapse/element-config.json",
+        "matrix-synapse/secrets/turnserver.conf",
+        "matrix-synapse/whatsapp-data/config.yaml",
+        "matrix-synapse/MATRIX-OPERATIONS.md"
+      ],
+      "observed": "Synapse 1.159.0, PostgreSQL 15.18, Element 1.12.26, TURN 4.17.2-r0, bridge 0.2607.0, admin 0.11.4, DDNS 1.",
+      "storage": "Database/config binds; separate media drive; bridge /data; secret files; TURN anonymous state volume.",
+      "secret_requirements": "Database password, signing keys, registration_shared_secret, macaroon_secret_key, form_secret, TURN secret, bridge as_token/hs_token/pickle_key, SMTP and DDNS token.",
+      "mapping": {
+        "reusable": "Optional component selection, private admin bind and explicit TURN networking.",
+        "private": "server_name, federation identity, bridge sessions, client recovery material and media.",
+        "manual": "Never rename server identity during restoration; approve bridges, federation and UDP exposure separately."
+      },
+      "backup": "No dedicated scheduled Matrix backup identified. Restore a consistent database/media/config/key set; client E2EE recovery is separate.",
+      "verification": "Synthetic chat persistence and optional call/bridge tests; disable federation/mail/outbound bridge actions during rehearsal.",
+      "risks": "Changing domains is not a simple generic URL substitution. External DDNS token is file-mounted and must remain private.",
+      "runbook": "docs/runbooks/matrix.md"
+    },
+    {
+      "id": "stirling-pdf",
+      "container_count": 1,
+      "owner": "Compose: stirling-pdf",
+      "sources": [
+        "Stirling-PDF/docker-compose.yml",
+        "Stirling-PDF/stirling-data/configs/"
+      ],
+      "observed": "2.14.2; host 9000; 4 CPUs/2 GiB runtime limit.",
+      "storage": "Config, logs, pipeline and OCR tessdata bind mounts.",
+      "secret_requirements": "Authentication database/settings and any configured SMTP/API credentials; values not inspected.",
+      "mapping": {
+        "reusable": "Login policy, JVM/job-concurrency settings and optional OCR asset selection.",
+        "private": "Accounts, hostname and custom pipeline documents.",
+        "manual": "Measure actual jobs before reducing limits or excluding components; active conversion jobs must not be interrupted by automation."
+      },
+      "backup": "No dedicated scheduled backup identified. Preserve config/authentication and required pipeline/OCR assets; logs are optional retention.",
+      "verification": "Run synthetic PDF conversions, login and settings restore; verify memory cap does not break selected operations.",
+      "risks": "Port binding and authentication policy need explicit review; no claim that current feature settings are universal defaults.",
+      "runbook": "docs/runbooks/stirling-pdf.md"
+    },
+    {
+      "id": "portainer",
+      "container_count": 1,
+      "owner": "Compose: portainer",
+      "sources": [
+        "portainer/docker-compose.yml"
+      ],
+      "observed": "CE 2.39.6; ports 9090 HTTP and 9443 HTTPS; 1 CPU/512 MiB.",
+      "storage": "Named /data volume; Docker Desktop proxy socket mount.",
+      "secret_requirements": "Admin credentials and endpoint credentials inside private configuration state.",
+      "mapping": {
+        "reusable": "Resource limit and explicit administrative-access selection.",
+        "private": "Users, endpoints, registry credentials and deployment metadata.",
+        "manual": "Avoid competing ownership with Coolify/coordinator; Docker Desktop socket path needs OS adapter."
+      },
+      "backup": "No dedicated scheduled backup identified. Use supported backup/export or consistent volume snapshot with required credentials.",
+      "verification": "Restore synthetic settings and confirm only intended endpoints are reachable; test authentication/TLS separately.",
+      "risks": "Administrative Docker access is effectively host control; never make public exposure the default.",
+      "runbook": "docs/runbooks/portainer.md"
+    },
+    {
+      "id": "cloudflare-tunnel",
+      "container_count": 0,
+      "owner": "Windows service Cloudflared",
+      "sources": [
+        "NATIVE/WindowsService/Cloudflared",
+        "NATIVE/cloudflared/private-owner-configuration"
+      ],
+      "observed": "Service running with automatic startup; executable path recorded privately.",
+      "storage": "Owner-managed tunnel credentials/config and remote ingress/DNS configuration.",
+      "secret_requirements": "Tunnel token or credential file and account-scoped API permissions; full service arguments deliberately excluded.",
+      "mapping": {
+        "reusable": "Local-first routing checklist and client/WebSocket tests.",
+        "private": "Tunnel UUID, owner domain, account, route targets and credentials.",
+        "manual": "Remote ingress/account configuration was not exported or changed; owner confirmation/API authorization needed before exact route reproduction."
+      },
+      "backup": "No dedicated tunnel recovery bundle verified. Re-enrollment may be appropriate for replicas; restoring a test must not replace live routing.",
+      "verification": "Validate tunnel-to-origin connectivity and selected public clients without exposing backend ports.",
+      "risks": "A service being running does not prove every public route works; account-side state remains an explicit external dependency.",
+      "runbook": "docs/runbooks/cloudflare-tunnel.md"
+    },
+    {
+      "id": "tailscale",
+      "container_count": 0,
+      "owner": "Windows service Tailscale",
+      "sources": [
+        "NATIVE/WindowsService/Tailscale",
+        "NATIVE/Tailscale/private-device-state"
+      ],
+      "observed": "Service running with automatic startup; no private network policy or device keys exported.",
+      "storage": "Native device state and owner-managed account policy/routes.",
+      "secret_requirements": "Device keys and any enrollment/auth keys; do not reuse another owner's machine identity.",
+      "mapping": {
+        "reusable": "Optional private access and approval checkpoints.",
+        "private": "Tailnet policy, node identity, ACLs and advertised routes.",
+        "manual": "New-machine enrollment and route approvals are owner-controlled; cross-platform native installation required."
+      },
+      "backup": "Prefer documented re-enrollment for a new identity; any preserved device state belongs in encrypted private recovery.",
+      "verification": "Verify approved connectivity and least-privilege routing using a test node where authorized.",
+      "risks": "Service state is not proof of peer reachability. No automatic copying of network identity into clone/fork installs.",
+      "runbook": "docs/runbooks/tailscale.md"
+    }
+  ]
+}

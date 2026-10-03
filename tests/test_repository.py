@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 from tools.validate_repository import (
-    ROOT, read_json, validate_catalog, validate_example, validate_links, validate_repository,
+    ROOT, read_json, validate_catalog, validate_discovery, validate_example, validate_links, validate_repository,
 )
 
 
@@ -18,6 +18,39 @@ class RepositoryTests(unittest.TestCase):
 
     def test_repository_passes(self):
         self.assertIn("PASS:", validate_repository())
+
+    def test_discovery_coverage_reconciles(self):
+        validate_discovery(read_json(ROOT / "catalog/discovery.json"), self.ids, ROOT)
+
+    def test_discovery_missing_module_rejected(self):
+        discovery = read_json(ROOT / "catalog/discovery.json")
+        discovery["modules"].pop()
+        with self.assertRaisesRegex(ValueError, "incomplete module"):
+            validate_discovery(discovery, self.ids, ROOT)
+
+    def test_discovery_wrong_total_rejected(self):
+        discovery = read_json(ROOT / "catalog/discovery.json")
+        discovery["container_count"] += 1
+        with self.assertRaisesRegex(ValueError, "does not reconcile"):
+            validate_discovery(discovery, self.ids, ROOT)
+
+    def test_discovery_absolute_source_rejected(self):
+        discovery = read_json(ROOT / "catalog/discovery.json")
+        discovery["modules"][0]["sources"] = ["C:/private/compose.yml"]
+        with self.assertRaisesRegex(ValueError, "logical private locator"):
+            validate_discovery(discovery, self.ids, ROOT)
+
+    def test_discovery_traversal_rejected(self):
+        discovery = read_json(ROOT / "catalog/discovery.json")
+        discovery["modules"][0]["sources"] = ["../private/compose.yml"]
+        with self.assertRaisesRegex(ValueError, "logical private locator"):
+            validate_discovery(discovery, self.ids, ROOT)
+
+    def test_discovery_missing_mapping_rejected(self):
+        discovery = read_json(ROOT / "catalog/discovery.json")
+        discovery["modules"][0]["mapping"]["private"] = ""
+        with self.assertRaisesRegex(ValueError, "incomplete configuration"):
+            validate_discovery(discovery, self.ids, ROOT)
 
     def test_all_platform_examples_pass(self):
         for path in (ROOT / "examples").glob("*.json"):

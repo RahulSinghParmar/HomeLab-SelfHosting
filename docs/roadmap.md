@@ -24,6 +24,8 @@ Deliver the working catalog validator, tests, architecture, design plans, servic
 
 ## Phase 1 — Discover and document the real deployment
 
+Delivered in the 0.2.0 discovery milestone: [evidence and boundaries](discovery/evidence.md), [runbooks](discovery/runbooks.md), and [findings requiring later work](discovery/findings.md). Completion means the declared discovery scope is mapped, not that the applications are already reproducibly deployable.
+
 - Inventory effective Compose sources and overrides, versions/digests, custom image sources, native services, scheduled tasks, storage, backup scripts and external integrations.
 - Read sensitive settings locally only as necessary; publish secret **names/purposes**, never values. Keep any detailed inventory outside the repository.
 - Map existing customization to upstream default, safe reusable template, private installation value, or unsupported/manual step.

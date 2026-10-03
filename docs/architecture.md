@@ -39,7 +39,7 @@ Coolify-managed proxy, sentinel, and generated applications must remain under th
 
 ## Planned user workflow
 
-These are **design targets, not available commands in 0.1.0**:
+These are **design targets, not available commands in 0.2.0**:
 
 ```text
 bootstrap.ps1 or bootstrap.sh

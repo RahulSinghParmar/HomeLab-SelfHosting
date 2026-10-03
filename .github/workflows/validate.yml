@@ -29,5 +29,11 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Validate catalog and documentation
         run: python tools/validate_repository.py
+      - name: Check tracked publication content
+        run: python tools/check_publication.py
       - name: Run regression tests
         run: python -m unittest discover -s tests -v
+      - name: Test Windows discovery privacy and output guards
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tests/Test-ReferenceCollector.ps1

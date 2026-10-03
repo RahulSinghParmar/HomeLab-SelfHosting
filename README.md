@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Release 0.1.0 is the architecture and inventory foundation, not a working installer.** No application deployment, adoption, backup, or restore command is implemented yet. The repository validator is implemented. Existing deployments are not modified by anything in this release.
+**Release 0.2.0 adds read-only discovery and configuration mapping, not a working installer.** No application deployment, adoption, backup, or restore command is implemented yet. Repository validation and a Windows metadata collector are implemented. Existing deployments are not modified by these tools.
 
 ## What this project is building
 
@@ -23,6 +23,9 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | --- | --- |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
 | [Current inventory](docs/inventory.md) | What was observed and what still needs verification |
+| [Phase 1 findings](docs/discovery/findings.md) | Recovery risks and reproducibility gaps found in the real configuration |
+| [Individual runbooks](docs/discovery/runbooks.md) | Sources, owners, storage, secrets and recovery requirements for all 21 modules |
+| [Configuration mapping](docs/discovery/configuration-mapping.md) | Reusable settings versus private and platform-specific state |
 | [Phases and release gates](docs/roadmap.md) | Work breakdown from foundation to stable release |
 | [Copy-paste phase prompts](docs/phase-prompts.md) | Instructions to implement one reviewed milestone at a time |
 | [Service runbook requirements](docs/services.md) | App-specific data, risks, and acceptance checks |
@@ -40,6 +43,8 @@ python -m unittest discover -s tests -v
 ```
 
 These commands validate the repository's catalog, example plans, and documentation. They do not access Docker or change your server. Example plans are design fixtures, **not deployable configurations**.
+
+For the opt-in Windows/PowerShell 7 read-only metadata collector, see [evidence and privacy instructions](docs/discovery/evidence.md). Its report belongs outside Git. Windows collector regression tests use mocks and can be run with `./tests/Test-ReferenceCollector.ps1`.
 
 The future interface is intentionally documented separately in [architecture](docs/architecture.md#planned-user-workflow). Do not run a remotely downloaded script with administrator privileges on trust alone.
 
@@ -62,7 +67,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules. Incl
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and [release notes](docs/releases/v0.1.0.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and [release notes](docs/releases/v0.2.0.md).
 
 ## License
 
