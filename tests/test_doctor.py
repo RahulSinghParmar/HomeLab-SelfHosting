@@ -47,10 +47,11 @@ class DoctorTests(unittest.TestCase):
         self.config = load_json(ROOT / 'examples/linux.settings.example.json')
 
     def check(self, runner=None, **kwargs):
-        return diagnose(self.config, self.modules, self.planning, run=runner or FakeHost(), environment=kwargs.pop('environment', {}),
-                        system=kwargs.pop('system', 'linux'), architecture=kwargs.pop('architecture', 'amd64'),
-                        memory=kwargs.pop('memory', (32 * GIB, 16 * GIB)), ports=kwargs.pop('ports', set()),
-                        storage_probe=lambda _: [], **kwargs)
+        with patch('homelab.doctor.os.cpu_count', return_value=kwargs.pop('cpus', 8)):
+            return diagnose(self.config, self.modules, self.planning, run=runner or FakeHost(), environment=kwargs.pop('environment', {}),
+                            system=kwargs.pop('system', 'linux'), architecture=kwargs.pop('architecture', 'amd64'),
+                            memory=kwargs.pop('memory', (32 * GIB, 16 * GIB)), ports=kwargs.pop('ports', set()),
+                            storage_probe=lambda _: [], **kwargs)
 
     def test_good_probes_still_do_not_authorize_deployment(self):
         result = self.check()
@@ -103,6 +104,10 @@ class DoctorTests(unittest.TestCase):
     def test_host_memory_headroom(self):
         result = self.check(memory=(8 * GIB, 2 * GIB))
         self.assertTrue(any(check['name'] == 'host-headroom' and check['status'] == 'block' for check in result['checks']))
+
+    def test_host_cpu_budget(self):
+        result = self.check(cpus=2)
+        self.assertTrue(any(check['name'] == 'host-cpu' and check['status'] == 'block' for check in result['checks']))
 
     def test_foreign_target(self):
         result = self.check(architecture='arm64')
