@@ -33,21 +33,22 @@ $ErrorActionPreference = 'Stop'
 $request = [Console]::In.ReadToEnd() | ConvertFrom-Json
 $target = $request.path
 $sid = [Security.Principal.WindowsIdentity]::GetCurrent().User
+$isDirectory = [IO.Directory]::Exists($target)
 if ($request.create) {
-    $acl = [Security.AccessControl.DirectorySecurity]::new()
+    $acl = if ($isDirectory) { [Security.AccessControl.DirectorySecurity]::new() } else { [Security.AccessControl.FileSecurity]::new() }
     $acl.SetOwner($sid)
     $acl.SetAccessRuleProtection($true, $false)
     foreach ($value in @($sid.Value, 'S-1-5-18', 'S-1-5-32-544') | Select-Object -Unique) {
         $principal = [Security.Principal.SecurityIdentifier]::new($value)
-        $rule = [Security.AccessControl.FileSystemAccessRule]::new($principal, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow')
+        $rule = if ($isDirectory) { [Security.AccessControl.FileSystemAccessRule]::new($principal, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow') } else { [Security.AccessControl.FileSystemAccessRule]::new($principal, 'FullControl', 'Allow') }
         $acl.AddAccessRule($rule)
     }
-    [IO.Directory]::SetAccessControl($target, $acl)
+    if ($isDirectory) { [IO.Directory]::SetAccessControl($target, $acl) } else { [IO.File]::SetAccessControl($target, $acl) }
 }
 $sections = [Security.AccessControl.AccessControlSections]::Access -bor [Security.AccessControl.AccessControlSections]::Owner
 $actual = if ([IO.Directory]::Exists($target)) { [IO.Directory]::GetAccessControl($target, $sections) } else { [IO.File]::GetAccessControl($target, $sections) }
 $owner = $actual.GetOwner([Security.Principal.SecurityIdentifier]).Value
-if ($owner -ne $sid.Value) { throw 'Unexpected owner' }
+if ($owner -ne $sid.Value) { [Console]::Write('owner-mismatch'); exit 2 }
 $rules = @($actual.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]))
 if ($rules.Count -eq 0) { throw 'Empty ACL' }
 $ownRule = $false
@@ -65,7 +66,8 @@ if (-not $ownRule) { throw 'Owner access missing' }
         result = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', script],
                                 input=json.dumps({'path': str(path), 'create': create}), capture_output=True,
                                 text=True, timeout=15, shell=False, env=environment)
-        need(result.returncode == 0 and result.stdout == 'acl-ok', "Private ACL verification failed; no permission repair attempted")
+        reason = " (owner mismatch)" if result.stdout == 'owner-mismatch' else ""
+        need(result.returncode == 0 and result.stdout == 'acl-ok', "Private ACL verification failed" + reason + "; no existing permission repair attempted")
     except (OSError, subprocess.TimeoutExpired) as error:
         raise ConfigError("Private ACL adapter unavailable; no automatic elevation") from error
 
@@ -115,7 +117,10 @@ def atomic_json(path: Path, value: dict, *, replace: bool = False) -> None:
         stream.write(json.dumps(value, sort_keys=True, indent=2, allow_nan=False) + '\n')
         stream.flush()
         os.fsync(stream.fileno())
-    # Inherit the protected parent ACL. No secret appears before root hardening.
+    # New files can default to Administrators ownership under elevated tokens.
+    # Set explicit owner/DACL only on this function's exclusively created file.
+    if os.name == 'nt':
+        windows_acl(temporary, create=True)
     verify_private(temporary)
     if replace:
         os.replace(temporary, path)
@@ -139,6 +144,8 @@ def create_lock_file(path: Path) -> None:
         stream.write(b'0')
         stream.flush()
         os.fsync(stream.fileno())
+    if os.name == 'nt':
+        windows_acl(path, create=True)
 
 
 @contextmanager
