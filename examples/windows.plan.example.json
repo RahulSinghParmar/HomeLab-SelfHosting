@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "example_only": true,
+  "installation_id": "example-lab",
+  "platform": "windows",
+  "architecture": "amd64",
+  "mode": "fresh",
+  "access": "loopback",
+  "services": ["glance", "uptime-kuma", "paperless-ngx", "affine"],
+  "paths": {
+    "installation_root": "D:\\Homelab\\Installation",
+    "media_root": "D:\\Homelab\\Media",
+    "backup_root": "E:\\HomelabBackups"
+  },
+  "database_storage": "docker-named-volumes",
+  "resource_budget": {"cpu_limit": 4, "memory_gib": 6, "reserve_host_gib": 4},
+  "gpu": "disabled",
+  "public_domain": null,
+  "secret_bundle": "external-encrypted-bundle-required",
+  "retention": {"daily": 7, "weekly": 4, "monthly": 3}
+}
