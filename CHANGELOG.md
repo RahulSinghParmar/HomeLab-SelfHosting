@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0-alpha.1 — 2026-10-04
+
+- Added a separate experimental Glance starter: reviewed plans, private owned state, bounded Docker lifecycle, configuration export and independent starter recovery.
+- Pinned the tested amd64 image by digest; loopback binding, dedicated bridge, no Docker socket, read-only configuration/root filesystem and fixed resource/log limits.
+- Added drift, foreign-resource, context, port and interruption guards plus regression tests.
+- Found and corrected an internal-only Docker network that accepted but did not publish the requested port; verify effective bindings as well as requested ones.
+- Recorded Windows live rendering, retry, restart, configuration recovery and measured lightweight resource usage.
+- Full Phase 4, general application execution, custom-dashboard recovery and other platform runtime certification remain pending. Existing deployments were not modified.
+
 ## 0.4.0 — 2026-10-03
 
 - Added separately gated synthetic file-module planning, apply, verified status and non-destructive retirement.

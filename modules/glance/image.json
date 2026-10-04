@@ -1,0 +1,6 @@
+{
+  "version": "v0.8.6",
+  "image": "glanceapp/glance@sha256:9dfb09470b207dcb67ac715994bdb1929374ba3f9c0d7df7462c24adf10fd073",
+  "tested_architecture": "amd64",
+  "upstream": "https://github.com/glanceapp/glance/tree/v0.8.6"
+}

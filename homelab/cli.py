@@ -40,7 +40,7 @@ def display(value: dict, json_output: bool) -> None:
 
 
 def main(arguments=None) -> int:
-    parser = argparse.ArgumentParser(prog="homelab", description="Plan applications; execute only the isolated synthetic sandbox.")
+    parser = argparse.ArgumentParser(prog="homelab", description="Plan applications; run the synthetic sandbox or experimental isolated Glance.")
     parser.add_argument("--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="command", required=True)
     listing = sub.add_parser("catalog", help="List all selectable, not-yet-deployable modules")
@@ -68,8 +68,39 @@ def main(arguments=None) -> int:
         action.add_argument("--plan", type=Path, required=True)
         if verb != "status":
             action.add_argument("--confirm", required=True, help="Exact full plan ID from the reviewed plan")
+    glance = sub.add_parser("glance", help="Experimental isolated Glance deployment; no existing-state adoption")
+    glance_actions = glance.add_subparsers(dest="action", required=True)
+    glance_plan = glance_actions.add_parser("plan")
+    glance_plan.add_argument("--root", type=Path, required=True)
+    glance_plan.add_argument("--port", type=int, default=18081)
+    glance_plan.add_argument("--output", type=Path, required=True)
+    glance_plan.add_argument("--restore-config", type=Path)
+    for verb in ("up", "status", "stop", "remove", "export"):
+        action = glance_actions.add_parser(verb)
+        action.add_argument("--plan", type=Path, required=True)
+        if verb in ("up", "stop", "remove"):
+            action.add_argument("--confirm", required=True)
+        if verb == "export":
+            action.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(arguments)
     try:
+        if args.command == "glance":
+            from . import glance as module
+            if args.action == "plan":
+                if args.restore_config:
+                    module.restore_config(args.restore_config)
+                result = module.make_plan(args.root, args.port, module.local_runtime())
+                if args.output.resolve().is_relative_to(Path(result['root'])):
+                    raise ConfigError("Plan output must be outside installation storage")
+                write_private(args.output, result)
+                result = {**result, 'root': '<installation-root>', 'runtime': '<local-engine-reference>'}
+            elif args.action == "export":
+                module.export_config(load_json(args.plan), args.output)
+                result = {'configuration_exported': True, 'credentials_included': False}
+            else:
+                result = module.operate(load_json(args.plan), args.action, getattr(args, 'confirm', None))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
         if args.command == "sandbox":
             from . import sandbox as engine
             if args.action == "plan":

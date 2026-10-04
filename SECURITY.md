@@ -2,6 +2,8 @@
 
 This repository is currently a pre-release blueprint, not a production installer.
 
+The experimental Glance command operates a new loopback-bound container on a dedicated bridge network. Outbound connectivity is allowed; this is not an egress firewall. It does not mount the Docker socket or modify existing applications. The upstream image defaults to root inside the container, constrained by a read-only filesystem, dropped capabilities, no-new-privileges and resource limits. The digest is reproducible, not a claim of current vulnerability clearance. Read the [Glance boundaries](docs/glance-module.md) before use. Localhost access is not user authentication; other local processes/users can reach the dashboard.
+
 Version 0.4.0's opt-in synthetic executor creates local test credentials and owned files only. Read its [security and recovery boundaries](docs/safe-execution.md) before use. Private files are permission-protected, not encrypted, and privileged/same-account tampering is outside the threat model. Do not publish sandbox state or treat its backup-staging directory as a recovery copy.
 
 Never publish credentials or recovery bundles in issues, pull requests, screenshots, logs, or workflow artifacts. If a credential is exposed, revoke or rotate it first; deleting the file or commit is not sufficient.

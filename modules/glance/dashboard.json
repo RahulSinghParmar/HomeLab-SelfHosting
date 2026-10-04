@@ -1,0 +1,33 @@
+{
+  "server": {"port": 8080},
+  "theme": {"background-color": "225 22 10", "primary-color": "165 70 60", "contrast-multiplier": 1.1},
+  "pages": [
+    {
+      "name": "Home", "slug": "home",
+      "columns": [
+        {"size": "small", "widgets": [
+          {"type": "clock", "hour-format": "24h"},
+          {"type": "html", "title": "Local-first", "source": "<p>This isolated dashboard uses synthetic checks. No personal accounts, telemetry or API keys are configured.</p>"}
+        ]},
+        {"size": "full", "widgets": [
+          {"type": "html", "title": "HomeLab workspace", "source": "<h2>Visibility starts here</h2><p>A private, reproducible starting point for your homelab. Services below are navigation examples, not claims that applications are installed.</p>"},
+          {"type": "monitor", "title": "Synthetic service checks", "cache": "1s", "sites": [
+            {"title": "Dashboard self-check", "url": "http://127.0.0.1:8080/home"},
+            {"title": "Expected unavailable fixture", "url": "http://127.0.0.1:9"}
+          ]},
+          {"type": "bookmarks", "title": "Explore your blueprint", "groups": [
+            {"title": "Visibility", "links": [{"title": "Operations and recovery", "url": "/operations"}]},
+            {"title": "Documentation", "links": [{"title": "Glance upstream documentation", "url": "https://github.com/glanceapp/glance/tree/v0.8.6/docs"}]}
+          ]}
+        ]}
+      ]
+    },
+    {
+      "name": "Operations", "slug": "operations",
+      "columns": [{"size": "full", "widgets": [
+        {"type": "html", "title": "Ownership and recovery", "source": "<h2>Deliberate operations</h2><p>Configuration is mounted read-only. Stop preserves files. Removal retains configuration and ownership history. Export settings before upgrades and validate recovery in a separate installation.</p>"},
+        {"type": "html", "title": "Not connected yet", "source": "<p>Uptime Kuma, Beszel, host metrics, personal cloud insights and public access are separate milestones. This dashboard does not query the host or control Docker.</p>"}
+      ]}]
+    }
+  ]
+}
