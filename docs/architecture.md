@@ -45,6 +45,8 @@ Version 0.4.0 adds the separate `sandbox plan/apply/status/retire` interface for
 
 Version 0.5.0-alpha.1 adds a separate experimental `glance` adapter for a fixed starter configuration, a cached digest-pinned image and a new local project. This first Docker adapter is not wired to the general wizard/apply workflow. See [Glance module](glance-module.md) for ownership checks, recovery limits and Windows-only live evidence.
 
+Version 0.5.0-alpha.2 adds a separate `kuma` adapter: two synthetic HTTP checks, one explicitly selected status-page monitor, private generated credentials and a dedicated named data volume. Backups require stopped owned services and preserve the complete application data plus credentials, checksums and semantic evidence. Recovery creates a new project/volume and verifies content; it never overlays an existing deployment. These local snapshots are sensitive and unencrypted, not an off-host disaster-recovery system. See [Kuma module](kuma-module.md).
+
 ```text
 bootstrap.ps1 or bootstrap.sh
   -> doctor: OS, architecture, runtime, resources, storage, port conflicts
@@ -121,4 +123,4 @@ tests/               implemented regression tests
 .github/workflows/   static validation, not deployment
 ```
 
-The `modules/glance` directory now contains the experimental starter and image lock. Later modules, execution adapters and disposable integration fixtures are added only when implemented. Empty folders and placeholder installers are not capabilities.
+The `modules/glance` directory contains the experimental starter and image lock; `modules/uptime-kuma` contains its image lock and original bounded API client. Later modules, execution adapters and disposable integration fixtures are added only when implemented. Empty folders and placeholder installers are not capabilities.

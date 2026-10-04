@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Release 0.5.0-alpha.1 adds an experimental, isolated Glance starter deployment.** Its separate CLI supports reviewed planning, start/status/stop, data-preserving removal, and starter-configuration export/recovery. The wizard and general application planner remain planning-only. This is the first bounded Phase 4 milestone, not a full-stack or production-ready installer. Existing deployments are never adopted.
+**Release 0.5.0-alpha.2 adds experimental, isolated Uptime Kuma monitoring and recovery**, alongside the Glance starter. Separate CLIs support reviewed plans, bounded lifecycle operations and application-specific recovery rehearsals. The wizard and general application planner remain planning-only. These are bounded Phase 4 milestones, not a full-stack or production-ready installer. Existing deployments are never adopted.
 
 ## What this project is building
 
@@ -24,6 +24,7 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [Planning CLI guide](docs/planning.md) | Run the wizard, check your host and review a redacted plan |
 | [Synthetic execution guide](docs/safe-execution.md) | Phase 3 permissions, ownership, secrets, retries and data-preserving retirement |
 | [Experimental Glance module](docs/glance-module.md) | First isolated application, explicit limits, lifecycle and starter recovery |
+| [Experimental Uptime Kuma module](docs/kuma-module.md) | Synthetic monitors, selected status page, outage exercise and stopped-state recovery |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
 | [Current inventory](docs/inventory.md) | What was observed and what still needs verification |
 | [Phase 1 findings](docs/discovery/findings.md) | Recovery risks and reproducibility gaps found in the real configuration |
@@ -54,7 +55,7 @@ Windows also supports `./bootstrap.ps1 catalog`; Linux/macOS supports `sh ./boot
 
 For the opt-in Windows/PowerShell 7 read-only metadata collector, see [evidence and privacy instructions](docs/discovery/evidence.md). Its report belongs outside Git. Windows collector regression tests use mocks and can be run with `./tests/Test-ReferenceCollector.ps1`.
 
-General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). The separate experimental `glance` command is the only Docker execution path. Do not run a remotely downloaded script with administrator privileges on trust alone.
+General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). The separate experimental `glance` and `kuma` commands are the only Docker execution paths. Do not run a remotely downloaded script with administrator privileges on trust alone.
 
 ## Service families
 
@@ -64,7 +65,7 @@ General application deployment and recovery remain future capabilities described
 - Development and communication: code-server, Coolify, Matrix/Element.
 - Utilities and infrastructure: Stirling-PDF, Portainer, Cloudflare Tunnel, Tailscale.
 
-The machine-readable [catalog](catalog/services.json) describes 21 modules whose full integration remains planned. The separate Glance starter experiment does not certify its full catalog module or enable the general planner to execute. Native integrations and Coolify have additional platform constraints.
+The machine-readable [catalog](catalog/services.json) describes 21 modules whose full integration remains planned. The separate Glance starter and synthetic Kuma experiments do not certify their full catalog modules or enable the general planner to execute. Native integrations and Coolify have additional platform constraints.
 
 ## Safety and scope
 
@@ -75,7 +76,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and [release notes](docs/releases/v0.5.0-alpha.1.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and [release notes](docs/releases/v0.5.0-alpha.2.md).
 
 ## License
 

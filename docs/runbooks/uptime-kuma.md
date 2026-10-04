@@ -20,7 +20,7 @@ Digest-pinned Kuma; loopback port 3001; currently shares the Glance Compose proj
 
 ## Installation and dependencies
 
-There is no installer/template for this module in this release. Reproduce the observed component set only in a separately approved disposable project, using compatible pinned releases and the [platform matrix](../platform-support.md). Existing state must not be implicitly adopted.
+The Phase 1 discovery did not include an installer. Version 0.5.0-alpha.2 now provides a separate [synthetic Kuma experiment](../kuma-module.md), not an installer or migration of this observed production configuration. Use only a new disposable project and the [platform matrix](../platform-support.md). Existing state must not be implicitly adopted.
 
 ## Configuration mapping
 

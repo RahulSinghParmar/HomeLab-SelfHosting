@@ -2,7 +2,7 @@
 
 ## Current status
 
-The isolated Glance starter has live Windows Docker Desktop Linux-amd64 evidence in 0.5.0-alpha.1. The complete application catalog is not deployment-certified. The existing homelab is design evidence, not proof that the installer can recreate it. CI checks repository structure, mocked/Python regression tests, offline plans and platform launchers; it does not deploy applications.
+The isolated Glance starter and synthetic Kuma module have live Windows Docker Desktop Linux-amd64 evidence in 0.5.0-alpha.1 and 0.5.0-alpha.2 respectively. The complete application catalog is not deployment-certified. The existing homelab is design evidence, not proof that the installer can recreate it. CI checks repository structure, mocked/Python regression tests, offline plans and platform launchers; it does not deploy applications.
 
 | Capability | Windows | Linux | macOS |
 | --- | --- | --- | --- |
@@ -10,7 +10,7 @@ The isolated Glance starter has live Windows Docker Desktop Linux-amd64 evidence
 | Settings wizard / offline planner | Implemented; local and CI tests | Implemented; CI tests | Implemented; CI tests |
 | Synthetic file executor | Actual Windows ACL/lock tests | Actual POSIX mode/lock tests in CI | Actual POSIX mode/lock tests in CI |
 | Read-only doctor | Live local Docker Desktop check plus mocked tests | Probe implementation; mocked tests only | Probe implementation; mocked tests only |
-| Docker application installation | Experimental Glance starter: live startup/restart/configuration recovery | Glance code and mocked tests; runtime unverified | Glance code and mocked tests; runtime unverified |
+| Docker application installation | Experimental Glance and synthetic Kuma: live startup/restart/rendering/recovery | Glance/Kuma code and mocked tests; runtime unverified | Glance/Kuma code and mocked tests; runtime unverified |
 | Native metrics / startup / scheduling | PowerShell, services, Task Scheduler adapter planned | Native tools and systemd adapter planned | Native tools and launchd adapter planned |
 | GPU acceleration | Conditional, driver/runtime/app dependent | Conditional, driver/runtime/app dependent | Not assumed; CPU fallback |
 | Coolify | Existing custom integration; not a portable supported baseline | Upstream-supported installation target | Explicit Linux VM/remote Linux host path |

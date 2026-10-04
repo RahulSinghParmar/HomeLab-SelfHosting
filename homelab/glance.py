@@ -17,14 +17,14 @@ from .sandbox import digest, pending_guard
 MODULE = ROOT / 'modules/glance'
 
 
-def docker(arguments, *, context=None):
+def docker(arguments, *, context=None, input_text=None):
     environment = {key: value for key, value in os.environ.items() if not key.startswith('COMPOSE_')}
     environment['COMPOSE_DISABLE_ENV_FILE'] = 'true'
     for key in ('DOCKER_HOST', 'DOCKER_TLS', 'DOCKER_TLS_VERIFY', 'DOCKER_CERT_PATH'):
         need(not environment.get(key), 'Docker endpoint/TLS overrides require explicit review')
     command = ['docker'] + (['--context', context] if context else []) + list(arguments)
     try:
-        result = subprocess.run(command, env=environment, capture_output=True, text=True, timeout=60, shell=False)
+        result = subprocess.run(command, env=environment, input=input_text, capture_output=True, text=True, timeout=60, shell=False)
     except (OSError, subprocess.TimeoutExpired) as error:
         raise ConfigError('Docker command unavailable or interrupted; inspect owned state before retrying') from error
     need(result.returncode == 0, 'Docker operation failed; no raw logs exposed; retain state for review')

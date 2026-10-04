@@ -40,7 +40,7 @@ def display(value: dict, json_output: bool) -> None:
 
 
 def main(arguments=None) -> int:
-    parser = argparse.ArgumentParser(prog="homelab", description="Plan applications; run the synthetic sandbox or experimental isolated Glance.")
+    parser = argparse.ArgumentParser(prog="homelab", description="Plan applications; run bounded sandbox, Glance or Kuma experiments.")
     parser.add_argument("--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="command", required=True)
     listing = sub.add_parser("catalog", help="List all selectable, not-yet-deployable modules")
@@ -82,8 +82,37 @@ def main(arguments=None) -> int:
             action.add_argument("--confirm", required=True)
         if verb == "export":
             action.add_argument("--output", type=Path, required=True)
+    kuma = sub.add_parser('kuma', help='Experimental isolated Kuma; no adoption of existing monitors')
+    kuma_actions = kuma.add_subparsers(dest='action', required=True)
+    kuma_plan = kuma_actions.add_parser('plan')
+    kuma_plan.add_argument('--root', type=Path, required=True)
+    kuma_plan.add_argument('--port', type=int, default=13001)
+    kuma_plan.add_argument('--output', type=Path, required=True)
+    kuma_plan.add_argument('--restore-backup', type=Path)
+    for verb in ('up', 'status', 'stop', 'remove', 'seed', 'inspect-monitors', 'fixture-down', 'fixture-up', 'backup'):
+        action = kuma_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        if verb not in ('status', 'inspect-monitors'):
+            action.add_argument('--confirm', required=True)
+        if verb == 'backup':
+            action.add_argument('--output', type=Path, required=True)
     args = parser.parse_args(arguments)
     try:
+        if args.command == 'kuma':
+            from . import kuma as module
+            if args.action == 'plan':
+                result = module.make_plan(args.root, args.port, module.local_runtime(), args.restore_backup)
+                if args.output.resolve().is_relative_to(Path(result['root'])):
+                    raise ConfigError('Plan output must be outside installation storage')
+                write_private(args.output, result)
+                result = {**result, 'root': '<installation-root>', 'runtime': '<local-engine-reference>',
+                          'recovery': '<private-backup-reference>' if result['recovery'] else None}
+            elif args.action == 'backup':
+                result = module.backup(load_json(args.plan), args.output, args.confirm)
+            else:
+                result = module.operate(load_json(args.plan), args.action, getattr(args, 'confirm', None))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
         if args.command == "glance":
             from . import glance as module
             if args.action == "plan":

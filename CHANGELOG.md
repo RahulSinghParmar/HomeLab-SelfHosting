@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0-alpha.2 — 2026-10-04
+
+- Added a separately gated, digest-pinned Uptime Kuma trial with two synthetic HTTP monitors, generated private credentials and one selected status-page monitor.
+- Added bounded lifecycle, drift/ownership checks, idempotent registration and fixture-only up/down controls; no Docker socket, production adoption or notification configuration.
+- Added stopped-state whole-data snapshots, SQLite/content verification and recovery into a fresh independent named volume, preserving account identity, monitor IDs and heartbeat history.
+- Verified rendered up/down/up transitions, restart/retry persistence and restored page content on Windows Docker Desktop Linux amd64.
+- Added 31 Kuma regression tests; documented plaintext snapshot sensitivity, optional DNS-daemon warning and unsupported monitor/platform/update cases.
+- Existing services remain untouched; general deployment and full Phase 4 remain incomplete.
+
 ## 0.5.0-alpha.1 — 2026-10-04
 
 - Added a separate experimental Glance starter: reviewed plans, private owned state, bounded Docker lifecycle, configuration export and independent starter recovery.

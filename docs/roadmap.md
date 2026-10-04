@@ -59,7 +59,9 @@ Exit: repeated application is idempotent; failure recovery does not rotate keys,
 
 ## Phase 4 — Visibility and utility modules
 
-First bounded milestone: **0.5.0-alpha.1**, an experimental isolated Glance starter with Windows live lifecycle/rendering and starter-configuration recovery evidence. See [module guide](glance-module.md) and [release scope](releases/v0.5.0-alpha.1.md). Full Glance customization, Kuma state transitions, Beszel/host adapter, Stirling-PDF and opt-in Portainer remain pending. Phase 4 is not complete; 0.5.0 is not released by this milestone.
+First bounded milestone: **0.5.0-alpha.1**, an experimental isolated Glance starter with Windows live lifecycle/rendering and starter-configuration recovery evidence. See [module guide](glance-module.md) and [release scope](releases/v0.5.0-alpha.1.md).
+
+Second bounded milestone: **0.5.0-alpha.2**, [synthetic Uptime Kuma](kuma-module.md) with real up/down/up transitions, selected status-page rendering, idempotent registration, restart persistence and independent stopped-state recovery. Full Glance customization, production-monitor import/notifications, Beszel/host adapter, Stirling-PDF and opt-in Portainer remain pending. Phase 4 is not complete; 0.5.0 is not released by these milestones. The next bounded module is Beszel, subject to a separate go-ahead.
 
 Substages: Glance/Kuma -> Beszel/host adapter -> Stirling-PDF -> optional Portainer. Use independent test names and ports. Synthetic endpoints and credentials only.
 
