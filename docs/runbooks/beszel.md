@@ -22,11 +22,12 @@ Local 0.18.7-windows-metrics-v2 image; hub port 8090; native agent running.
 
 ## Installation and dependencies
 
-There is no installer/template for this module in this release. Reproduce the observed component set only in a separately approved disposable project, using compatible pinned releases and the [platform matrix](../platform-support.md). Existing state must not be implicitly adopted.
+The [experimental upstream hub/agent module](../beszel-module.md) is a separate bounded Phase 4 trial; consult its [validation gates](../validation/beszel-trial.md) before use. It does not reproduce the customized native Windows component set described here. The full integration and restore certification remain planned. Existing state must not be implicitly adopted; use the [platform matrix](../platform-support.md).
 
 ## Configuration mapping
 
 - Reusable after review: Auth-origin retention of 50, Windows service discovery and GPU counter fallback.
+- Bounded implementation: [Windows host adapter](../beszel-windows-host.md) separates service/GPU telemetry from the authentication patch and upgrades only an explicitly reviewed existing NSSM agent.
 - Private installation values: System names, agent endpoints, credentials and alert history.
 - Manual/platform-specific work: Extract a reviewed patch against recorded upstream commit; retain Beszel and PocketBase MIT notices. Build currently hard-codes amd64.
 

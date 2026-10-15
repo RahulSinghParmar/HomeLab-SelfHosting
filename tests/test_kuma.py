@@ -195,6 +195,13 @@ class KumaTests(unittest.TestCase):
             k.backup(self.plan, self.base / 'snapshot', 'wrong')
         runtime.assert_not_called()
 
+    def test_configuration_confirmation_required_before_inputs_or_host(self):
+        with patch.object(k, 'local_runtime') as runtime, \
+                patch.object(k.kuma_config, 'load_and_validate') as load, self.assertRaises(ConfigError):
+            k.configure(self.plan, 'apply-config', self.base / 'missing.json', confirmation='wrong')
+        load.assert_not_called()
+        runtime.assert_not_called()
+
 
 class KumaBackupTests(unittest.TestCase):
     def setUp(self):
@@ -209,7 +216,7 @@ class KumaBackupTests(unittest.TestCase):
                 CREATE TABLE monitor (name TEXT, type TEXT, url TEXT);
                 INSERT INTO monitor VALUES ('Blueprint fixture','http','http://fixture:8080');
                 INSERT INTO monitor VALUES ('Blueprint self-check','http','http://127.0.0.1:3001');
-                CREATE TABLE notification (name TEXT);
+                CREATE TABLE notification (name TEXT, config TEXT);
                 CREATE TABLE user (username TEXT);
                 INSERT INTO user VALUES ('blueprint-admin');
                 CREATE TABLE status_page (slug TEXT);
@@ -221,7 +228,7 @@ class KumaBackupTests(unittest.TestCase):
         k.tree_files(self.root / 'data', protect_new=True)
         self.credentials = {'username': 'blueprint-admin', 'password': secrets.token_urlsafe(32)}
         atomic_json(self.root / 'credentials.json', self.credentials)
-        self.manifest = {'kind': 'kuma-stopped-backup-v1', 'image': k.load_json(k.MODULE / 'image.json')['image'],
+        self.manifest = {'kind': 'kuma-stopped-backup-v2', 'image': k.load_json(k.MODULE / 'image.json')['image'],
                          'files': k.tree_files(self.root / 'data'), 'credential_hash': k.digest(self.credentials),
                          'summary': k.database_summary(self.root / 'data')}
         atomic_json(self.root / 'manifest.json', self.manifest)
@@ -230,6 +237,12 @@ class KumaBackupTests(unittest.TestCase):
         value = k.verify_backup(self.root)
         self.assertEqual(value['summary']['heartbeats'], {'0': 1, '1': 2})
         self.assertEqual(value['summary']['monitor_count'], 2)
+
+    def test_legacy_v1_synthetic_backup_remains_verifiable(self):
+        legacy = {**self.manifest, 'kind': 'kuma-stopped-backup-v1',
+                  'summary': k.legacy_database_summary(self.root / 'data')}
+        atomic_json(self.root / 'manifest.json', legacy, replace=True)
+        self.assertEqual(k.verify_backup(self.root)['kind'], 'kuma-stopped-backup-v1')
 
     def test_changed_snapshot_refused(self):
         with (self.root / 'data/kuma.db').open('ab') as target:
@@ -263,13 +276,24 @@ class KumaBackupTests(unittest.TestCase):
         with self.assertRaisesRegex(ConfigError, 'SQLite snapshot cannot be validated'):
             k.database_summary(malformed)
 
-    def test_foreign_monitors_or_notifications_refused(self):
+    def test_unsupported_notification_provider_refused(self):
         connection = sqlite3.connect(self.root / 'data/kuma.db')
         try:
-            connection.execute("INSERT INTO notification VALUES ('foreign')")
+            connection.execute("INSERT INTO notification VALUES ('foreign', '{\"type\":\"unsupported\"}')")
             connection.commit()
-            with self.assertRaisesRegex(ConfigError, 'Notifications'):
+            with self.assertRaisesRegex(ConfigError, 'Unsupported notification'):
                 k.database_summary(self.root / 'data')
+        finally:
+            connection.close()
+
+    def test_supported_notification_is_in_backup_evidence_without_secret_values(self):
+        connection = sqlite3.connect(self.root / 'data/kuma.db')
+        try:
+            connection.execute("INSERT INTO notification VALUES ('Private webhook', '{\"type\":\"webhook\",\"webhookURL\":\"https://secret.example.test/token\"}')")
+            connection.commit()
+            summary = k.database_summary(self.root / 'data')
+            self.assertEqual(summary['notification_count'], 1)
+            self.assertNotIn('secret.example.test', str(summary))
         finally:
             connection.close()
 

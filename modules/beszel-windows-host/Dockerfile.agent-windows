@@ -1,0 +1,21 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine@sha256:3111b113abec80b4a8a3d4b5cebebf61a4cdab019b7e56ca3e6389e6ac4e1c8d AS lhm-builder
+
+WORKDIR /src
+COPY agent/lhm ./agent/lhm
+RUN dotnet build -c Release ./agent/lhm/beszel_lhm.csproj
+
+FROM golang:1.26-alpine@sha256:c95332c2af86b6d89b91bd0500f4b9529ccbd090a0d1855c6d1ceaa142ae8615 AS builder
+
+WORKDIR /src
+COPY . .
+COPY --from=lhm-builder /src/agent/lhm/bin ./agent/lhm/bin
+RUN go generate -run fetchsmartctl ./agent
+RUN CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build \
+    -trimpath -ldflags="-w -s" \
+    -o /out/beszel-agent-windows-amd64.exe ./internal/cmd/agent
+RUN CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go test -c \
+    -o /out/beszel-agent-windows-tests.exe ./agent
+
+FROM scratch
+COPY --from=builder /out/beszel-agent-windows-amd64.exe /
+COPY --from=builder /out/beszel-agent-windows-tests.exe /

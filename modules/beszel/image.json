@@ -1,0 +1,7 @@
+{
+  "version": "0.21.0",
+  "hub": "henrygd/beszel@sha256:7b3ee8cd890263b2c1b2f332b139b91a22f6d770bbfb0eced5737b3be9add65b",
+  "agent": "henrygd/beszel-agent@sha256:31cc28b1278691747a18483ab510695b3db8e8ce9aab361e7a8c47ac58f55333",
+  "tested_architecture": "amd64",
+  "upstream": "https://github.com/henrygd/beszel/tree/v0.21.0"
+}

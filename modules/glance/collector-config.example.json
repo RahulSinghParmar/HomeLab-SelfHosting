@@ -1,0 +1,24 @@
+{
+  "kind": "homelab-glance-collector",
+  "schema_version": 1,
+  "output_dir": "D:/HomeLab-Private/glance-snapshots",
+  "docker": {
+    "enabled": true,
+    "include": [
+      {"id": "dashboard", "label": "Dashboard", "container": "glance"},
+      {"id": "monitoring", "label": "Monitoring", "container": "beszel"}
+    ]
+  },
+  "storage": [
+    {"id": "system", "label": "System storage", "path": "C:/", "warning_free_percent": 15}
+  ],
+  "backups": [
+    {"id": "dashboard-config", "label": "Dashboard configuration", "path": "D:/HomeLab-Private/backups", "pattern": "glance/**/*.json", "max_age_hours": 48}
+  ],
+  "endpoints": [
+    {"id": "dashboard", "label": "Dashboard", "url": "http://127.0.0.1:8081/api/healthz", "accepted_status": [200], "timeout_seconds": 5, "check_tls": false}
+  ],
+  "windows_services": [
+    {"id": "beszel-agent", "label": "Host monitoring agent", "name": "BeszelAgent"}
+  ]
+}

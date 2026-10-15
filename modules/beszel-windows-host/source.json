@@ -1,0 +1,21 @@
+{
+  "upstream": "https://github.com/henrygd/beszel",
+  "version": "0.18.7",
+  "commit": "6e3fd90834309213aca32f2ff5fb0b027661c39a",
+  "license": "MIT",
+  "patch": "beszel-0.18.7-windows-host.patch",
+  "architecture": "windows-amd64",
+  "expected_agent_sha256": "72a8144c4664ca429e9bb6f81c878c5d50b2c138cddfbaa2a13e96aa6d0400fc",
+  "features": [
+    "explicitly-filtered Windows Service Control Manager status",
+    "Windows GPU Engine utilization fallback",
+    "hidden GPU counter child process",
+    "redacted Windows service details"
+  ],
+  "limitations": [
+    "version-local patch; not forward-compatible without review",
+    "single logical fallback GPU usage value",
+    "English Windows GPU performance-counter path required",
+    "no fresh service installation in this milestone"
+  ]
+}

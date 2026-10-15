@@ -29,6 +29,8 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Validate catalog and documentation
         run: python tools/validate_repository.py
+      - name: Validate Phase 4 release contract
+        run: python tools/validate_phase4.py
       - name: Check tracked publication content
         run: python tools/check_publication.py
       - name: Run regression tests

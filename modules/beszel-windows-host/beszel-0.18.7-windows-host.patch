@@ -1,0 +1,578 @@
+diff --git a/agent/gpu.go b/agent/gpu.go
+index 6e043e6..5b4b4e1 100644
+--- a/agent/gpu.go
++++ b/agent/gpu.go
+@@ -42,6 +42,9 @@ const (
+ type GPUManager struct {
+ 	sync.Mutex
+ 	GpuDataMap map[string]*system.GPUData
++	// fallbackUsage stores instantaneous utilization from platform counters when
++	// a vendor collector can identify a GPU but cannot report utilization.
++	fallbackUsage map[string]float64
+ 	// lastAvgData stores the last calculated averages for each GPU
+ 	// Used when a collection happens before new data arrives (Count == 0)
+ 	lastAvgData map[string]system.GPUData
+@@ -313,6 +316,9 @@ func (gm *GPUManager) GetCurrentData(cacheKey uint16) map[string]system.GPUData
+ 	for id, gpu := range gm.GpuDataMap {
+ 		gpuAvg := gm.calculateGPUAverage(id, gpu, cacheKey)
+ 		gm.updateInstantaneousValues(&gpuAvg, gpu)
++		if usage, ok := gm.fallbackUsage[id]; ok && gpuAvg.Usage == 0 {
++			gpuAvg.Usage = utils.TwoDecimals(usage)
++		}
+ 		gm.storeSnapshot(id, gpu, cacheKey)
+ 
+ 		// Append id to name if there are multiple GPUs with the same name
+@@ -735,6 +741,7 @@ func NewGPUManager() (*GPUManager, error) {
+ 	var gm GPUManager
+ 	caps := gm.discoverGpuCapabilities()
+ 	gm.GpuDataMap = make(map[string]*system.GPUData)
++	windowsFallback := gm.startWindowsGPUCounterFallback()
+ 
+ 	// Jetson devices should always use tegrastats (ignore GPU_COLLECTOR).
+ 	if caps.hasTegrastats {
+@@ -746,17 +753,26 @@ func NewGPUManager() (*GPUManager, error) {
+ 	if collectorConfig, ok := utils.GetEnv("GPU_COLLECTOR"); ok && strings.TrimSpace(collectorConfig) != "" {
+ 		priorities := parseCollectorPriority(collectorConfig)
+ 		if gm.startCollectorsByPriority(priorities, caps) == 0 {
++			if windowsFallback {
++				return &gm, nil
++			}
+ 			return nil, fmt.Errorf("no configured GPU collectors are available")
+ 		}
+ 		return &gm, nil
+ 	}
+ 
+ 	if !hasAnyGpuCollector(caps) {
++		if windowsFallback {
++			return &gm, nil
++		}
+ 		return nil, fmt.Errorf(noGPUFoundMsg)
+ 	}
+ 
+ 	// auto-detect and start collectors when GPU_COLLECTOR is unset.
+ 	if gm.startCollectorsByPriority(gm.resolveLegacyCollectorPriority(caps), caps) == 0 {
++		if windowsFallback {
++			return &gm, nil
++		}
+ 		return nil, fmt.Errorf(noGPUFoundMsg)
+ 	}
+ 
+diff --git a/agent/lhm/beszel_lhm.csproj b/agent/lhm/beszel_lhm.csproj
+index 0e37b50..919076f 100644
+--- a/agent/lhm/beszel_lhm.csproj
++++ b/agent/lhm/beszel_lhm.csproj
+@@ -9,5 +9,8 @@
+ 
+   <ItemGroup>
+     <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
++    <!-- Allows the pinned net48 helper to be built reproducibly in the Linux
++         builder used for the custom Windows agent. Build-time only. -->
++    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
+   </ItemGroup>
+ </Project>
+diff --git a/agent/systemd_nonlinux.go b/agent/systemd_nonlinux.go
+index cd58619..e59192d 100644
+--- a/agent/systemd_nonlinux.go
++++ b/agent/systemd_nonlinux.go
+@@ -1,4 +1,4 @@
+-//go:build !linux
++//go:build !linux && !windows
+ 
+ package agent
+ 
+diff --git a/agent/systemd_nonlinux_test.go b/agent/systemd_nonlinux_test.go
+index a4e5b60..6dc39c9 100644
+--- a/agent/systemd_nonlinux_test.go
++++ b/agent/systemd_nonlinux_test.go
+@@ -1,4 +1,4 @@
+-//go:build !linux && testing
++//go:build !linux && !windows && testing
+ 
+ package agent
+ 
+warning: in the working copy of 'agent/gpu_windows_counter.go', LF will be replaced by CRLF the next time Git touches it
+diff --git a/agent/gpu_windows_counter.go b/agent/gpu_windows_counter.go
+new file mode 100644
+index 0000000..f009d29
+--- /dev/null
++++ b/agent/gpu_windows_counter.go
+@@ -0,0 +1,112 @@
++//go:build windows
++
++package agent
++
++import (
++	"bufio"
++	"encoding/csv"
++	"io"
++	"log/slog"
++	"math"
++	"os/exec"
++	"regexp"
++	"strconv"
++	"strings"
++	"syscall"
++
++	"github.com/henrygd/beszel/internal/entities/system"
++)
++
++var windowsGPUEnginePattern = regexp.MustCompile(`(?i)luid_(0x[0-9a-f]+_0x[0-9a-f]+)_phys_(\d+)_eng_(\d+)`)
++
++// startWindowsGPUCounterFallback uses Windows' GPU Engine performance counters
++// when older NVIDIA drivers expose the card through nvidia-smi but return
++// "Not Supported" for utilization. It does not replace temperature or memory
++// collection from the vendor collector.
++func (gm *GPUManager) startWindowsGPUCounterFallback() bool {
++	if _, err := exec.LookPath("typeperf.exe"); err != nil {
++		return false
++	}
++
++	go func() {
++		cmd := exec.Command(
++			"typeperf.exe",
++			`\GPU Engine(*)\Utilization Percentage`,
++			"-si", "4",
++		)
++		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
++		stdout, err := cmd.StdoutPipe()
++		if err != nil {
++			slog.Debug("Windows GPU counter unavailable", "err", err)
++			return
++		}
++		if err := cmd.Start(); err != nil {
++			slog.Debug("Windows GPU counter unavailable", "err", err)
++			return
++		}
++
++		if err := gm.readWindowsGPUCounter(stdout); err != nil {
++			slog.Debug("Windows GPU counter stopped", "err", err)
++		}
++		_ = cmd.Wait()
++	}()
++	return true
++}
++
++func (gm *GPUManager) readWindowsGPUCounter(reader io.Reader) error {
++	scanner := bufio.NewScanner(reader)
++	scanner.Buffer(make([]byte, 64*1024), 4*1024*1024)
++
++	var columns [][2]string // adapter id, engine id
++	for scanner.Scan() {
++		record, err := csv.NewReader(strings.NewReader(scanner.Text())).Read()
++		if err != nil || len(record) < 2 {
++			continue
++		}
++
++		if columns == nil {
++			columns = make([][2]string, len(record))
++			for i := 1; i < len(record); i++ {
++				match := windowsGPUEnginePattern.FindStringSubmatch(record[i])
++				if len(match) == 4 {
++					columns[i] = [2]string{match[1] + "/" + match[2], match[3]}
++				}
++			}
++			continue
++		}
++
++		engineTotals := make(map[string]map[string]float64)
++		for i := 1; i < len(record) && i < len(columns); i++ {
++			gpuID, engineID := columns[i][0], columns[i][1]
++			if gpuID == "" {
++				continue
++			}
++			value, err := strconv.ParseFloat(strings.TrimSpace(record[i]), 64)
++			if err != nil || math.IsNaN(value) || math.IsInf(value, 0) {
++				continue
++			}
++			if engineTotals[gpuID] == nil {
++				engineTotals[gpuID] = make(map[string]float64)
++			}
++			engineTotals[gpuID][engineID] += value
++		}
++
++		usage := 0.0
++		for _, engines := range engineTotals {
++			for _, value := range engines {
++				usage = max(usage, value)
++			}
++		}
++
++		gm.Lock()
++		if gm.fallbackUsage == nil {
++			gm.fallbackUsage = make(map[string]float64)
++		}
++		gm.fallbackUsage["0"] = min(usage, 100)
++		if len(gm.GpuDataMap) == 0 {
++			gm.GpuDataMap["0"] = &system.GPUData{Name: "Windows GPU"}
++		}
++		gm.Unlock()
++	}
++	return scanner.Err()
++}
+warning: in the working copy of 'agent/gpu_windows_counter_stub.go', LF will be replaced by CRLF the next time Git touches it
+diff --git a/agent/gpu_windows_counter_stub.go b/agent/gpu_windows_counter_stub.go
+new file mode 100644
+index 0000000..60b241f
+--- /dev/null
++++ b/agent/gpu_windows_counter_stub.go
+@@ -0,0 +1,5 @@
++//go:build !windows
++
++package agent
++
++func (gm *GPUManager) startWindowsGPUCounterFallback() bool { return false }
+warning: in the working copy of 'agent/systemd_windows.go', LF will be replaced by CRLF the next time Git touches it
+diff --git a/agent/systemd_windows.go b/agent/systemd_windows.go
+new file mode 100644
+index 0000000..67874e5
+--- /dev/null
++++ b/agent/systemd_windows.go
+@@ -0,0 +1,285 @@
++//go:build windows
++
++package agent
++
++import (
++	"errors"
++	"fmt"
++	"log/slog"
++	"path"
++	"slices"
++	"strings"
++	"sync"
++	"time"
++
++	"github.com/henrygd/beszel/agent/utils"
++	"github.com/henrygd/beszel/internal/entities/systemd"
++	"golang.org/x/sys/windows"
++	"golang.org/x/sys/windows/svc"
++	"golang.org/x/sys/windows/svc/mgr"
++)
++
++// systemdManager retains the existing internal name so Windows service data can
++// use Beszel's service records and UI without a database migration.
++type systemdManager struct {
++	sync.Mutex
++	serviceStatsMap map[string]*systemd.Service
++	hasFreshStats   bool
++	patterns        []string
++}
++
++func newSystemdManager() (*systemdManager, error) {
++	if skipServices, _ := utils.GetEnv("SKIP_SYSTEMD"); skipServices == "true" {
++		return nil, nil
++	}
++	manager := &systemdManager{
++		serviceStatsMap: make(map[string]*systemd.Service),
++		patterns:        getWindowsServicePatterns(),
++	}
++	if len(manager.patterns) == 0 {
++		slog.Warn("Windows service monitoring disabled until SERVICE_PATTERNS is explicitly configured")
++		return nil, nil
++	}
++	if err := manager.refresh(); err != nil {
++		return nil, err
++	}
++	go manager.startWorker()
++	return manager, nil
++}
++
++func (sm *systemdManager) startWorker() {
++	for {
++		time.Sleep(10 * time.Minute)
++		if err := sm.refresh(); err != nil {
++			slog.Debug("Error refreshing Windows services", "err", err)
++		}
++	}
++}
++
++func (sm *systemdManager) getServiceStatsCount() int {
++	sm.Lock()
++	defer sm.Unlock()
++	return len(sm.serviceStatsMap)
++}
++
++func (sm *systemdManager) getFailedServiceCount() uint16 {
++	sm.Lock()
++	defer sm.Unlock()
++	var count uint16
++	for _, service := range sm.serviceStatsMap {
++		if service.State == systemd.StatusFailed {
++			count++
++		}
++	}
++	return count
++}
++
++func (sm *systemdManager) getServiceStats(_ any, refresh bool) []*systemd.Service {
++	if refresh {
++		if err := sm.refresh(); err != nil {
++			slog.Debug("Error refreshing Windows services", "err", err)
++			return nil
++		}
++	}
++
++	sm.Lock()
++	defer sm.Unlock()
++	services := make([]*systemd.Service, 0, len(sm.serviceStatsMap))
++	for _, service := range sm.serviceStatsMap {
++		copy := *service
++		services = append(services, &copy)
++	}
++	slices.SortFunc(services, func(a, b *systemd.Service) int {
++		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name))
++	})
++	sm.hasFreshStats = false
++	return services
++}
++
++func (sm *systemdManager) refresh() error {
++	manager, err := connectWindowsServiceManager()
++	if err != nil {
++		return fmt.Errorf("connect to Windows service manager: %w", err)
++	}
++	defer manager.Disconnect()
++
++	names, err := manager.ListServices()
++	if err != nil {
++		return fmt.Errorf("list Windows services: %w", err)
++	}
++
++	fresh := make(map[string]*systemd.Service, len(names))
++	for _, name := range names {
++		windowsService, err := openWindowsService(manager, name)
++		if err != nil {
++			continue
++		}
++		config, configErr := windowsService.Config()
++		status, statusErr := windowsService.Query()
++		windowsService.Close()
++		if statusErr != nil {
++			continue
++		}
++		displayName := ""
++		if configErr == nil {
++			displayName = config.DisplayName
++		}
++		if !matchesWindowsService(sm.patterns, name, displayName) {
++			continue
++		}
++		state, subState := windowsServiceState(status, config, configErr)
++		fresh[name] = &systemd.Service{Name: name, State: state, Sub: subState}
++	}
++
++	sm.Lock()
++	sm.serviceStatsMap = fresh
++	sm.hasFreshStats = true
++	sm.Unlock()
++	return nil
++}
++
++func (sm *systemdManager) getServiceDetails(serviceName string) (systemd.ServiceDetails, error) {
++	if strings.TrimSpace(serviceName) == "" {
++		return nil, errors.New("service name is required")
++	}
++	manager, err := connectWindowsServiceManager()
++	if err != nil {
++		return nil, err
++	}
++	defer manager.Disconnect()
++
++	windowsService, err := openWindowsService(manager, serviceName)
++	if err != nil {
++		return nil, err
++	}
++	defer windowsService.Close()
++
++	config, configErr := windowsService.Config()
++	status, err := windowsService.Query()
++	if err != nil {
++		return nil, err
++	}
++	state, subState := windowsServiceState(status, config, configErr)
++	details := systemd.ServiceDetails{
++		"ActiveState": serviceStateText(state),
++		"SubState":    serviceSubStateText(subState),
++		"Result":      serviceStateText(state),
++	}
++	if configErr == nil {
++		details["Description"] = config.Description
++		details["DisplayName"] = config.DisplayName
++		// BinaryPathName may contain credentials or tokens in command-line
++		// arguments. Never transmit it to the hub. The service account is also
++		// unnecessary for availability monitoring and may identify a user.
++		details["StartType"] = config.StartType
++		details["Dependencies"] = config.Dependencies
++	}
++	return details, nil
++}
++
++func connectWindowsServiceManager() (*mgr.Mgr, error) {
++	handle, err := windows.OpenSCManager(
++		nil,
++		nil,
++		windows.SC_MANAGER_CONNECT|windows.SC_MANAGER_ENUMERATE_SERVICE,
++	)
++	if err != nil {
++		return nil, err
++	}
++	return &mgr.Mgr{Handle: handle}, nil
++}
++
++func openWindowsService(manager *mgr.Mgr, name string) (*mgr.Service, error) {
++	namePointer, err := windows.UTF16PtrFromString(name)
++	if err != nil {
++		return nil, err
++	}
++	handle, err := windows.OpenService(
++		manager.Handle,
++		namePointer,
++		windows.SERVICE_QUERY_CONFIG|windows.SERVICE_QUERY_STATUS,
++	)
++	if err != nil {
++		return nil, err
++	}
++	return &mgr.Service{Name: name, Handle: handle}, nil
++}
++
++func windowsServiceState(status svc.Status, config mgr.Config, configErr error) (systemd.ServiceState, systemd.ServiceSubState) {
++	switch status.State {
++	case svc.Running:
++		return systemd.StatusActive, systemd.SubStateRunning
++	case svc.StartPending, svc.ContinuePending:
++		return systemd.StatusActivating, systemd.SubStateUnknown
++	case svc.StopPending, svc.PausePending:
++		return systemd.StatusDeactivating, systemd.SubStateUnknown
++	case svc.Paused:
++		return systemd.StatusInactive, systemd.SubStateUnknown
++	case svc.Stopped:
++		// A stopped automatic service is actionable; manual and disabled
++		// services are simply inactive.
++		if configErr == nil && config.StartType == mgr.StartAutomatic {
++			return systemd.StatusFailed, systemd.SubStateFailed
++		}
++		return systemd.StatusInactive, systemd.SubStateDead
++	default:
++		return systemd.StatusInactive, systemd.SubStateUnknown
++	}
++}
++
++func serviceStateText(state systemd.ServiceState) string {
++	switch state {
++	case systemd.StatusActive:
++		return "active"
++	case systemd.StatusFailed:
++		return "failed"
++	case systemd.StatusActivating:
++		return "activating"
++	case systemd.StatusDeactivating:
++		return "deactivating"
++	case systemd.StatusReloading:
++		return "reloading"
++	default:
++		return "inactive"
++	}
++}
++
++func serviceSubStateText(state systemd.ServiceSubState) string {
++	switch state {
++	case systemd.SubStateRunning:
++		return "running"
++	case systemd.SubStateExited:
++		return "exited"
++	case systemd.SubStateFailed:
++		return "failed"
++	case systemd.SubStateUnknown:
++		return "unknown"
++	default:
++		return "dead"
++	}
++}
++
++func getWindowsServicePatterns() []string {
++	value, _ := utils.GetEnv("SERVICE_PATTERNS")
++	patterns := make([]string, 0)
++	for pattern := range strings.SplitSeq(value, ",") {
++		if pattern = strings.TrimSpace(pattern); pattern != "" {
++			patterns = append(patterns, strings.ToLower(pattern))
++		}
++	}
++	return patterns
++}
++
++func matchesWindowsService(patterns []string, name, displayName string) bool {
++	name = strings.ToLower(name)
++	displayName = strings.ToLower(displayName)
++	for _, pattern := range patterns {
++		if matched, _ := path.Match(pattern, name); matched {
++			return true
++		}
++		if matched, _ := path.Match(pattern, displayName); matched {
++			return true
++		}
++	}
++	return false
++}
+warning: in the working copy of 'agent/windows_metrics_test.go', LF will be replaced by CRLF the next time Git touches it
+diff --git a/agent/windows_metrics_test.go b/agent/windows_metrics_test.go
+new file mode 100644
+index 0000000..e6cbe77
+--- /dev/null
++++ b/agent/windows_metrics_test.go
+@@ -0,0 +1,56 @@
++//go:build windows
++
++package agent
++
++import (
++	"strings"
++	"testing"
++
++	"github.com/henrygd/beszel/internal/entities/system"
++)
++
++func TestWindowsGPUCounterParser(t *testing.T) {
++	manager := &GPUManager{GpuDataMap: map[string]*system.GPUData{
++		"0": {Name: "Test GPU"},
++	}}
++	input := strings.Join([]string{
++		`"PDH-CSV 4.0","\\\\HOST\\GPU Engine(pid_1_luid_0x00000000_0x0000D780_phys_0_eng_0_engtype_3D)\\Utilization Percentage","\\\\HOST\\GPU Engine(pid_2_luid_0x00000000_0x0000D780_phys_0_eng_0_engtype_3D)\\Utilization Percentage","\\\\HOST\\GPU Engine(pid_3_luid_0x00000000_0x0000D780_phys_0_eng_1_engtype_Copy)\\Utilization Percentage"`,
++		`"08/18/2026 17:00:00.000","7.5","5.0","3.0"`,
++	}, "\n")
++	if err := manager.readWindowsGPUCounter(strings.NewReader(input)); err != nil {
++		t.Fatal(err)
++	}
++	if got := manager.GetCurrentData(0)["0"].Usage; got != 12.5 {
++		t.Fatalf("expected max engine utilization 12.5, got %v", got)
++	}
++}
++
++func TestWindowsGPUCounterCreatesFallbackGPU(t *testing.T) {
++	manager := &GPUManager{GpuDataMap: make(map[string]*system.GPUData)}
++	input := strings.Join([]string{
++		`"PDH-CSV 4.0","\\\\HOST\\GPU Engine(pid_1_luid_0x00000000_0x0000D780_phys_0_eng_0_engtype_3D)\\Utilization Percentage"`,
++		`"08/18/2026 17:00:00.000","6.25"`,
++	}, "\n")
++	if err := manager.readWindowsGPUCounter(strings.NewReader(input)); err != nil {
++		t.Fatal(err)
++	}
++	gpu := manager.GetCurrentData(0)["0"]
++	if gpu.Name != "Windows GPU" || gpu.Usage != 6.25 {
++		t.Fatalf("expected Windows GPU at 6.25%%, got %#v", gpu)
++	}
++}
++
++func TestWindowsServiceCollection(t *testing.T) {
++	t.Setenv("SERVICE_PATTERNS", "BeszelAgent")
++	manager, err := newSystemdManager()
++	if err != nil {
++		t.Fatal(err)
++	}
++	if manager == nil {
++		t.Fatal("expected Windows service manager")
++	}
++	services := manager.getServiceStats(nil, false)
++	if len(services) == 0 {
++		t.Fatal("expected at least one Windows service")
++	}
++}

@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Release 0.5.0-alpha.2 adds experimental, isolated Uptime Kuma monitoring and recovery**, alongside the Glance starter. Separate CLIs support reviewed plans, bounded lifecycle operations and application-specific recovery rehearsals. The wizard and general application planner remain planning-only. These are bounded Phase 4 milestones, not a full-stack or production-ready installer. Existing deployments are never adopted.
+**Release candidate 0.5.0-rc.1 integrates the bounded Phase 4 visibility and utility modules**: Glance, Uptime Kuma, Beszel, Stirling-PDF and opt-in Portainer. Each adapter retains an independent ownership, permission and recovery boundary. The general planner remains planning-only, production deployments are never adopted, and the remaining manual/runtime gates are published rather than hidden behind a stable-release claim.
 
 ## What this project is building
 
@@ -21,10 +21,19 @@ One entry point does **not** mean one giant container or one shared database. Ea
 
 | Read | Purpose |
 | --- | --- |
+| [Documentation hub](docs/README.md) | Navigate setup, modules, operations, validation and releases |
 | [Planning CLI guide](docs/planning.md) | Run the wizard, check your host and review a redacted plan |
 | [Synthetic execution guide](docs/safe-execution.md) | Phase 3 permissions, ownership, secrets, retries and data-preserving retirement |
-| [Experimental Glance module](docs/glance-module.md) | First isolated application, explicit limits, lifecycle and starter recovery |
-| [Experimental Uptime Kuma module](docs/kuma-module.md) | Synthetic monitors, selected status page, outage exercise and stopped-state recovery |
+| [Experimental Glance module](docs/glance-module.md) | Isolated starter lifecycle plus reusable operations layouts and privacy-filtered collectors |
+| [Glance operations profile](docs/glance-operations-layout.md) | Seven-page reusable layout, host snapshots and internal read-only metrics sidecar |
+| [Experimental Uptime Kuma module](docs/kuma-module.md) | Synthetic lifecycle, selected status page, outage exercise and stopped-state recovery |
+| [Kuma desired-state configuration](docs/kuma-configuration.md) | Reusable HTTP checks, status groups, private webhook/SMTP profiles and delivery testing |
+| [Beszel module candidate](docs/beszel-module.md) | Isolated upstream hub/agent, limited metrics scope and recovery; validation gates pending |
+| [Beszel Windows host adapter](docs/beszel-windows-host.md) | Existing NSSM agent audit, version-local host metrics, rollback-safe upgrade candidate |
+| [Stirling-PDF module candidate](docs/stirling-pdf-module.md) | Isolated PDF rotation exercise, bounded resources and stopped-state recovery |
+| [Optional Portainer module](docs/portainer-module.md) | Explicit isolated-engine control, loopback HTTPS and stopped-state recovery |
+| [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
+| [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
 | [Current inventory](docs/inventory.md) | What was observed and what still needs verification |
 | [Phase 1 findings](docs/discovery/findings.md) | Recovery risks and reproducibility gaps found in the real configuration |
@@ -46,6 +55,7 @@ python -m homelab catalog
 python -m homelab plan --config examples/windows.settings.example.json
 python -m homelab doctor
 python tools/validate_repository.py
+python tools/validate_phase4.py
 python -m unittest discover -s tests -v
 ```
 
@@ -55,7 +65,7 @@ Windows also supports `./bootstrap.ps1 catalog`; Linux/macOS supports `sh ./boot
 
 For the opt-in Windows/PowerShell 7 read-only metadata collector, see [evidence and privacy instructions](docs/discovery/evidence.md). Its report belongs outside Git. Windows collector regression tests use mocks and can be run with `./tests/Test-ReferenceCollector.ps1`.
 
-General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). The separate experimental `glance` and `kuma` commands are the only Docker execution paths. Do not run a remotely downloaded script with administrator privileges on trust alone.
+General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling` and opt-in `portainer` candidates are bounded Docker execution paths; they do not enable the general planner. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
 
 ## Service families
 
@@ -65,7 +75,7 @@ General application deployment and recovery remain future capabilities described
 - Development and communication: code-server, Coolify, Matrix/Element.
 - Utilities and infrastructure: Stirling-PDF, Portainer, Cloudflare Tunnel, Tailscale.
 
-The machine-readable [catalog](catalog/services.json) describes 21 modules whose full integration remains planned. The separate Glance starter and synthetic Kuma experiments do not certify their full catalog modules or enable the general planner to execute. Native integrations and Coolify have additional platform constraints.
+The machine-readable [catalog](catalog/services.json) describes 21 modules whose general-coordinator integration remains planned. Phase 4's five separately gated adapters do not enable the general planner or certify production migration. Native integrations and Coolify have additional platform constraints.
 
 ## Safety and scope
 
@@ -76,7 +86,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and [release notes](docs/releases/v0.5.0-alpha.2.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md).
 
 ## License
 

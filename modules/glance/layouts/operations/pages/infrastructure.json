@@ -1,0 +1,30 @@
+{
+  "name": "Infrastructure",
+  "slug": "infrastructure",
+  "columns": [
+    {
+      "size": "full",
+      "widgets": [
+        {
+          "type": "custom-api",
+          "title": "Host & container capacity",
+          "cache": "30s",
+          "url": "http://metrics:8765/v1/resources",
+          "template": "<div class=\"flex justify-between text-center\"><div><div class=\"color-highlight size-h3\">{{ .JSON.String \"host.platform\" }}</div><div class=\"size-h6\">HOST</div></div><div><div class=\"color-highlight size-h3\">{{ if .JSON.Bool \"host.metrics_available\" }}{{ .JSON.Float \"host.cpu_percent\" }}%{{ else }}N/A{{ end }}</div><div class=\"size-h6\">HOST CPU</div></div><div><div class=\"color-highlight size-h3\">{{ if .JSON.Bool \"host.metrics_available\" }}{{ .JSON.Float \"host.memory_used_gib\" }} GiB{{ else }}N/A{{ end }}</div><div class=\"size-h6\">MEMORY USED</div></div><div><div class=\"color-highlight size-h3\">{{ .JSON.Int \"docker.attention\" }}</div><div class=\"size-h6\">CONTAINER ALERTS</div></div></div>"
+        },
+        {
+          "type": "custom-api",
+          "title": "Allowlisted containers",
+          "cache": "30s",
+          "url": "http://metrics:8765/v1/resources",
+          "template": "<ul class=\"list list-gap-10 collapsible-container\">{{ range .JSON.Array \"docker.selected\" }}<li><div class=\"flex justify-between\"><div><div>{{ .String \"label\" }}</div><div class=\"size-h6 color-paragraph\">{{ .String \"state\" }} · health {{ .String \"health\" }} · restarts {{ .Int \"restarts\" }}</div></div><span class=\"color-highlight\">{{ .String \"status\" }}</span></div></li>{{ else }}<li>No containers selected</li>{{ end }}</ul>"
+        },
+        {
+          "type": "html",
+          "title": "Privacy boundary",
+          "source": "<p>Container discovery is deny-by-default. Only explicitly configured containers are named in snapshots; environment values, labels, mounts, commands and logs are never exported.</p>"
+        }
+      ]
+    }
+  ]
+}

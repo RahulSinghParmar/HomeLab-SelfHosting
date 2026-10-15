@@ -1,0 +1,28 @@
+{
+  "name": "Security & Public Access",
+  "slug": "security-public-access",
+  "columns": [
+    {
+      "size": "full",
+      "widgets": [
+        {
+          "type": "custom-api",
+          "title": "TLS certificate horizon",
+          "cache": "30m",
+          "url": "http://metrics:8765/v1/security",
+          "template": "<ul class=\"list list-gap-10 collapsible-container\">{{ range .JSON.Array \"tls\" }}<li><div class=\"flex justify-between\"><span>{{ .String \"label\" }}</span><span class=\"color-highlight\">{{ .Int \"days_remaining\" }} days · {{ .String \"status\" }}</span></div></li>{{ else }}<li>No TLS checks selected</li>{{ end }}</ul>"
+        },
+        {
+          "type": "html",
+          "title": "Public-access boundary",
+          "source": "<p>Public routes are opt-in configuration. The collector never follows redirects, sends authentication headers, stores response bodies, edits DNS, opens firewall ports, or changes tunnel configuration.</p>"
+        },
+        {
+          "type": "html",
+          "title": "Suggested review order",
+          "source": "<ol><li>Investigate unavailable local service checks.</li><li>Renew certificates before the warning window.</li><li>Confirm authentication and WebSocket behavior with a real client.</li><li>Keep administration endpoints private.</li></ol>"
+        }
+      ]
+    }
+  ]
+}

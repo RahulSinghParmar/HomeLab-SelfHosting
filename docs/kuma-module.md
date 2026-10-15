@@ -11,7 +11,7 @@ Version **0.5.0-alpha.2** is a bounded Phase 4 experiment, not a production-moni
 - Dedicated bridge network with **outbound access allowed**; only Kuma is published on `127.0.0.1`. No Docker socket, host mounts, devices or added capabilities. Read-only root filesystems, no-new-privileges and a limited Kuma `/tmp`. The upstream image's root user is retained inside the container.
 - `/app/data` is an owned Docker named volume, not the installation directory. Its physical drive follows Docker Desktop storage settings. Stopping/removing the trial never deletes this volume.
 
-Only HTTP checks used here are tested. Docker, ICMP, browser-based and other privileged/specialized monitors are not certified. No SMTP, push tokens, public tunnel, real notifications or existing account import is configured. A status page describes selected synthetic checks; it is not an authorization boundary or proof that all host services are healthy.
+Only HTTP checks used here are tested. Docker, ICMP, browser-based and other privileged/specialized monitors are not certified. The unreleased [desired-state extension](kuma-configuration.md) adds bounded webhook/SMTP support for this isolated project; it does not import existing accounts, monitors, tokens or public tunnels. A status page describes selected checks; it is not an authorization boundary or proof that all host services are healthy.
 
 ## Plan and start
 
@@ -70,7 +70,7 @@ python -m homelab kuma stop --plan D:/HomeLab-Trials/kuma-plan.json --confirm FU
 python -m homelab kuma backup --plan D:/HomeLab-Trials/kuma-plan.json --confirm FULL_PLAN_ID --output D:/HomeLab-Trials/kuma-snapshot
 ```
 
-The snapshot contains the **complete `/app/data` tree**, `credentials.json` and a manifest with image identity, SHA-256 file hashes and semantic SQLite evidence. Validation requires a healthy database, the exact two synthetic monitors, one expected account/status page, no notification integrations and nonempty heartbeat history. This is deliberately not a production backup utility.
+The snapshot contains the **complete `/app/data` tree**, `credentials.json` and a manifest with image identity, SHA-256 file hashes and semantic SQLite evidence. New v2 manifests validate a bounded HTTP monitor set, supported webhook/SMTP provider types, one expected account/status page and nonempty heartbeat history; endpoints and provider secrets are represented only by one-way fingerprints. Legacy v1 synthetic-only snapshots remain accepted. This is deliberately not a production backup utility.
 
 **The snapshot is unencrypted and contains credentials.** Private ACLs/modes restrict normal local access; they do not protect against Docker administrators, the same user or privileged tampering. Keep it outside Git, do not upload it to CI and use a separately reviewed encrypted off-host recovery process before relying on it for disaster recovery. Checksums detect accidental drift, not malicious replacement of both files and manifest. A successful copy reports `recovery_verified: false` until you perform the following independent rehearsal:
 

@@ -1,0 +1,35 @@
+{
+  "name": "Storage & Backups",
+  "slug": "storage-backups",
+  "columns": [
+    {
+      "size": "full",
+      "widgets": [
+        {
+          "type": "split-column",
+          "widgets": [
+            {
+              "type": "custom-api",
+              "title": "Storage capacity",
+              "cache": "1m",
+              "url": "http://metrics:8765/v1/storage",
+              "template": "<ul class=\"list list-gap-10 collapsible-container\">{{ range .JSON.Array \"volumes\" }}<li><div class=\"flex justify-between\"><div><div>{{ .String \"label\" }}</div><div class=\"size-h6 color-paragraph\">{{ .Float \"free_gib\" }} GiB free of {{ .Float \"total_gib\" }} GiB</div></div><span class=\"color-highlight\">{{ .Float \"used_percent\" }}%</span></div></li>{{ else }}<li>No storage paths selected</li>{{ end }}</ul>"
+            },
+            {
+              "type": "custom-api",
+              "title": "Backup freshness",
+              "cache": "1m",
+              "url": "http://metrics:8765/v1/storage",
+              "template": "<ul class=\"list list-gap-10 collapsible-container\">{{ range .JSON.Array \"backups\" }}<li><div class=\"flex justify-between\"><div><div>{{ .String \"label\" }}</div><div class=\"size-h6 color-paragraph\">Age {{ .Float \"age_hours\" }} hours · {{ .Int \"artifact_count\" }} artifact(s)</div></div><span class=\"color-highlight\">{{ .String \"status\" }}</span></div></li>{{ else }}<li>No backup paths selected</li>{{ end }}</ul>"
+            }
+          ]
+        },
+        {
+          "type": "html",
+          "title": "Recovery truth",
+          "source": "<p>Freshness confirms only that a nonempty artifact exists. It does not prove database consistency, secret portability, retention compliance, or a successful restore. Keep restore evidence in the application runbook.</p>"
+        }
+      ]
+    }
+  ]
+}

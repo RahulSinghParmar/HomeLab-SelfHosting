@@ -1,0 +1,65 @@
+{
+  "name": "Home",
+  "slug": "home",
+  "show-mobile-header": true,
+  "columns": [
+    {
+      "size": "small",
+      "widgets": [
+        {"type": "clock", "hour-format": "24h"},
+        {
+          "type": "bookmarks",
+          "title": "Operations",
+          "groups": [
+            {"title": "Observe", "links": [
+              {"title": "Infrastructure", "url": "/infrastructure"},
+              {"title": "Live system", "url": "/live-system"},
+              {"title": "Storage & backups", "url": "/storage-backups"}
+            ]},
+            {"title": "Review", "links": [
+              {"title": "Applications & services", "url": "/applications-services"},
+              {"title": "Security & public access", "url": "/security-public-access"},
+              {"title": "Intelligence & development", "url": "/intelligence-development"}
+            ]}
+          ]
+        }
+      ]
+    },
+    {
+      "size": "full",
+      "widgets": [
+        {
+          "type": "custom-api",
+          "title": "Command Center",
+          "cache": "30s",
+          "url": "http://metrics:8765/v1/overview",
+          "template": "<div class=\"flex justify-between text-center\"><div><div class=\"color-highlight size-h2\">{{ .JSON.String \"status\" }}</div><div class=\"size-h6\">OVERALL STATE</div></div><div><div class=\"color-highlight size-h2\">{{ .JSON.Int \"healthy_sections\" }}/4</div><div class=\"size-h6\">HEALTHY SECTIONS</div></div><div><div class=\"color-highlight size-h2\">{{ .JSON.Int \"attention_sections\" }}</div><div class=\"size-h6\">NEEDS ATTENTION</div></div></div><p class=\"margin-top-15 size-h6 color-paragraph\">Snapshot age: {{ .JSON.Int \"age_seconds\" }} seconds{{ if .JSON.Bool \"stale\" }} · STALE{{ end }}</p>"
+        },
+        {
+          "type": "split-column",
+          "widgets": [
+            {
+              "type": "custom-api",
+              "title": "Host resources",
+              "cache": "30s",
+              "url": "http://metrics:8765/v1/resources",
+              "template": "<div class=\"flex justify-between text-center\"><div><div class=\"color-highlight size-h3\">{{ .JSON.Int \"host.cpu_count\" }}</div><div class=\"size-h6\">CPU THREADS</div></div><div><div class=\"color-highlight size-h3\">{{ if .JSON.Bool \"host.metrics_available\" }}{{ .JSON.Float \"host.memory_percent\" }}%{{ else }}N/A{{ end }}</div><div class=\"size-h6\">MEMORY</div></div><div><div class=\"color-highlight size-h3\">{{ .JSON.Int \"docker.running\" }}</div><div class=\"size-h6\">SELECTED RUNNING</div></div></div>"
+            },
+            {
+              "type": "custom-api",
+              "title": "Service reachability",
+              "cache": "30s",
+              "url": "http://metrics:8765/v1/services",
+              "template": "<ul class=\"list list-gap-10 collapsible-container\">{{ range .JSON.Array \"endpoints\" }}<li><div class=\"flex justify-between\"><span>{{ .String \"label\" }}</span><span class=\"color-highlight\">{{ .String \"status\" }} · HTTP {{ .Int \"http_status\" }}</span></div></li>{{ else }}<li>No endpoints selected</li>{{ end }}</ul>"
+            }
+          ]
+        },
+        {
+          "type": "html",
+          "title": "How to read this dashboard",
+          "source": "<p>Every operational card is backed by a bounded local snapshot. Missing data stays visibly unavailable; it is never converted to zero or healthy. The dashboard has no Docker socket, host filesystem access, or application credentials.</p>"
+        }
+      ]
+    }
+  ]
+}

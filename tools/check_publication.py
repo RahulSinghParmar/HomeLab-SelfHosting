@@ -29,8 +29,12 @@ def inspect_text(path: str, content: str) -> list[str]:
         for name, pattern in PATTERNS.items():
             if pattern.search(line):
                 # The synthetic URL regression fixture deliberately tests rejection.
-                fixture = '"https://' + 'user:example@example.com/repo"'
-                if name == "credentialed-url" and path == "tests/test_repository.py" and fixture in line:
+                fixtures = {
+                    "tests/test_repository.py": '"https://' + 'user:example@example.com/repo"',
+                    "tests/test_kuma_config.py": "'https://" + "user:secret@example.test/'",
+                }
+                fixture = fixtures.get(path)
+                if name == "credentialed-url" and fixture is not None and fixture in line:
                     continue
                 findings.append(f"{path}:{number}: {name}")
     return findings

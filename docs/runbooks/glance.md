@@ -20,11 +20,11 @@ Digest-pinned dashboard; host port 8081.
 
 ## Installation and dependencies
 
-There is no installer/template for this module in this release. Reproduce the observed component set only in a separately approved disposable project, using compatible pinned releases and the [platform matrix](../platform-support.md). Existing state must not be implicitly adopted.
+The original private deployment is not adopted. Phase 4 now includes a separately bounded [reusable operations profile](../glance-operations-layout.md), privacy-filtered host snapshots and an internal read-only metrics sidecar. Use it only in a fresh reviewed project with compatible pinned releases and the [platform matrix](../platform-support.md).
 
 ## Configuration mapping
 
-- Reusable after review: Layout/pages, widget structure and stale-data handling.
+- Reusable after review: Seven-page operations layout, internal widget structure, stale-data handling, allowlisted aggregate host collection and sidecar snapshot serving.
 - Private installation values: Domains, API keys, account IDs, private feeds and personal statistics.
 - Manual/platform-specific work: Re-register owner-selected feeds and API permissions; inspect every widget before export.
 

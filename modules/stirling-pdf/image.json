@@ -1,0 +1,6 @@
+{
+  "version": "2.14.2",
+  "image": "stirlingtools/stirling-pdf@sha256:7ed4d9681d18e4fbc3aa6a63647c4b5c2bcc4b75841df7c05d7e3d2320f5c9a1",
+  "tested_architecture": "amd64",
+  "upstream": "https://github.com/Stirling-Tools/Stirling-PDF/tree/v2.14.2"
+}

@@ -1,0 +1,87 @@
+name: homelab-glance-operations
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "5m"
+    max-file: "2"
+
+services:
+  metrics:
+    image: python@sha256:540c7d91f98ff6880174c40e99067bf5941eb54d818a7a5e094d188b196a934d
+    command: ["python", "/app/metrics_server.py"]
+    environment:
+      GLANCE_SNAPSHOT_DIR: /data
+      GLANCE_METRICS_PORT: "8765"
+      GLANCE_MAX_SNAPSHOT_AGE: "300"
+    volumes:
+      - type: bind
+        source: ./collector/metrics_server.py
+        target: /app/metrics_server.py
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${GLANCE_SNAPSHOT_DIR:?set GLANCE_SNAPSHOT_DIR to the private snapshot directory}
+        target: /data
+        read_only: true
+        bind:
+          create_host_path: false
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 64m
+    cpus: 0.25
+    pids_limit: 64
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/healthz', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    logging: *default-logging
+
+  dashboard:
+    image: glanceapp/glance@sha256:9dfb09470b207dcb67ac715994bdb1929374ba3f9c0d7df7462c24adf10fd073
+    depends_on:
+      metrics:
+        condition: service_healthy
+    ports:
+      - target: 8080
+        published: ${GLANCE_PORT:-18081}
+        host_ip: 127.0.0.1
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: ${GLANCE_CONFIG_FILE:?set GLANCE_CONFIG_FILE to the rendered layout JSON}
+        target: /app/config/glance.yml
+        read_only: true
+        bind:
+          create_host_path: false
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 100
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/api/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging: *default-logging
+
+networks:
+  default:
+    driver: bridge

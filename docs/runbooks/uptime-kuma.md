@@ -24,7 +24,7 @@ The Phase 1 discovery did not include an installer. Version 0.5.0-alpha.2 now pr
 
 ## Configuration mapping
 
-- Reusable after review: Idempotent monitor registration and explicit public-status selection.
+- Reusable after review: Idempotent HTTP monitor registration, webhook/SMTP notification profiles and explicit public-status selection through the [isolated desired-state workflow](../kuma-configuration.md).
 - Private installation values: Check URLs, push tokens, monitor IDs, notifications and historical statistics.
 - Manual/platform-specific work: Recreate host-specific checks and notification integrations; provide portable encrypted token recovery.
 
@@ -44,7 +44,7 @@ No start, stop, restart, migration, backup or restore was executed for Phase 1. 
 
 ## Backup and recovery
 
-No dedicated scheduled Kuma backup identified. Preserve the complete application data with a version-compatible consistent backup; do not copy a live SQLite file alone.
+No dedicated scheduled production Kuma backup identified. The isolated module supports a stopped-state v2 snapshot containing complete data, credentials and notification-aware semantic evidence; do not copy a live SQLite file alone.
 
 Follow the [recovery contract](../recovery.md); reported task success and old verification metadata are not a new restore rehearsal.
 

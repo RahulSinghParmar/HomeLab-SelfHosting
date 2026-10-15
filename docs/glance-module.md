@@ -79,4 +79,4 @@ Host execution requires Docker access, which is powerful. File permissions are o
 - Raw Docker logs are not echoed by the coordinator. Inspect only the identified trial locally if a command fails, and sanitize before sharing.
 - No upgrade or automated rollback command exists. Retain the tagged source, export configuration, and test a new reviewed image/template in a separate root. Never run a general Compose command against existing production folders as part of this experiment.
 
-Uptime Kuma check registration/state transitions, Beszel host data, richer dashboard customization, Stirling-PDF and opt-in Portainer are later Phase 4 milestones.
+The separately tested [operations layout and collectors](glance-operations-layout.md) now provide richer reusable pages without changing this starter's certified lifecycle contract. They deliberately remain a rendered profile, one-shot host collector and Compose example rather than silently upgrading or adopting this starter. Uptime Kuma, Beszel, Stirling-PDF and opt-in Portainer retain independent lifecycle and recovery boundaries.

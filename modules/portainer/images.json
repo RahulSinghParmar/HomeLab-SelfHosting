@@ -1,0 +1,9 @@
+{
+  "portainer_version": "2.39.8",
+  "portainer_image": "portainer/portainer-ce@sha256:da7f74b74c7f37c50d2ebd3db4c6bcfdbf2fe9ca1e8b4c6c0203e39fde1fd249",
+  "engine_version": "29.9.0",
+  "engine_image": "docker@sha256:0b6d18a4a222e71c88be6034926b4f6cde2fc33c2218643d03ccfddc65995470",
+  "tested_architecture": "amd64",
+  "portainer_upstream": "https://github.com/portainer/portainer/tree/2.39.8",
+  "engine_upstream": "https://github.com/docker-library/docker/tree/29.9.0"
+}

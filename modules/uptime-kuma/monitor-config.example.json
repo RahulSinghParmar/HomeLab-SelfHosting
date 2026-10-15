@@ -1,0 +1,70 @@
+{
+  "kind": "homelab-kuma-config",
+  "schema_version": 1,
+  "monitors": [
+    {
+      "id": "fixture",
+      "name": "Blueprint fixture",
+      "type": "http",
+      "url": "http://fixture:8080",
+      "interval_seconds": 60,
+      "retry_interval_seconds": 30,
+      "retries": 2,
+      "timeout_seconds": 10,
+      "method": "GET",
+      "accepted_status_codes": ["200-299"],
+      "follow_redirects": true,
+      "tls_verify": true,
+      "upside_down": false,
+      "notification_ids": ["private-webhook"]
+    },
+    {
+      "id": "kuma-self",
+      "name": "Blueprint self-check",
+      "type": "http",
+      "url": "http://127.0.0.1:3001",
+      "interval_seconds": 60,
+      "retry_interval_seconds": 30,
+      "retries": 2,
+      "timeout_seconds": 10,
+      "method": "GET",
+      "accepted_status_codes": ["200-399"],
+      "follow_redirects": true,
+      "tls_verify": true,
+      "upside_down": false,
+      "notification_ids": []
+    }
+  ],
+  "notifications": [
+    {
+      "id": "private-webhook",
+      "name": "Private webhook",
+      "type": "webhook",
+      "enabled": true,
+      "url": null,
+      "url_secret": "private-webhook-url",
+      "method": "POST",
+      "content_type": "json",
+      "additional_headers_secret": null
+    }
+  ],
+  "status_page": {
+    "slug": "blueprint",
+    "title": "HomeLab services",
+    "description": "Synthetic isolated monitoring module.",
+    "theme": "dark",
+    "refresh_seconds": 60,
+    "show_tags": false,
+    "show_powered_by": true,
+    "footer": "Local monitoring evidence",
+    "show_only_last_heartbeat": false,
+    "show_certificate_expiry": true,
+    "groups": [
+      {
+        "name": "Core services",
+        "monitor_ids": ["fixture", "kuma-self"],
+        "show_urls": false
+      }
+    ]
+  }
+}

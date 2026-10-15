@@ -16,6 +16,7 @@ from .glance import docker, local_runtime, port_free
 from .privatefs import (atomic_json, create_lock_file, create_private_directory,
                         operation_lock, read_private, safe_path, verify_private, windows_acl)
 from .sandbox import digest, pending_guard
+from . import kuma_config
 
 MODULE = ROOT / 'modules/uptime-kuma'
 FIXTURE = "require('http').createServer((q,s)=>{s.writeHead(200,{'Content-Type':'text/plain'});s.end('Synthetic fixture OK');}).listen(8080,'0.0.0.0');"
@@ -234,6 +235,35 @@ def operate(plan, action, confirmation=None):
                 'url': 'http://127.0.0.1:' + str(plan['port']), 'application_health': 'requires-application-verification', 'data_volume_retained': bool(resources['volumes'])}
 
 
+def configure(plan, action, config_path, secrets_path=None, confirmation=None):
+    """Validate, reconcile, inspect, or test a reviewed isolated Kuma configuration."""
+    validate_plan(plan)
+    need(action in ('apply-config', 'inspect-config', 'test-notifications'), 'Unsupported Kuma configuration action')
+    if action != 'inspect-config':
+        need(confirmation == plan['plan_id'], 'Confirm the complete reviewed plan ID')
+    config = kuma_config.load_and_validate(Path(config_path))
+    values = kuma_config.load_secret_values(Path(secrets_path) if secrets_path is not None else None, config)
+    if action == 'test-notifications':
+        need(bool([row for row in config['notifications'] if row['enabled']]), 'No enabled notification is configured')
+    materialized = kuma_config.materialize(config, values)
+    need(local_runtime() == plan['runtime'], 'Local Docker context/engine changed')
+    root = Path(plan['root'])
+    with operation_lock(root / 'operation.lock'):
+        state = state_read(plan)
+        resources = inventory(plan, state['owner'])
+        containers = resources['containers']
+        need(state['status'] == 'running' and set(containers) == {'kuma', 'fixture'}
+             and containers['kuma']['State']['Running'], 'Kuma is not running')
+        request = {**read_private(root / 'credentials.json'), 'action': action, 'configuration': materialized}
+        output = docker(['exec', '-i', containers['kuma']['Id'], 'node', '-e',
+                         (MODULE / 'configure.cjs').read_text(encoding='utf-8')],
+                        context=plan['runtime']['context'], input_text=json.dumps(request))
+        result = json.loads(output)
+        need(result.get('configuration_hash') == kuma_config.configuration_hash(config),
+             'Kuma returned mismatched configuration evidence')
+        return result
+
+
 def file_hash(path):
     result = hashlib.sha256()
     with path.open('rb') as source:
@@ -275,13 +305,57 @@ def _database_summary(data):
     with closing(sqlite3.connect(db.as_uri() + '?mode=ro', uri=True)) as connection:
         need(connection.execute('PRAGMA quick_check').fetchall() == [('ok',)], 'SQLite integrity check failed')
         monitors = connection.execute('SELECT name,type,url FROM monitor ORDER BY name').fetchall()
-        need(monitors == [('Blueprint fixture', 'http', 'http://fixture:8080'), ('Blueprint self-check', 'http', 'http://127.0.0.1:3001')], 'This milestone restores only the synthetic monitor set')
-        need(connection.execute('SELECT COUNT(*) FROM notification').fetchone()[0] == 0, 'Notifications are outside isolated recovery scope')
+        need(1 <= len(monitors) <= kuma_config.MAX_MONITORS and len({row[0] for row in monitors}) == len(monitors)
+             and all(row[1] == 'http' for row in monitors), 'Unexpected monitor set in Kuma snapshot')
+        notification_columns = {row[1] for row in connection.execute('PRAGMA table_info(notification)').fetchall()}
+        need({'name', 'config'} <= notification_columns, 'Kuma notification schema is unsupported')
+        notification_rows = connection.execute('SELECT name,config FROM notification ORDER BY name').fetchall()
+        need(len(notification_rows) <= kuma_config.MAX_NOTIFICATIONS
+             and len({row[0] for row in notification_rows}) == len(notification_rows),
+             'Unexpected notification set in Kuma snapshot')
+        notifications = []
+        for name, encoded in notification_rows:
+            try:
+                specification = json.loads(encoded)
+            except (TypeError, json.JSONDecodeError) as error:
+                raise ConfigError('Kuma notification configuration cannot be validated') from error
+            need(isinstance(specification, dict) and specification.get('type') in ('webhook', 'smtp'),
+                 'Unsupported notification provider in Kuma snapshot')
+            notifications.append((name, specification['type']))
         need(connection.execute('SELECT username FROM user').fetchall() == [('blueprint-admin',)], 'Unexpected account set')
-        need(connection.execute('SELECT slug FROM status_page').fetchall() == [('blueprint',)], 'Unexpected status page set')
+        pages = connection.execute('SELECT slug FROM status_page ORDER BY slug').fetchall()
+        need(len(pages) == 1, 'Unexpected status page set')
         beats = connection.execute('SELECT status,COUNT(*) FROM heartbeat GROUP BY status ORDER BY status').fetchall()
         need(sum(row[1] for row in beats) > 0, 'Nonempty heartbeat history required')
-        return {'monitor_count': len(monitors), 'user_count': 1, 'status_page_count': 1, 'heartbeats': {str(s): n for s, n in beats}}
+        return {'monitor_count': len(monitors), 'notification_count': len(notifications),
+                'user_count': 1, 'status_page_count': 1, 'heartbeats': {str(s): n for s, n in beats},
+                'monitor_fingerprint': hashlib.sha256(canonical(monitors).encode('utf-8')).hexdigest(),
+                'notification_fingerprint': hashlib.sha256(canonical(notifications).encode('utf-8')).hexdigest()}
+
+
+def legacy_database_summary(data):
+    """Validate v1 synthetic-only backups without weakening the new v2 contract."""
+    db = data / 'kuma.db'
+    need(db.is_file(), 'Snapshot has no Kuma database')
+    try:
+        with closing(sqlite3.connect(db.as_uri() + '?mode=ro', uri=True)) as connection:
+            need(connection.execute('PRAGMA quick_check').fetchall() == [('ok',)], 'SQLite integrity check failed')
+            monitors = connection.execute('SELECT name,type,url FROM monitor ORDER BY name').fetchall()
+            need(monitors == [('Blueprint fixture', 'http', 'http://fixture:8080'),
+                              ('Blueprint self-check', 'http', 'http://127.0.0.1:3001')],
+                 'Legacy backup has an unexpected monitor set')
+            need(connection.execute('SELECT COUNT(*) FROM notification').fetchone()[0] == 0,
+                 'Legacy backups cannot contain notifications')
+            need(connection.execute('SELECT username FROM user').fetchall() == [('blueprint-admin',)],
+                 'Unexpected account set')
+            need(connection.execute('SELECT slug FROM status_page').fetchall() == [('blueprint',)],
+                 'Unexpected status page set')
+            beats = connection.execute('SELECT status,COUNT(*) FROM heartbeat GROUP BY status ORDER BY status').fetchall()
+            need(sum(row[1] for row in beats) > 0, 'Nonempty heartbeat history required')
+            return {'monitor_count': len(monitors), 'user_count': 1, 'status_page_count': 1,
+                    'heartbeats': {str(status): count for status, count in beats}}
+    except sqlite3.Error as error:
+        raise ConfigError('SQLite snapshot cannot be validated; retain private evidence') from error
 
 
 def verify_backup(root):
@@ -289,10 +363,13 @@ def verify_backup(root):
     verify_private(root, directory=True)
     manifest = read_private(root / 'manifest.json')
     keys(manifest, {'kind', 'image', 'files', 'credential_hash', 'summary'}, 'Kuma backup manifest')
-    need(manifest['kind'] == 'kuma-stopped-backup-v1' and manifest['image'] == load_json(MODULE / 'image.json')['image'], 'Backup image/format mismatch')
+    need(manifest['kind'] in ('kuma-stopped-backup-v1', 'kuma-stopped-backup-v2')
+         and manifest['image'] == load_json(MODULE / 'image.json')['image'], 'Backup image/format mismatch')
     need(tree_files(root / 'data') == manifest['files'], 'Backup content checksum mismatch')
     need(digest(read_private(root / 'credentials.json')) == manifest['credential_hash'], 'Backup credential mismatch')
-    need(database_summary(root / 'data') == manifest['summary'], 'Backup content evidence mismatch')
+    summary = (legacy_database_summary(root / 'data') if manifest['kind'] == 'kuma-stopped-backup-v1'
+               else database_summary(root / 'data'))
+    need(summary == manifest['summary'], 'Backup content evidence mismatch')
     return manifest
 
 
@@ -315,7 +392,7 @@ def backup(plan, destination, confirmation):
         summary = database_summary(destination / 'data')
         credentials = read_private(root / 'credentials.json')
         atomic_json(destination / 'credentials.json', credentials)
-        atomic_json(destination / 'manifest.json', {'kind': 'kuma-stopped-backup-v1', 'image': plan['image'],
+        atomic_json(destination / 'manifest.json', {'kind': 'kuma-stopped-backup-v2', 'image': plan['image'],
                     'files': tree_files(destination / 'data'), 'credential_hash': digest(credentials), 'summary': summary})
         verify_backup(destination)
         return {'backup_complete': True, 'encrypted': False, 'contains_credentials': True, 'summary': summary,

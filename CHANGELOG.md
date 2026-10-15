@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.0-rc.1 — 2026-10-15
+
+- Integrated the independently gated Glance, Uptime Kuma, Beszel, Stirling-PDF and opt-in Portainer adapters into one bounded Phase 4 release candidate without enabling general planner execution or production adoption.
+- Added an offline Phase 4 contract validator covering the declared CLI surfaces, public module/evidence files and exact SHA-256 image pins.
+- Added a combined validation record and support matrix that keep authenticated Beszel UI, Windows reboot/state, exact-commit CI and cross-platform runtime gates explicit; stable 0.5.0 remains a no-go until those declared gates pass.
+
+- Added an opt-in Portainer CE 2.39.8 candidate with an exact `isolated-engine-only` permission grant, no host Docker socket, loopback HTTPS and a disposable internal Docker-in-Docker endpoint.
+- Added strict image/command/privilege/mount/network/resource/ownership drift checks plus a real Portainer API create-inspect-delete exercise proving host resources remain invisible.
+- Added private administrator and database-encryption secrets, stopped `portainer.edb` snapshots and a successful independent authenticated recovery exercise; nested workloads are deliberately ephemeral and excluded.
+- Recorded low idle resource use, removed all disposable validation resources and left the existing 2.39.6 production Portainer deployment unchanged; host control, public access and production upgrade remain uncertified.
+- Added an isolated digest-pinned Stirling-PDF 2.14.2 candidate with loopback-only access, a read-only root, minimal entrypoint capabilities, bounded tmpfs/resources and strict ownership/drift checks.
+- Added an in-memory synthetic rotation exercise that validates Flate-compressed PDF page syntax, plus stopped five-volume snapshots and independent fresh-project recovery evidence.
+- Recorded Windows Docker Desktop health, resource and recovery results without adopting or changing the existing production Stirling-PDF container; public/authenticated and advanced conversion workloads remain uncertified.
+- Added a closed-schema Uptime Kuma desired-state adapter for bounded HTTP monitors, status-page groups, webhook/SMTP notification profiles, safe drift inspection and explicit delivery tests.
+- Added exact private secret references, redacted public validation, notification-aware v2 backup evidence and backward verification for v1 synthetic snapshots.
+- Preserved the isolated two-container ownership contract; no production Kuma state is discovered, imported or modified.
+
 ## 0.5.0-alpha.2 — 2026-10-04
 
 - Added a separately gated, digest-pinned Uptime Kuma trial with two synthetic HTTP monitors, generated private credentials and one selected status-page monitor.

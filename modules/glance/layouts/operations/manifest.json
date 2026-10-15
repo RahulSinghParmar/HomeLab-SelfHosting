@@ -1,0 +1,23 @@
+{
+  "kind": "homelab-glance-layout",
+  "schema_version": 1,
+  "name": "operations",
+  "description": "Reusable local-first operations dashboard backed by privacy-filtered snapshots.",
+  "theme": {
+    "background-color": "225 22 10",
+    "primary-color": "165 70 60",
+    "positive-color": "145 52 55",
+    "negative-color": "4 80 60",
+    "contrast-multiplier": 1.1
+  },
+  "pages": [
+    "home.json",
+    "infrastructure.json",
+    "storage-backups.json",
+    "applications-services.json",
+    "security-public-access.json",
+    "intelligence-development.json",
+    "live-system.json"
+  ],
+  "required_snapshots": ["overview", "resources", "security", "services", "storage"]
+}

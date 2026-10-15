@@ -2,7 +2,7 @@
 
 ## Current status
 
-The isolated Glance starter and synthetic Kuma module have live Windows Docker Desktop Linux-amd64 evidence in 0.5.0-alpha.1 and 0.5.0-alpha.2 respectively. The complete application catalog is not deployment-certified. The existing homelab is design evidence, not proof that the installer can recreate it. CI checks repository structure, mocked/Python regression tests, offline plans and platform launchers; it does not deploy applications.
+The five bounded Phase 4 adapters have module-specific Windows Docker Desktop Linux-amd64 evidence in 0.5.0-rc.1. Their exact limits differ and are summarized below; this does not deployment-certify the complete application catalog. The existing homelab is design evidence, not proof that the installer can recreate it. CI checks repository structure, mocked/Python regression tests, offline plans and platform launchers; it does not deploy application containers.
 
 | Capability | Windows | Linux | macOS |
 | --- | --- | --- | --- |
@@ -10,7 +10,7 @@ The isolated Glance starter and synthetic Kuma module have live Windows Docker D
 | Settings wizard / offline planner | Implemented; local and CI tests | Implemented; CI tests | Implemented; CI tests |
 | Synthetic file executor | Actual Windows ACL/lock tests | Actual POSIX mode/lock tests in CI | Actual POSIX mode/lock tests in CI |
 | Read-only doctor | Live local Docker Desktop check plus mocked tests | Probe implementation; mocked tests only | Probe implementation; mocked tests only |
-| Docker application installation | Experimental Glance and synthetic Kuma: live startup/restart/rendering/recovery | Glance/Kuma code and mocked tests; runtime unverified | Glance/Kuma code and mocked tests; runtime unverified |
+| Docker application installation | Five isolated Phase 4 candidates have bounded live evidence; see module records | Code and mocked tests only; runtime unverified | Code and mocked tests only; runtime unverified |
 | Native metrics / startup / scheduling | PowerShell, services, Task Scheduler adapter planned | Native tools and systemd adapter planned | Native tools and launchd adapter planned |
 | GPU acceleration | Conditional, driver/runtime/app dependent | Conditional, driver/runtime/app dependent | Not assumed; CPU fallback |
 | Coolify | Existing custom integration; not a portable supported baseline | Upstream-supported installation target | Explicit Linux VM/remote Linux host path |
@@ -34,5 +34,15 @@ Preflight must check image architecture before pull or build. The reference code
 - **Unsupported:** known incompatible or outside the maintained matrix.
 
 Every release carries its matrix. Never imply "all platforms supported" because a wrapper script exists.
+
+### Phase 4 candidate matrix
+
+| Adapter | Windows Docker Desktop evidence | Explicitly not certified |
+| --- | --- | --- |
+| Glance | Seven rendered fragments, configuration validation, loopback trial and privacy-filtered collector | Production migration, scheduler, visual screenshot and cross-platform runtime |
+| Uptime Kuma | Desired-state idempotence, HTTP/webhook delivery, status page, stopped backup and independent restore | Real SMTP inbox delivery, production import and cross-platform runtime |
+| Beszel | Hub/agent metrics, down/up transition, stopped backup and exact record restore; Windows adapter emits fresh GPU/service records | Authenticated chart inspection, controlled Windows service-state/reboot test and cross-platform runtime |
+| Stirling-PDF | Real synthetic rotation, bounded runtime, stopped five-volume backup and independent restore | Authentication/public access, advanced conversion workloads and cross-platform runtime |
+| Portainer | Isolated nested-engine create/inspect/delete, host invisibility and authenticated independent restore | Host-engine control, public access, real workloads and cross-platform runtime |
 
 Phase 3's local filesystem adapter is not a general-purpose native-service or Docker adapter. Use local storage with hard links, atomic replacement and supported permission semantics; network shares, unusual filesystems, concurrent privileged tampering and power-loss durability are not certified. Windows tests do not require SACL/audit-policy changes or blanket administrator rights. If scoped DACL/owner checks fail, execution stops rather than elevating or repairing existing permissions.

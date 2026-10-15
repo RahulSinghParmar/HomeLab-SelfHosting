@@ -1,6 +1,6 @@
 # portainer
 
-Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope; deployment and restore certification remain planned.
+Phase 1 production reference plus the separate Phase 4 isolated-control candidate validated on 2026-10-15. The candidate does not adopt or replace the observed deployment.
 
 ## Evidence and ownership
 
@@ -17,17 +17,19 @@ CE 2.39.6; ports 9090 HTTP and 9443 HTTPS; 1 CPU/512 MiB.
 
 ## Installation and dependencies
 
-There is no installer/template for this module in this release. Reproduce the observed component set only in a separately approved disposable project, using compatible pinned releases and the [platform matrix](../platform-support.md). Existing state must not be implicitly adopted.
+The optional candidate is documented in the [Portainer module guide](../portainer-module.md). It pins Portainer CE 2.39.8 and Docker-in-Docker 29.9.0 by digest and requires the exact `isolated-engine-only` permission grant. It runs as a separate project and cannot see the host Docker engine. Existing state is never implicitly adopted.
 
 ## Configuration mapping
 
-- Reusable after review: Resource limit and explicit administrative-access selection.
+- Reusable after review: Resource limits, loopback HTTPS and explicit isolated-engine administrative access.
 - Private installation values: Users, endpoints, registry credentials and deployment metadata.
 - Manual/platform-specific work: Avoid competing ownership with Coolify/coordinator; Docker Desktop socket path needs OS adapter.
 
 ## Storage and secrets
 
-Named /data volume; Docker Desktop proxy socket mount.
+Observed production: named `/data` volume and Docker Desktop proxy socket mount.
+
+Isolated candidate: one named Portainer `/data` volume; ephemeral nested-engine storage; private administrator password and database-encryption key mounted read-only as secrets. No host socket is mounted.
 
 Secret names/purposes only: Admin credentials and endpoint credentials inside private configuration state.
 
@@ -35,13 +37,13 @@ Never publish actual values, database records, private keys or generated content
 
 ## Operations
 
-Use the actual owning Compose project/service or native manager above. Read-only Docker checks are `docker ps -a`, `docker inspect --format '{{.State.Status}}' CONTAINER`, and `docker stats --no-stream`; substitute a verified container, not a guessed generated name. Do not paste unfiltered inspect/log output into public issues. Native status uses the OS service/task manager and the verified listener.
+Use the actual production Compose project for production. Read-only Docker checks are `docker ps -a`, `docker inspect --format '{{.State.Status}}' CONTAINER`, and `docker stats --no-stream`; substitute a verified container, not a guessed generated name. Do not paste unfiltered inspect/log output into public issues.
 
-No start, stop, restart, migration, backup or restore was executed for Phase 1. Those operations must preserve deliberately stopped/paused state and require the later module's tested workflow.
+For the isolated candidate use only the reviewed-plan commands in the [module guide](../portainer-module.md). `exercise` performs one bounded nested-network create/inspect/delete operation and confirms cleanup. Stop, remove and backup require the complete plan ID. Remove retains data.
 
 ## Backup and recovery
 
-No dedicated scheduled backup identified. Use supported backup/export or consistent volume snapshot with required credentials.
+No dedicated scheduled production backup was identified. The candidate implements a stopped `/data` snapshot with hashes plus the administrator password and encryption key. Its independent fresh-project restore passed; see [validation evidence](../validation/portainer.md). The snapshot is plaintext-sensitive and does not include managed workloads.
 
 Follow the [recovery contract](../recovery.md); reported task success and old verification metadata are not a new restore rehearsal.
 
@@ -55,6 +57,6 @@ Restore synthetic settings and confirm only intended endpoints are reachable; te
 
 ## Limitations and follow-up
 
-Administrative Docker access is effectively host control; never make public exposure the default.
+Administrative Docker access is effectively control of the configured Docker endpoint. The candidate exposes only a disposable nested engine; host control is not implemented. Never make public exposure the default.
 
 For upstream links and implementation phase, see the [service catalog](../../catalog/services.json). No third-party application source is copied into this release; see [build provenance](../discovery/build-provenance.md).

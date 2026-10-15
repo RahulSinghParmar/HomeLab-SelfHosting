@@ -28,6 +28,13 @@ class PublicationTests(unittest.TestCase):
         token = "ghp_" + "B" * 40
         self.assertNotIn(token, " ".join(inspect_text("example.txt", token)))
 
+    def test_only_exact_credentialed_url_fixtures_are_allowed(self):
+        repository_fixture = 'self.value = "https://' + 'user:example@example.com/repo"'
+        kuma_fixture = "value = 'https://" + "user:secret@example.test/'"
+        self.assertEqual(inspect_text("tests/test_repository.py", repository_fixture), [])
+        self.assertEqual(inspect_text("tests/test_kuma_config.py", kuma_fixture), [])
+        self.assertTrue(inspect_text("tests/other.py", kuma_fixture))
+
 
 if __name__ == "__main__":
     unittest.main()

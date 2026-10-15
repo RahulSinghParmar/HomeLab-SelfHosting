@@ -1,0 +1,53 @@
+{
+  "name": "Intelligence & Development",
+  "slug": "intelligence-development",
+  "columns": [
+    {
+      "size": "small",
+      "widgets": [
+        {
+          "type": "bookmarks",
+          "title": "Engineering references",
+          "groups": [
+            {"title": "Documentation", "links": [
+              {"title": "Docker documentation", "url": "https://docs.docker.com/"},
+              {"title": "Glance documentation", "url": "https://github.com/glanceapp/glance/tree/v0.8.6/docs"},
+              {"title": "OWASP cheat sheets", "url": "https://cheatsheetseries.owasp.org/"}
+            ]}
+          ]
+        },
+        {
+          "type": "releases",
+          "title": "Infrastructure releases",
+          "cache": "6h",
+          "show-source-icon": true,
+          "repositories": ["glanceapp/glance", "henrygd/beszel", "louislam/uptime-kuma"]
+        }
+      ]
+    },
+    {
+      "size": "full",
+      "widgets": [
+        {
+          "type": "rss",
+          "title": "Engineering briefing",
+          "cache": "1h",
+          "limit": 12,
+          "collapse-after": 6,
+          "feeds": [
+            {"url": "https://github.blog/engineering/feed/", "title": "GitHub Engineering"},
+            {"url": "https://www.docker.com/blog/feed/", "title": "Docker"},
+            {"url": "https://blog.cloudflare.com/rss/", "title": "Cloudflare"}
+          ]
+        },
+        {
+          "type": "custom-api",
+          "title": "Developer service pulse",
+          "cache": "30s",
+          "url": "http://metrics:8765/v1/services",
+          "template": "<div class=\"flex justify-between text-center\"><div><div class=\"color-highlight size-h3\">{{ len (.JSON.Array \"endpoints\") }}</div><div class=\"size-h6\">SELECTED ENDPOINTS</div></div><div><div class=\"color-highlight size-h3\">{{ len (.JSON.Array \"native\") }}</div><div class=\"size-h6\">NATIVE SERVICES</div></div><div><div class=\"color-highlight size-h3\">{{ .JSON.Int \"age_seconds\" }}s</div><div class=\"size-h6\">SNAPSHOT AGE</div></div></div>"
+        }
+      ]
+    }
+  ]
+}

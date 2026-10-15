@@ -40,7 +40,7 @@ def display(value: dict, json_output: bool) -> None:
 
 
 def main(arguments=None) -> int:
-    parser = argparse.ArgumentParser(prog="homelab", description="Plan applications; run bounded sandbox, Glance or Kuma experiments.")
+    parser = argparse.ArgumentParser(prog="homelab", description="Plan applications and run separately bounded module adapters.")
     parser.add_argument("--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="command", required=True)
     listing = sub.add_parser("catalog", help="List all selectable, not-yet-deployable modules")
@@ -82,6 +82,17 @@ def main(arguments=None) -> int:
             action.add_argument("--confirm", required=True)
         if verb == "export":
             action.add_argument("--output", type=Path, required=True)
+    glance_layout = sub.add_parser("glance-layout", help="Render a certified reusable Glance layout; no deployment")
+    layout_actions = glance_layout.add_subparsers(dest="action", required=True)
+    layout_actions.add_parser("list")
+    layout_render = layout_actions.add_parser("render")
+    layout_render.add_argument("--profile", default="operations")
+    layout_render.add_argument("--output", type=Path, required=True)
+    glance_collector = sub.add_parser("glance-collector", help="Validate or sample privacy-filtered Glance host metrics")
+    collector_actions = glance_collector.add_subparsers(dest="action", required=True)
+    for verb in ("validate", "sample"):
+        action = collector_actions.add_parser(verb)
+        action.add_argument("--config", type=Path, required=True)
     kuma = sub.add_parser('kuma', help='Experimental isolated Kuma; no adoption of existing monitors')
     kuma_actions = kuma.add_subparsers(dest='action', required=True)
     kuma_plan = kuma_actions.add_parser('plan')
@@ -89,6 +100,15 @@ def main(arguments=None) -> int:
     kuma_plan.add_argument('--port', type=int, default=13001)
     kuma_plan.add_argument('--output', type=Path, required=True)
     kuma_plan.add_argument('--restore-backup', type=Path)
+    kuma_validate_config = kuma_actions.add_parser('validate-config', help='Validate and redact desired monitor/notification state')
+    kuma_validate_config.add_argument('--config', type=Path, required=True)
+    for verb in ('apply-config', 'inspect-config', 'test-notifications'):
+        action = kuma_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        action.add_argument('--config', type=Path, required=True)
+        action.add_argument('--secrets', type=Path)
+        if verb != 'inspect-config':
+            action.add_argument('--confirm', required=True)
     for verb in ('up', 'status', 'stop', 'remove', 'seed', 'inspect-monitors', 'fixture-down', 'fixture-up', 'backup'):
         action = kuma_actions.add_parser(verb)
         action.add_argument('--plan', type=Path, required=True)
@@ -96,10 +116,113 @@ def main(arguments=None) -> int:
             action.add_argument('--confirm', required=True)
         if verb == 'backup':
             action.add_argument('--output', type=Path, required=True)
+    stirling = sub.add_parser('stirling', help='Experimental isolated Stirling-PDF; no existing-state adoption')
+    stirling_actions = stirling.add_subparsers(dest='action', required=True)
+    stirling_plan = stirling_actions.add_parser('plan')
+    stirling_plan.add_argument('--root', type=Path, required=True)
+    stirling_plan.add_argument('--port', type=int, default=19000)
+    stirling_plan.add_argument('--output', type=Path, required=True)
+    stirling_plan.add_argument('--restore-backup', type=Path)
+    for verb in ('up', 'status', 'stop', 'remove', 'exercise', 'backup'):
+        action = stirling_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        if verb != 'status':
+            action.add_argument('--confirm', required=True)
+        if verb == 'backup':
+            action.add_argument('--output', type=Path, required=True)
+    portainer = sub.add_parser('portainer', help='Experimental Portainer with isolated nested Docker control only')
+    portainer_actions = portainer.add_subparsers(dest='action', required=True)
+    portainer_plan = portainer_actions.add_parser('plan')
+    portainer_plan.add_argument('--root', type=Path, required=True)
+    portainer_plan.add_argument('--port', type=int, default=19443)
+    portainer_plan.add_argument('--grant-docker-control', required=True,
+                                help='Must be exactly isolated-engine-only')
+    portainer_plan.add_argument('--output', type=Path, required=True)
+    portainer_plan.add_argument('--restore-backup', type=Path)
+    for verb in ('up', 'status', 'stop', 'remove', 'exercise', 'backup'):
+        action = portainer_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        if verb != 'status':
+            action.add_argument('--confirm', required=True)
+        if verb == 'backup':
+            action.add_argument('--output', type=Path, required=True)
+    beszel = sub.add_parser('beszel', help='Experimental upstream Beszel hub and restricted agent; no native-host adoption')
+    beszel_actions = beszel.add_subparsers(dest='action', required=True)
+    beszel_plan = beszel_actions.add_parser('plan')
+    beszel_plan.add_argument('--root', type=Path, required=True)
+    beszel_plan.add_argument('--port', type=int, default=18090)
+    beszel_plan.add_argument('--output', type=Path, required=True)
+    beszel_plan.add_argument('--restore-backup', type=Path)
+    for verb in ('up', 'status', 'stop', 'remove', 'seed', 'inspect-metrics', 'agent-down', 'agent-up', 'backup'):
+        action = beszel_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        if verb not in ('status', 'inspect-metrics'):
+            action.add_argument('--confirm', required=True)
+        if verb == 'backup':
+            action.add_argument('--output', type=Path, required=True)
+    windows_agent = sub.add_parser('beszel-windows', help='Windows-only existing Beszel agent upgrade adapter')
+    windows_actions = windows_agent.add_subparsers(dest='action', required=True)
+    windows_audit = windows_actions.add_parser('audit')
+    windows_audit.add_argument('--service', default='BeszelAgent')
+    windows_plan = windows_actions.add_parser('plan')
+    windows_plan.add_argument('--service', default='BeszelAgent')
+    windows_plan.add_argument('--candidate', type=Path, required=True)
+    windows_plan.add_argument('--backup-root', type=Path, required=True)
+    windows_plan.add_argument('--output', type=Path, required=True)
+    for verb in ('status', 'apply', 'rollback'):
+        action = windows_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        if verb != 'status':
+            action.add_argument('--confirm', required=True)
     args = parser.parse_args(arguments)
     try:
-        if args.command == 'kuma':
-            from . import kuma as module
+        if args.command == "glance-layout":
+            from . import glance_layouts as module
+            if args.action == "list":
+                result = {"profiles": [module.summary(name) for name in module.profiles()], "deployment_performed": False}
+            else:
+                result = module.render(args.profile, args.output)
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == "glance-collector":
+            from . import glance_collectors as module
+            config = module.load_and_validate(args.config)
+            result = module.public_config(config) if args.action == "validate" else module.collect(config)
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'beszel-windows':
+            from . import beszel_windows as module
+            if args.action == 'audit':
+                result = module.public_snapshot(module.read_service(args.service))
+            elif args.action == 'plan':
+                result = module.make_plan(args.candidate, args.backup_root, args.service)
+                if args.output.resolve().is_relative_to(Path(result['backup_root'])):
+                    raise ConfigError('Plan output must be outside backup storage')
+                write_private(args.output, result)
+                result = {**result, 'candidate': {'path': '<private-candidate>', **{k: v for k, v in result['candidate'].items() if k != 'path'}},
+                          'backup_root': '<private-backup-root>', 'backup_directory': '<private-backup-directory>',
+                          'expected_service': module.public_snapshot(result['expected_service'])}
+            elif args.action == 'status':
+                result = module.status(load_json(args.plan))
+            else:
+                result = getattr(module, args.action)(load_json(args.plan), args.confirm)
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command in ('kuma', 'beszel'):
+            if args.command == 'kuma':
+                from . import kuma as module
+                if args.action == 'validate-config':
+                    from . import kuma_config
+                    result = kuma_config.public_config(kuma_config.load_and_validate(args.config))
+                    print(json.dumps(result, sort_keys=True, indent=2))
+                    return 0
+                if args.action in ('apply-config', 'inspect-config', 'test-notifications'):
+                    result = module.configure(load_json(args.plan), args.action, args.config, args.secrets,
+                                              getattr(args, 'confirm', None))
+                    print(json.dumps(result, sort_keys=True, indent=2))
+                    return 0
+            else:
+                from . import beszel as module
             if args.action == 'plan':
                 result = module.make_plan(args.root, args.port, module.local_runtime(), args.restore_backup)
                 if args.output.resolve().is_relative_to(Path(result['root'])):
@@ -111,6 +234,43 @@ def main(arguments=None) -> int:
                 result = module.backup(load_json(args.plan), args.output, args.confirm)
             else:
                 result = module.operate(load_json(args.plan), args.action, getattr(args, 'confirm', None))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'stirling':
+            from . import stirling as module
+            if args.action == 'plan':
+                result = module.make_plan(args.root, args.port, module.local_runtime(), args.restore_backup)
+                if args.output.resolve().is_relative_to(Path(result['root'])):
+                    raise ConfigError('Plan output must be outside installation storage')
+                write_private(args.output, result)
+                result = {**result, 'root': '<installation-root>', 'runtime': '<local-engine-reference>',
+                          'recovery': '<private-backup-reference>' if result['recovery'] else None}
+            elif args.action == 'backup':
+                result = module.backup(load_json(args.plan), args.output, args.confirm)
+            elif args.action == 'exercise':
+                result = module.exercise(load_json(args.plan), args.confirm)
+            else:
+                result = module.operate(load_json(args.plan), args.action, getattr(args, 'confirm', None))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'portainer':
+            from . import portainer as module
+            if args.action == 'plan':
+                result = module.make_plan(args.root, args.port, module.local_runtime(),
+                                          args.grant_docker_control, args.restore_backup)
+                if args.output.resolve().is_relative_to(Path(result['root'])):
+                    raise ConfigError('Plan output must be outside installation storage')
+                write_private(args.output, result)
+                result = {**result, 'root': '<installation-root>',
+                          'runtime': '<local-engine-reference>',
+                          'recovery': '<private-backup-reference>' if result['recovery'] else None}
+            elif args.action == 'backup':
+                result = module.backup(load_json(args.plan), args.output, args.confirm)
+            elif args.action == 'exercise':
+                result = module.exercise(load_json(args.plan), args.confirm)
+            else:
+                result = module.operate(load_json(args.plan), args.action,
+                                        getattr(args, 'confirm', None))
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command == "glance":

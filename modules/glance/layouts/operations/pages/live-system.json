@@ -1,0 +1,37 @@
+{
+  "name": "Live System",
+  "slug": "live-system",
+  "columns": [
+    {
+      "size": "full",
+      "widgets": [
+        {
+          "type": "custom-api",
+          "title": "Host pulse",
+          "cache": "15s",
+          "url": "http://metrics:8765/v1/resources",
+          "template": "<div class=\"flex justify-between text-center\"><div><div class=\"color-highlight size-h2\">{{ if .JSON.Bool \"host.metrics_available\" }}{{ .JSON.Float \"host.cpu_percent\" }}%{{ else }}N/A{{ end }}</div><div class=\"size-h6\">CPU</div></div><div><div class=\"color-highlight size-h2\">{{ if .JSON.Bool \"host.metrics_available\" }}{{ .JSON.Float \"host.memory_percent\" }}%{{ else }}N/A{{ end }}</div><div class=\"size-h6\">MEMORY</div></div><div><div class=\"color-highlight size-h2\">{{ if .JSON.Bool \"host.metrics_available\" }}{{ .JSON.Float \"host.memory_used_gib\" }} GiB{{ else }}N/A{{ end }}</div><div class=\"size-h6\">USED RAM</div></div><div><div class=\"color-highlight size-h2\">{{ .JSON.Int \"age_seconds\" }}s</div><div class=\"size-h6\">SAMPLE AGE</div></div></div>"
+        },
+        {
+          "type": "split-column",
+          "widgets": [
+            {
+              "type": "custom-api",
+              "title": "Runtime state",
+              "cache": "15s",
+              "url": "http://metrics:8765/v1/resources",
+              "template": "<p class=\"size-h4\">Host collector: <span class=\"color-highlight\">{{ .JSON.String \"host.status\" }}</span></p><p class=\"size-h4\">Docker collector: <span class=\"color-highlight\">{{ .JSON.String \"docker.status\" }}</span></p><p class=\"size-h6 color-paragraph\">Selected services only; this is not a process list.</p>"
+            },
+            {
+              "type": "custom-api",
+              "title": "Telemetry coverage",
+              "cache": "30s",
+              "url": "http://metrics:8765/v1/overview",
+              "template": "<p class=\"size-h4\">{{ .JSON.Int \"healthy_sections\" }} of 4 sections healthy</p><p class=\"size-h4\">{{ .JSON.Int \"attention_sections\" }} section(s) need review</p><p class=\"size-h6 color-paragraph\">Missing or stale samples stay visible and are never interpreted as zero.</p>"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
