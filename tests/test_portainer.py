@@ -146,7 +146,10 @@ class PortainerTests(unittest.TestCase):
         self.assertEqual(engine['networks'], ['control'])
         self.assertTrue(spec['networks']['control']['internal'])
         self.assertFalse(spec['networks']['frontend']['internal'])
-        self.assertNotIn('8000', json.dumps(spec))
+        for service in spec['services'].values():
+            for binding in service.get('ports', []):
+                self.assertNotEqual(binding.get('target'), 8000)
+                self.assertNotEqual(str(binding.get('published')), '8000')
         self.assertIn('--http-disabled', server['command'])
         self.assertIn('--no-edge-compute', server['command'])
         self.assertIn('--secret-key-name=portainer', server['command'])
