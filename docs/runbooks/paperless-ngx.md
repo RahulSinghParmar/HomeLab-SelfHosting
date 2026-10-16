@@ -20,7 +20,7 @@ Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete a
 
 ## Installation and dependencies
 
-There is no installer/template for this module in this release. Reproduce the observed component set only in a separately approved disposable project, using compatible pinned releases and the [platform matrix](../platform-support.md). Existing state must not be implicitly adopted.
+The separate [0.6.0-alpha.1 recovery candidate](../paperless-ngx-module.md) creates a fresh digest-pinned project with synthetic content. It does not adopt this observed deployment. Follow its private plan, loopback, ownership and confirmation boundary; never point it at these live directories or volumes.
 
 ## Configuration mapping
 
@@ -44,7 +44,9 @@ No start, stop, restart, migration, backup or restore was executed for Phase 1. 
 
 ## Backup and recovery
 
-Daily/monthly metadata reports passed restore tests. Exporter and content inventory run before webserver stops, then database/files are copied. Weekly has not yet run.
+Read-only review on 2026-10-16 found daily, weekly, monthly and manual reports marked passed, but every recorded semantic inventory contained zero documents. The production script also exports and records inventory before stopping the webserver, then dumps/copies afterward, so the artifacts can represent different instants under concurrent writes. Treat those sets as useful backups, not Phase-5-certified representative recovery points.
+
+The isolated candidate corrects that boundary by stopping application processes before exporter, semantic inventory, database dump and file capture, then restores through the documented importer into a new project. Its [validation record](../validation/paperless-ngx.md) uses a nonempty synthetic PDF. It does not modify or replace the production schedule.
 
 Follow the [recovery contract](../recovery.md); reported task success and old verification metadata are not a new restore rehearsal.
 
@@ -54,10 +56,10 @@ Capture a consistent backup and required secrets, resolve the exact image/build 
 
 ## Acceptance checks
 
-Use nonempty synthetic PDFs and metadata; verify download/search after isolated restore. Existing pass metadata alone does not prove representative content recovery.
+The candidate passes a nonempty synthetic PDF, searchable marker, metadata edit, original-file checksum and independent semantic restore. Production content, encrypted off-host copies and API-token recovery remain unverified.
 
 ## Limitations and follow-up
 
-Exporter and database snapshots can represent different instants under concurrent writes; declare restore paths and consistency boundaries.
+The live production scripts still have the earlier exporter/database timing gap and zero-document restore evidence. Review them separately before migration. The candidate's plaintext staging contains credentials and documents; restic encryption, retention and independent key custody remain pending.
 
 For upstream links and implementation phase, see the [service catalog](../../catalog/services.json). No third-party application source is copied into this release; see [build provenance](../discovery/build-provenance.md).

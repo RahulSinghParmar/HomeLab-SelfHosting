@@ -24,6 +24,14 @@ The general planner does not deploy applications. Existing deployments are not a
 
 The combined decision and remaining gates are in [Phase 4 integrated validation](validation/phase4-integrated.md).
 
+## Phase 5 modules
+
+| Module | Operator guide | Validation |
+| --- | --- | --- |
+| Paperless-ngx | [Application-aware recovery module](paperless-ngx-module.md) | [Windows synthetic recovery evidence](validation/paperless-ngx.md) |
+
+Phase 5 proceeds one personal-data application at a time. Paperless is the first experimental prerelease; AFFiNE, Nextcloud, Firefly III, Vaultwarden and Karakeep remain planned.
+
 ## Operations and recovery
 
 - [Service requirements](services.md)
@@ -45,6 +53,7 @@ The combined decision and remaining gates are in [Phase 4 integrated validation]
 ```sh
 python tools/validate_repository.py
 python tools/validate_phase4.py
+python tools/validate_phase5.py
 python tools/check_publication.py --history
 python -m unittest discover -s tests -v
 ```

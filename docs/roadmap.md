@@ -87,6 +87,8 @@ Exit: rendered dashboard, real monitoring state transitions, restart persistence
 
 Substages: Paperless -> AFFiNE -> Nextcloud -> Firefly -> Vaultwarden -> Karakeep. Stop after each tested application's milestone if further work would broaden the current approved scope.
 
+First bounded milestone: **0.6.0-alpha.1**, an [isolated Paperless-ngx recovery candidate](paperless-ngx-module.md) with a nonempty synthetic PDF, quiesced exporter/database/filesystem set, independent importer restore and Windows Docker Desktop evidence. The snapshot remains plaintext-sensitive; encrypted restic storage, production migration and the remaining five applications are not delivered by this prerelease.
+
 Implement application-consistent backup/restore before considering a module complete. Build a portable encrypted recovery kit and retention policy. Test with nonempty synthetic data. Choose a maintained encryption/backup tool after validating its current platform support; do not invent cryptography.
 
 Exit: upload/open/edit/restart/backup/restore checks and a verified recovery-secret workflow for every implemented module. No real financial records or password vaults in test fixtures.

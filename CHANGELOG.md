@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0-alpha.1 — 2026-10-16
+
+- Added a digest-pinned, loopback-only Paperless-ngx 3.2.1/PostgreSQL 18/Valkey 9 adapter with separate internal networking, private generated credentials, bounded resources and data-preserving lifecycle.
+- Added a nonempty synthetic PDF exercise that verifies consumption, searchable text, metadata editing and exact original-file checksum.
+- Added an application-quiesced exporter, semantic inventory, readable PostgreSQL custom dump, data/media/export capture, private/sanitized configuration and checksum manifest.
+- Restored the exporter set into an independent project and verified semantic equality plus stop/start persistence on Windows Docker Desktop; production services remained read-only.
+- Selected restic for a future encrypted repository layer, while explicitly retaining plaintext/off-host/key-custody/retention work as incomplete.
+
 ## 0.5.0-rc.1 — 2026-10-15
 
 - Integrated the independently gated Glance, Uptime Kuma, Beszel, Stirling-PDF and opt-in Portainer adapters into one bounded Phase 4 release candidate without enabling general planner execution or production adoption.

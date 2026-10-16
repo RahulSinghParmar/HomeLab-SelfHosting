@@ -49,6 +49,8 @@ Version 0.5.0-alpha.2 adds a separate `kuma` adapter: two synthetic HTTP checks,
 
 Version 0.5.0-rc.1 integrates the five independently gated Phase 4 adapters without collapsing their lifecycles. `glance`, `kuma`, `beszel`, `stirling` and opt-in `portainer` each keep separate plans, ownership labels, storage, confirmation tokens and recovery evidence. This is a release candidate for the bounded adapters, not permission for the general planner to deploy applications or adopt existing services. See the [integrated validation record](validation/phase4-integrated.md).
 
+Version 0.6.0-alpha.1 adds a separate `paperless` adapter. It proves one nonempty document through upload, search, metadata edit, application quiesce, exporter plus PostgreSQL/filesystem capture, independent importer recovery and restart. Sensitive snapshots remain local plaintext staging until the separately gated encrypted restic layer and independent key recovery pass. See the [Paperless module](paperless-ngx-module.md).
+
 ```text
 bootstrap.ps1 or bootstrap.sh
   -> doctor: OS, architecture, runtime, resources, storage, port conflicts

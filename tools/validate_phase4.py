@@ -9,7 +9,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = "0.5.0-rc.1"
+RELEASE = "0.6.0-alpha.1"
+PHASE4_RELEASE = "0.5.0-rc.1"
 DIGEST = re.compile(r"^[^@\s]+@sha256:[0-9a-f]{64}$")
 
 MODULES = {
@@ -100,11 +101,11 @@ def validate_phase4(root: Path = ROOT) -> str:
                 require(key in manifest, f"{name}: image manifest missing {key}")
                 validate_digest(manifest[key], f"{name} {key}")
 
-    release = root / "docs/releases/v0.5.0-rc.1.md"
+    release = root / f"docs/releases/v{PHASE4_RELEASE}.md"
     integrated = root / "docs/validation/phase4-integrated.md"
     require(release.is_file(), "missing Phase 4 release review")
     require(integrated.is_file(), "missing Phase 4 integrated validation record")
-    return (f"PASS: Phase 4 {RELEASE} contract validates {len(MODULES)} isolated modules; "
+    return (f"PASS: Phase 4 {PHASE4_RELEASE} contract remains present in {RELEASE}; validates {len(MODULES)} isolated modules; "
             "runtime claims remain bounded by the published support matrix")
 
 
