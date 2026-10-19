@@ -10,6 +10,8 @@ The experimental [Kuma module](docs/kuma-module.md) uses the same loopback/dedic
 
 The Phase 4 release candidate adds Beszel, Stirling-PDF and opt-in Portainer under separate boundaries. Beszel and Stirling-PDF publish only loopback trial ports and do not receive the host Docker socket. Portainer requires the exact `isolated-engine-only` grant and controls a disposable nested daemon; it must not be presented as host-engine administration. Module-owned backup directories and named volumes can contain credentials, databases or documents and remain private even after disposable containers are removed. Read each module's validation record before use.
 
+The experimental [Paperless vault](docs/paperless-vault.md) encrypts a previously verified application backup with a checksum-locked restic binary. Key files are owner-restricted and never printed, but an administrator or malware running as the same account can still read an online operational key or delete an online repository. Keep the recovery key and a repository copy on independently recoverable media, test them on a clean machine, and remove plaintext staging after a verified restore. The current release explicitly does not certify that off-host boundary.
+
 Never publish credentials or recovery bundles in issues, pull requests, screenshots, logs, or workflow artifacts. If a credential is exposed, revoke or rotate it first; deleting the file or commit is not sufficient.
 
 Report vulnerabilities through the repository's private vulnerability reporting feature if enabled. If unavailable, open a minimal issue requesting a private contact without disclosing exploit details or sensitive configuration.

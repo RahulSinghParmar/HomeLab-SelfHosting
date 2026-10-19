@@ -20,7 +20,7 @@ Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete a
 
 ## Installation and dependencies
 
-The separate [0.6.0-alpha.1 recovery candidate](../paperless-ngx-module.md) creates a fresh digest-pinned project with synthetic content. It does not adopt this observed deployment. Follow its private plan, loopback, ownership and confirmation boundary; never point it at these live directories or volumes.
+The separate [Paperless recovery candidate](../paperless-ngx-module.md) creates a fresh digest-pinned project with synthetic content. Its [0.6.0-alpha.2 encrypted vault](../paperless-vault.md) accepts only that verified backup contract. Neither adapter adopts this observed deployment. Follow their private plan, loopback, ownership and confirmation boundaries; never point a synthetic plan at these live directories or volumes.
 
 ## Configuration mapping
 
@@ -60,6 +60,6 @@ The candidate passes a nonempty synthetic PDF, searchable marker, metadata edit,
 
 ## Limitations and follow-up
 
-The live production scripts still have the earlier exporter/database timing gap and zero-document restore evidence. Review them separately before migration. The candidate's plaintext staging contains credentials and documents; restic encryption, retention and independent key custody remain pending.
+The live production scripts still have the earlier exporter/database timing gap and zero-document restore evidence. Review them separately before migration. The candidate's plaintext staging contains credentials and documents. The new vault proves local restic encryption, full data check, decryption and independent synthetic application restore, but off-host repository media, offline-key recovery, scheduling and production migration remain pending.
 
 For upstream links and implementation phase, see the [service catalog](../../catalog/services.json). No third-party application source is copied into this release; see [build provenance](../discovery/build-provenance.md).

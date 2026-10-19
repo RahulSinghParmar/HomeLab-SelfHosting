@@ -28,9 +28,9 @@ The combined decision and remaining gates are in [Phase 4 integrated validation]
 
 | Module | Operator guide | Validation |
 | --- | --- | --- |
-| Paperless-ngx | [Application-aware recovery module](paperless-ngx-module.md) | [Windows synthetic recovery evidence](validation/paperless-ngx.md) |
+| Paperless-ngx | [Application-aware recovery module](paperless-ngx-module.md) and [encrypted vault](paperless-vault.md) | [Application recovery](validation/paperless-ngx.md) and [encrypted-vault evidence](validation/paperless-vault.md) |
 
-Phase 5 proceeds one personal-data application at a time. Paperless is the first experimental prerelease; AFFiNE, Nextcloud, Firefly III, Vaultwarden and Karakeep remain planned.
+Phase 5 proceeds one personal-data application at a time. Paperless now has experimental application-aware and encrypted local recovery candidates; independently recoverable off-host media and the other five applications remain planned.
 
 ## Operations and recovery
 

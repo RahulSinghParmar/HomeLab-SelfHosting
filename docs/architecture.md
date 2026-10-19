@@ -51,6 +51,8 @@ Version 0.5.0-rc.1 integrates the five independently gated Phase 4 adapters with
 
 Version 0.6.0-alpha.1 adds a separate `paperless` adapter. It proves one nonempty document through upload, search, metadata edit, application quiesce, exporter plus PostgreSQL/filesystem capture, independent importer recovery and restart. Sensitive snapshots remain local plaintext staging until the separately gated encrypted restic layer and independent key recovery pass. See the [Paperless module](paperless-ngx-module.md).
 
+Version 0.6.0-alpha.2 adds the separate `paperless-vault` adapter around that verified staging contract. It validates a checksum-locked restic 0.19.1 Windows amd64 binary, separates key references from repository/state, stores and checks encrypted data, requires a successful decrypted content verification before protection, and gates retention on that restore. Its same-machine trial does not claim off-host or clean-machine disaster recovery. See the [Paperless encrypted vault](paperless-vault.md).
+
 ```text
 bootstrap.ps1 or bootstrap.sh
   -> doctor: OS, architecture, runtime, resources, storage, port conflicts

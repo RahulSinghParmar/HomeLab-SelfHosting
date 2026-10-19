@@ -36,3 +36,4 @@ Never reuse a version or move an existing tag. If a published release needs corr
 - [0.5.0-alpha.2](v0.5.0-alpha.2.md) — isolated Uptime Kuma
 - [0.5.0-rc.1](v0.5.0-rc.1.md) — integrated Phase 4 candidate
 - [0.6.0-alpha.1](v0.6.0-alpha.1.md) — Paperless-ngx application-aware recovery candidate
+- [0.6.0-alpha.2](v0.6.0-alpha.2.md) — Paperless-ngx encrypted recovery vault candidate

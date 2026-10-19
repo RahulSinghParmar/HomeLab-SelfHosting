@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Prerelease 0.6.0-alpha.1 begins Phase 5 with an isolated Paperless-ngx recovery candidate.** It adds nonempty synthetic document checks, one application-consistent backup boundary and independent exporter/importer recovery without adopting the existing personal deployment. Phase 4's five bounded adapters remain available, the general planner remains planning-only, and plaintext staging is not presented as encrypted off-host disaster recovery.
+**Prerelease 0.6.0-alpha.2 adds a bounded encrypted recovery vault to the isolated Paperless-ngx candidate.** It checksum-validates a reviewed restic binary, encrypts only a verified nonempty Paperless backup, checks all repository data, proves decryption plus independent application recovery, and gates retention on a successful restore. The existing personal deployment remains untouched, the general planner remains planning-only, and same-machine encryption is not presented as off-host disaster recovery.
 
 ## What this project is building
 
@@ -33,7 +33,8 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [Stirling-PDF module candidate](docs/stirling-pdf-module.md) | Isolated PDF rotation exercise, bounded resources and stopped-state recovery |
 | [Optional Portainer module](docs/portainer-module.md) | Explicit isolated-engine control, loopback HTTPS and stopped-state recovery |
 | [Paperless-ngx recovery module](docs/paperless-ngx-module.md) | Isolated document lifecycle, consistent backup set and independent semantic restore |
-| [0.6.0-alpha.1 validation](docs/validation/paperless-ngx.md) | Windows runtime evidence, production read-only findings and remaining recovery gates |
+| [Paperless encrypted vault](docs/paperless-vault.md) | Reviewed restic tool, key custody, encrypted store/check/restore and retention workflow |
+| [0.6.0-alpha.2 validation](docs/validation/paperless-vault.md) | Windows encryption, independent recovery, cleanup and production-safety evidence |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -68,7 +69,7 @@ Windows also supports `./bootstrap.ps1 catalog`; Linux/macOS supports `sh ./boot
 
 For the opt-in Windows/PowerShell 7 read-only metadata collector, see [evidence and privacy instructions](docs/discovery/evidence.md). Its report belongs outside Git. Windows collector regression tests use mocks and can be run with `./tests/Test-ReferenceCollector.ps1`.
 
-General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer` and `paperless` candidates are bounded Docker execution paths; they do not enable the general planner. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
+General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless` and `paperless-vault` candidates are bounded execution paths; they do not enable the general planner. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
 
 ## Service families
 
@@ -89,7 +90,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-alpha.1 release review](docs/releases/v0.6.0-alpha.1.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-alpha.2 release review](docs/releases/v0.6.0-alpha.2.md).
 
 ## License
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.0-alpha.2 — 2026-10-19
+
+- Added a separate Paperless encrypted-vault workflow for reviewed restic validation, dual key files, repository initialization, store, full data check, restore, status and restore-gated retention.
+- Locked restic 0.19.1 Windows amd64 to its official release URL and reviewed archive/executable SHA-256 values; no automatic or global installation is performed.
+- Bound encrypted snapshots to complete nonempty Paperless manifests and required full decrypted backup verification before adding the protected recovery tag.
+- Verified one generated document through application backup, encryption, repository check, decryption, independent Paperless import and stop/start persistence on Windows Docker Desktop.
+- Added thirteen focused vault tests, expanded the offline Phase 5 validator, and made Phase 5 validation an explicit cross-platform CI step.
+- Removed every synthetic container, volume, plaintext/key/repository artifact after validation; production Paperless remained healthy and unchanged.
+- Retained explicit no-go boundaries for off-host/clean-machine recovery, scheduling, production migration, live prune, cross-platform runtime and stable 0.6.0.
+
 ## 0.6.0-alpha.1 — 2026-10-16
 
 - Added a digest-pinned, loopback-only Paperless-ngx 3.2.1/PostgreSQL 18/Valkey 9 adapter with separate internal networking, private generated credentials, bounded resources and data-preserving lifecycle.

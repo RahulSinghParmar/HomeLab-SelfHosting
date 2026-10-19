@@ -160,6 +160,35 @@ def main(arguments=None) -> int:
             action.add_argument('--confirm', required=True)
         if verb == 'backup':
             action.add_argument('--output', type=Path, required=True)
+    paperless_vault = sub.add_parser(
+        'paperless-vault', help='Encrypted restic repository for verified Paperless recovery sets')
+    vault_actions = paperless_vault.add_subparsers(dest='action', required=True)
+    vault_keys = vault_actions.add_parser('key-create')
+    vault_keys.add_argument('--password-file', type=Path, required=True)
+    vault_keys.add_argument('--recovery-key-file', type=Path, required=True)
+    vault_keys.add_argument('--confirm', required=True)
+    vault_plan = vault_actions.add_parser('plan')
+    vault_plan.add_argument('--state-root', type=Path, required=True)
+    vault_plan.add_argument('--repository', type=Path, required=True)
+    vault_plan.add_argument('--password-file', type=Path, required=True)
+    vault_plan.add_argument('--recovery-key-file', type=Path, required=True)
+    vault_plan.add_argument('--restic', type=Path, required=True)
+    vault_plan.add_argument('--output', type=Path, required=True)
+    snapshot_plan = vault_actions.add_parser('snapshot-plan')
+    snapshot_plan.add_argument('--plan', type=Path, required=True)
+    snapshot_plan.add_argument('--source', type=Path, required=True)
+    snapshot_plan.add_argument('--output', type=Path, required=True)
+    for verb in ('init', 'status', 'store', 'check', 'restore',
+                 'retention-preview', 'retention-apply'):
+        action = vault_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        if verb not in ('status', 'retention-preview'):
+            action.add_argument('--confirm', required=True)
+        if verb in ('store', 'restore'):
+            action.add_argument('--snapshot-plan', type=Path, required=True)
+        if verb == 'restore':
+            action.add_argument('--snapshot-id', required=True)
+            action.add_argument('--target', type=Path, required=True)
     beszel = sub.add_parser('beszel', help='Experimental upstream Beszel hub and restricted agent; no native-host adoption')
     beszel_actions = beszel.add_subparsers(dest='action', required=True)
     beszel_plan = beszel_actions.add_parser('plan')
@@ -304,6 +333,52 @@ def main(arguments=None) -> int:
             else:
                 result = module.operate(load_json(args.plan), args.action,
                                         getattr(args, 'confirm', None))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'paperless-vault':
+            from . import paperless_vault as module
+            if args.action == 'key-create':
+                result = module.create_keys(args.password_file, args.recovery_key_file, args.confirm)
+                result = {**result, 'password_file': '<operational-key-file>',
+                          'recovery_key_file': '<recovery-key-file>'}
+            elif args.action == 'plan':
+                result = module.make_plan(args.state_root, args.repository, args.password_file,
+                                          args.recovery_key_file, args.restic)
+                destination = args.output.resolve()
+                private_paths = (Path(result['state_root']), Path(result['repository']),
+                                 Path(result['key_custody']['password_file']),
+                                 Path(result['key_custody']['recovery_key_file']))
+                if any(destination.is_relative_to(path) or path.is_relative_to(destination)
+                       for path in private_paths):
+                    raise ConfigError('Plan output must not overlap vault storage or key custody')
+                write_private(args.output, result)
+                result = {**result, 'state_root': '<private-vault-state>',
+                          'repository': '<encrypted-repository>',
+                          'tool': {**result['tool'], 'path': '<reviewed-restic-binary>'},
+                          'key_custody': {**result['key_custody'],
+                                          'password_file': '<operational-key-file>',
+                                          'recovery_key_file': '<recovery-key-file>'}}
+            else:
+                plan = load_json(args.plan)
+                if args.action == 'snapshot-plan':
+                    result = module.make_snapshot_plan(plan, args.source)
+                    write_private(args.output, result)
+                    result = {**result, 'source': '<verified-paperless-backup>'}
+                elif args.action == 'init':
+                    result = module.initialize(plan, args.confirm)
+                elif args.action == 'status':
+                    result = module.status(plan)
+                elif args.action == 'store':
+                    result = module.store(plan, load_json(args.snapshot_plan), args.confirm)
+                elif args.action == 'check':
+                    result = module.check(plan, args.confirm)
+                elif args.action == 'restore':
+                    result = module.restore(plan, load_json(args.snapshot_plan), args.snapshot_id,
+                                            args.target, args.confirm)
+                    result = {**result, 'restore_root': '<private-restored-backup>'}
+                else:
+                    result = module.retention(plan, apply=args.action == 'retention-apply',
+                                              confirmation=getattr(args, 'confirm', None))
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command == "glance":

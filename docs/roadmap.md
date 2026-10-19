@@ -89,6 +89,8 @@ Substages: Paperless -> AFFiNE -> Nextcloud -> Firefly -> Vaultwarden -> Karakee
 
 First bounded milestone: **0.6.0-alpha.1**, an [isolated Paperless-ngx recovery candidate](paperless-ngx-module.md) with a nonempty synthetic PDF, quiesced exporter/database/filesystem set, independent importer restore and Windows Docker Desktop evidence. The snapshot remains plaintext-sensitive; encrypted restic storage, production migration and the remaining five applications are not delivered by this prerelease.
 
+Second bounded milestone: **0.6.0-alpha.2**, a [Paperless encrypted recovery vault](paperless-vault.md) that validates a reviewed restic 0.19.1 Windows amd64 binary, binds one verified nonempty application backup, checks all encrypted repository data, decrypts and revalidates it, then proves independent Paperless importer recovery and restart persistence. The live repository and key copies were local and disposable; off-host media, offline-key recovery, scheduling, production migration and the remaining five applications are still not delivered.
+
 Implement application-consistent backup/restore before considering a module complete. Build a portable encrypted recovery kit and retention policy. Test with nonempty synthetic data. Choose a maintained encryption/backup tool after validating its current platform support; do not invent cryptography.
 
 Exit: upload/open/edit/restart/backup/restore checks and a verified recovery-secret workflow for every implemented module. No real financial records or password vaults in test fixtures.
