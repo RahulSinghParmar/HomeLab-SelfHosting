@@ -74,6 +74,21 @@ class PaperlessTests(unittest.TestCase):
         self.assertIn(b'HomeLab Paperless recovery validation', value)
         self.assertLess(len(value), 2048)
 
+    def test_consume_fixture_is_owned_before_atomic_publication(self):
+        staged = '/usr/src/paperless/consume/.paperless-recovery-fixture.uploading'
+        destination = '/usr/src/paperless/consume/paperless-recovery-fixture.pdf'
+        fixture = self.base / 'fixture.pdf'
+        with patch.object(p, 'docker') as docker:
+            p.stage_consume_fixture('local-test', 'container-id', fixture)
+        self.assertEqual([call.args[0] for call in docker.call_args_list], [
+            ['cp', str(fixture), 'container-id:' + staged],
+            ['exec', 'container-id', 'chown', 'paperless:paperless', staged],
+            ['exec', 'container-id', 'chmod', '0600', staged],
+            ['exec', 'container-id', 'mv', '--', staged, destination],
+        ])
+        self.assertTrue(all(call.kwargs == {'context': 'local-test'}
+                            for call in docker.call_args_list))
+
     def test_content_inventory_accepts_only_bounded_json_line(self):
         payload = {'documents': 1, 'rows': [{'title': 'fixture'}]}
         with patch.object(p, 'docker', return_value='startup line\n' + json.dumps(payload)):

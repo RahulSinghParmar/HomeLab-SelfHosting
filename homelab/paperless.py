@@ -418,6 +418,15 @@ def synthetic_pdf():
     return bytes(result)
 
 
+def stage_consume_fixture(context, container, fixture):
+    staged = '/usr/src/paperless/consume/.paperless-recovery-fixture.uploading'
+    destination = '/usr/src/paperless/consume/paperless-recovery-fixture.pdf'
+    docker(['cp', str(fixture), container + ':' + staged], context=context)
+    docker(['exec', container, 'chown', 'paperless:paperless', staged], context=context)
+    docker(['exec', container, 'chmod', '0600', staged], context=context)
+    docker(['exec', container, 'mv', '--', staged, destination], context=context)
+
+
 def exercise(plan, confirmation):
     validate_plan(plan)
     need(confirmation == plan['plan_id'], 'Confirm the complete reviewed plan ID')
@@ -440,8 +449,7 @@ def exercise(plan, confirmation):
         context = plan['runtime']['context']
         try:
             web = resources['containers']['paperless']['Id']
-            docker(['cp', str(fixture), web + ':/usr/src/paperless/consume/paperless-recovery-fixture.pdf'],
-                   context=context)
+            stage_consume_fixture(context, web, fixture)
             deadline = time.monotonic() + 300
             value = {'documents': 0, 'rows': []}
             while time.monotonic() < deadline:
