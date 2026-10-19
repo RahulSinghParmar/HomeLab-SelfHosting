@@ -317,6 +317,23 @@ def backup_summary(manifest):
             'content_fingerprint': digest(manifest['inventory'])}
 
 
+def import_recovery(plan):
+    """Import a private read-only backup, then return all app volumes to Paperless ownership."""
+    context = plan['runtime']['context']
+    arguments = compose_args(plan)
+    # The decrypted host backup remains owner-only. The temporary root process is
+    # needed only to read that mount; it has no Docker socket and no host write mount.
+    docker(arguments + ['run', '--rm', '--no-deps', '--entrypoint',
+           'python3', 'paperless', '/usr/src/paperless/src/manage.py',
+           'document_importer', '/restore-import', '--no-progress-bar'],
+           context=context, timeout=900)
+    # The importer may create volume content as root. Normalize every application
+    # volume before the long-running unprivileged service is allowed to start.
+    docker(arguments + ['run', '--rm', '--no-deps', '--entrypoint',
+           'chown', 'paperless', '-R', 'paperless:paperless', *AREAS.values()],
+           context=context, timeout=900)
+
+
 def operate(plan, action, confirmation=None):
     validate_plan(plan)
     need(action in ('up', 'status', 'stop', 'remove'), 'Unsupported Paperless action')
@@ -356,11 +373,7 @@ def operate(plan, action, confirmation=None):
                 wait_health(plan, SERVICES)
                 docker(compose_args(plan) + ['stop', '--timeout', '60', 'paperless'],
                        context=context, timeout=120)
-                docker(compose_args(plan) + ['run', '--rm', '--no-deps', '--entrypoint',
-                       's6-setuidgid', 'paperless', 'paperless', 'python3',
-                       '/usr/src/paperless/src/manage.py', 'document_importer',
-                       '/restore-import', '--no-progress-bar'],
-                       context=context, timeout=900)
+                import_recovery(plan)
                 state['status'] = 'prepared'
                 atomic_json(root / 'state.json', state, replace=True)
             port_free(plan['port'])

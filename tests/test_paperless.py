@@ -89,6 +89,22 @@ class PaperlessTests(unittest.TestCase):
         self.assertTrue(all(call.kwargs == {'context': 'local-test'}
                             for call in docker.call_args_list))
 
+    def test_recovery_import_preserves_private_host_files_and_normalizes_volumes(self):
+        with patch.object(p, 'docker') as docker:
+            p.import_recovery(self.plan)
+        prefix = p.compose_args(self.plan)
+        self.assertEqual([call.args[0] for call in docker.call_args_list], [
+            prefix + ['run', '--rm', '--no-deps', '--entrypoint', 'python3',
+                      'paperless', '/usr/src/paperless/src/manage.py',
+                      'document_importer', '/restore-import', '--no-progress-bar'],
+            prefix + ['run', '--rm', '--no-deps', '--entrypoint', 'chown',
+                      'paperless', '-R', 'paperless:paperless', *p.AREAS.values()],
+        ])
+        self.assertEqual(docker.call_args_list[0].kwargs,
+                         {'context': 'local-test', 'timeout': 900})
+        self.assertEqual(docker.call_args_list[1].kwargs,
+                         {'context': 'local-test', 'timeout': 900})
+
     def test_content_inventory_accepts_only_bounded_json_line(self):
         payload = {'documents': 1, 'rows': [{'title': 'fixture'}]}
         with patch.object(p, 'docker', return_value='startup line\n' + json.dumps(payload)):

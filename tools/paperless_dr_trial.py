@@ -51,6 +51,10 @@ def require_linux_runner() -> None:
          'Hosted recovery rehearsal requires a clean Linux amd64 runner')
 
 
+def progress(stage: str) -> None:
+    print(json.dumps({'recovery_stage': stage}, sort_keys=True), flush=True)
+
+
 def prepare(work_root: Path, artifact_root: Path, restic: Path) -> dict:
     require_linux_runner()
     root = private_root(work_root)
@@ -112,6 +116,7 @@ def recover(work_root: Path, artifact_root: Path, restic: Path,
     recovery_key = key_directory / 'password.txt'
     write_secret(recovery_key)
 
+    progress('verify-encrypted-transport')
     repository = (artifact_root / 'repository').resolve()
     recovery_manifest = paperless_vault.validate_recovery_manifest(
         load_json(artifact_root / 'recovery-manifest.json'))
@@ -121,6 +126,7 @@ def recover(work_root: Path, artifact_root: Path, restic: Path,
         recovery_plan, root / 'decrypted', recovery_plan['plan_id'])
     restored_backup = Path(encrypted.pop('restore_root'))
 
+    progress('import-application-backup')
     recovered_parent = private_directory(root, 'recovered-parent')
     application_plan = paperless.make_plan(
         recovered_parent / 'paperless-recovered', 18013,
@@ -130,6 +136,7 @@ def recover(work_root: Path, artifact_root: Path, restic: Path,
     need(first['recovery'] is not None and first['recovery']['verified']
          and paperless.content_inventory(application_plan) == expected,
          'Recovered Paperless application content did not match')
+    progress('verify-restart-persistence')
     paperless.operate(application_plan, 'stop', application_plan['plan_id'])
     second = paperless.operate(application_plan, 'up', application_plan['plan_id'])
     need(second['recovery'] is not None and second['recovery']['verified']
@@ -138,6 +145,7 @@ def recover(work_root: Path, artifact_root: Path, restic: Path,
     paperless.operate(application_plan, 'stop', application_plan['plan_id'])
     paperless.operate(application_plan, 'remove', application_plan['plan_id'])
 
+    progress('write-sanitized-proof')
     proof = {
         'kind': 'homelab-paperless-hosted-recovery-proof',
         'contract': paperless_vault.RECOVERY_PLAN_CONTRACT,
