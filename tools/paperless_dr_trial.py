@@ -82,7 +82,7 @@ def prepare(work_root: Path, artifact_root: Path, restic: Path) -> dict:
         vault_plan, snapshot_plan, stored['snapshot_id'], root / 'local-decrypted',
         snapshot_plan['snapshot_plan_id'])
     recovery_manifest = paperless_vault.make_recovery_manifest(
-        vault_plan, snapshot_plan, stored['snapshot_id'])
+        vault_plan, snapshot_plan, local_restore['snapshot_id'])
     atomic_json(artifact / 'recovery-manifest.json', recovery_manifest)
 
     paperless.operate(source_plan, 'stop', source_plan['plan_id'])
@@ -90,7 +90,7 @@ def prepare(work_root: Path, artifact_root: Path, restic: Path) -> dict:
     return {
         'prepared': True,
         'documents': exercise['documents'],
-        'snapshot_id': stored['snapshot_id'],
+        'snapshot_id': local_restore['snapshot_id'],
         'repository_id': recovery_manifest['repository_id'],
         'manifest_id': recovery_manifest['manifest_id'],
         'local_decryption_verified': local_restore['recovery_verified'],

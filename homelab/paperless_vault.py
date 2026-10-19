@@ -352,6 +352,26 @@ def _snapshots(vault_plan, *selection):
     return value
 
 
+def _tag_snapshot(vault_plan, snapshot_id, *, add=None, remove=None):
+    need((add is None) != (remove is None),
+         'Exactly one snapshot tag operation is required')
+    arguments = ['tag', '--json', '--add' if add is not None else '--remove',
+                 add if add is not None else remove, snapshot_id]
+    events = _json_lines(_restic(vault_plan, arguments, timeout=120))
+    changed = [value for value in events
+               if isinstance(value, dict) and value.get('message_type') == 'changed']
+    summaries = [value for value in events
+                 if isinstance(value, dict) and value.get('message_type') == 'summary']
+    need(len(changed) == 1 and len(summaries) == 1
+         and summaries[0].get('changed_snapshots') == 1
+         and changed[0].get('old_snapshot_id') == snapshot_id,
+         'Restic did not return one verified snapshot tag transition')
+    replacement = changed[0].get('new_snapshot_id')
+    need(isinstance(replacement, str) and re.fullmatch('[0-9a-f]{64}', replacement),
+         'Restic replacement snapshot identifier is invalid')
+    return replacement
+
+
 def _locate_backup(target):
     candidates = []
     for manifest in Path(target).rglob('manifest.json'):
@@ -391,13 +411,25 @@ def restore(vault_plan, snapshot_plan, snapshot_id, target, confirmation):
         need(digest(manifest) == snapshot_plan['manifest_id']
              and backup_summary(manifest) == snapshot_plan['summary'],
              'Encrypted restore differs from reviewed application backup evidence')
-        _restic(vault_plan, ['tag', '--add', VERIFIED_TAG, snapshot_id], timeout=120)
+        if VERIFIED_TAG in selected[0].get('tags', []):
+            verified_snapshot = snapshot_id
+        else:
+            verified_snapshot = _tag_snapshot(
+                vault_plan, snapshot_id, add=VERIFIED_TAG)
         previous = state['last_verified']
-        if previous and previous != snapshot_id and _snapshots(vault_plan, previous):
-            _restic(vault_plan, ['tag', '--remove', VERIFIED_TAG, previous], timeout=120)
-        state['last_verified'] = snapshot_id
+        if previous and previous not in (snapshot_id, verified_snapshot):
+            previous_inventory = _snapshots(vault_plan, previous)
+            if (previous_inventory
+                    and VERIFIED_TAG in previous_inventory[0].get('tags', [])):
+                _tag_snapshot(vault_plan, previous, remove=VERIFIED_TAG)
+        if state['last_snapshot'] == snapshot_id:
+            state['last_snapshot'] = verified_snapshot
+        if state['last_checked_snapshot'] == snapshot_id:
+            state['last_checked_snapshot'] = verified_snapshot
+        state['last_verified'] = verified_snapshot
         atomic_json(root / 'state.json', state, replace=True)
-        return {'restored': True, 'encrypted_source': True, 'snapshot_id': snapshot_id,
+        return {'restored': True, 'encrypted_source': True,
+                'snapshot_id': verified_snapshot,
                 'manifest_id': snapshot_plan['manifest_id'], 'summary': snapshot_plan['summary'],
                 'restore_root': str(restored_root), 'recovery_verified': True}
 

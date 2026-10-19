@@ -161,10 +161,24 @@ class PaperlessVaultTests(unittest.TestCase):
                 patch.object(v, 'verify_backup', return_value=self.manifest):
             snapshot = v.make_snapshot_plan(self.plan, source)
             target = self.base / 'restored'
+            state_path = Path(self.plan['state_root']) / 'state.json'
+            state = read_private(state_path)
+            state.update({'last_snapshot': 'd' * 64,
+                          'last_checked_snapshot': 'd' * 64,
+                          'last_check_utc': '2026-10-19T00:00:00+00:00'})
+            atomic_json(state_path, state, replace=True)
             calls = []
 
             def command(_plan, arguments, **_kwargs):
                 calls.append(arguments)
+                if arguments[:4] == ['tag', '--json', '--add', v.VERIFIED_TAG]:
+                    return '\n'.join((
+                        json.dumps({'message_type': 'changed',
+                                    'old_snapshot_id': 'd' * 64,
+                                    'new_snapshot_id': 'e' * 64}),
+                        json.dumps({'message_type': 'summary',
+                                    'changed_snapshots': 1}),
+                    ))
                 return ''
 
             with patch.object(v, '_restic', side_effect=command), \
@@ -173,10 +187,19 @@ class PaperlessVaultTests(unittest.TestCase):
                 result = v.restore(self.plan, snapshot, 'd' * 64, target,
                                    snapshot['snapshot_plan_id'])
         self.assertTrue(result['recovery_verified'])
-        self.assertTrue(any(arguments[:3] == ['tag', '--add', v.VERIFIED_TAG]
+        self.assertEqual(result['snapshot_id'], 'e' * 64)
+        self.assertTrue(any(arguments[:4] == ['tag', '--json', '--add', v.VERIFIED_TAG]
                             for arguments in calls))
         state = read_private(Path(self.plan['state_root']) / 'state.json')
-        self.assertEqual(state['last_verified'], 'd' * 64)
+        self.assertEqual(state['last_verified'], 'e' * 64)
+        self.assertEqual(state['last_snapshot'], 'e' * 64)
+        self.assertEqual(state['last_checked_snapshot'], 'e' * 64)
+
+    def test_snapshot_tag_transition_requires_exact_machine_readable_result(self):
+        with patch.object(v, '_restic', return_value=json.dumps({
+                'message_type': 'summary', 'changed_snapshots': 0})), \
+                self.assertRaises(ConfigError):
+            v._tag_snapshot(self.plan, 'd' * 64, add=v.VERIFIED_TAG)
 
     def test_restore_refuses_tampered_snapshot_reference(self):
         self.initialize()
