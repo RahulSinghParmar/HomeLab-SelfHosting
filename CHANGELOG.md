@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0-alpha.3 — 2026-10-19
+
+- Added a path-independent Paperless recovery manifest and confirmation-gated clean-host recovery plan.
+- Added reviewed Restic 0.19.1 Linux amd64 archive/executable checksums alongside the Windows amd64 contract.
+- Added a manual two-runner GitHub Actions rehearsal: the first runner creates and uploads only the encrypted synthetic repository; the second independently downloads, checks, decrypts, imports and restart-tests it.
+- Kept the synthetic recovery key in a repository Actions secret rather than the uploaded repository artifact, and pinned artifact actions by immutable commit.
+- Retained explicit no-go boundaries for production-data migration, permanent backup hosting, scheduling, real offline-key custody, API-token recovery and stable 0.6.0.
+
 ## 0.6.0-alpha.2 — 2026-10-19
 
 - Added a separate Paperless encrypted-vault workflow for reviewed restic validation, dual key files, repository initialization, store, full data check, restore, status and restore-gated retention.

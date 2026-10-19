@@ -2,6 +2,7 @@
 import json
 import os
 from pathlib import Path
+from subprocess import CompletedProcess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -46,6 +47,23 @@ class PaperlessVaultTests(unittest.TestCase):
                          'summary': None}
         self.manifest['summary'] = v.backup_summary(self.manifest)
 
+    def portable_manifest(self, snapshot='d' * 64):
+        value = {
+            'kind': 'homelab-paperless-portable-recovery',
+            'contract': v.RECOVERY_CONTRACT,
+            'repository_id': 'c' * 64,
+            'snapshot_id': snapshot,
+            'manifest_id': v.digest(self.manifest),
+            'summary_id': v.digest(self.manifest['summary']),
+            'documents': 1,
+            'restic_version': '0.19.1',
+            'required_tags': sorted({*v.TAGS, v.VERIFIED_TAG,
+                                     'manifest-' + v.digest(self.manifest)[:16]}),
+            'full_data_check_utc': '2026-10-19T00:00:00+00:00',
+        }
+        value['recovery_manifest_id'] = v.digest(value)
+        return value
+
     def initialize(self):
         with patch.object(v, '_restic', return_value=''), \
                 patch.object(v, '_repository_id', return_value='c' * 64):
@@ -58,6 +76,27 @@ class PaperlessVaultTests(unittest.TestCase):
         self.assertEqual(self.plan['retention'], {'daily': 7, 'weekly': 4, 'monthly': 3})
         self.assertFalse(self.plan['off_host_verified'])
         self.assertNotIn('x' * 32, json.dumps(self.plan))
+
+    def test_reviewed_linux_amd64_tool_is_supported_by_exact_checksum(self):
+        candidate = self.base / 'restic'
+        candidate.write_bytes(b'x' * 1_000_000)
+        candidate.chmod(0o700)
+        reviewed = {
+            'version': '0.19.1',
+            'linux_amd64': {'archive_sha256': 'b' * 64,
+                            'executable_sha256': 'a' * 64},
+        }
+        completed = CompletedProcess([str(candidate), 'version'], 0,
+                                     'restic 0.19.1 compiled with go on linux/amd64\n', '')
+        with patch.object(v, 'host_platform', return_value='linux'), \
+                patch.object(v, 'host_architecture', return_value='amd64'), \
+                patch.object(v, 'specification', return_value=reviewed), \
+                patch.object(v, 'file_sha256', return_value='a' * 64), \
+                patch.object(v.os, 'access', return_value=True), \
+                patch.object(v.subprocess, 'run', return_value=completed):
+            result = v.validate_tool(candidate)
+        self.assertEqual(result['sha256'], 'a' * 64)
+        self.assertEqual(result['archive_sha256'], 'b' * 64)
 
     def test_key_files_must_match_and_use_separate_directories(self):
         same_directory = self.password.parent / 'copy.txt'
@@ -217,6 +256,68 @@ class PaperlessVaultTests(unittest.TestCase):
                          [{'message_type': 'summary'}])
         with self.assertRaises(ConfigError):
             v._json_lines('{broken')
+
+    def test_portable_manifest_requires_checked_restore_verified_snapshot(self):
+        self.initialize()
+        source = self.base / 'application-backup'
+        source.mkdir()
+        with patch.object(v, '_repository_id', return_value='c' * 64), \
+                patch.object(v, 'verify_backup', return_value=self.manifest):
+            snapshot_plan = v.make_snapshot_plan(self.plan, source)
+        with patch.object(v, '_repository_id', return_value='c' * 64), \
+                self.assertRaises(ConfigError):
+            v.make_recovery_manifest(self.plan, snapshot_plan, 'd' * 64)
+        state_path = Path(self.plan['state_root']) / 'state.json'
+        state = read_private(state_path)
+        state.update({'last_snapshot': 'd' * 64, 'last_verified': 'd' * 64,
+                      'last_checked_snapshot': 'd' * 64,
+                      'last_check_utc': '2026-10-19T00:00:00+00:00'})
+        atomic_json(state_path, state, replace=True)
+        tags = [*v.TAGS, v.VERIFIED_TAG,
+                'manifest-' + snapshot_plan['manifest_id'][:16]]
+        with patch.object(v, '_repository_id', return_value='c' * 64), \
+                patch.object(v, '_snapshots', return_value=[{'id': 'd' * 64, 'tags': tags}]):
+            result = v.make_recovery_manifest(self.plan, snapshot_plan, 'd' * 64)
+        self.assertEqual(result['repository_id'], 'c' * 64)
+        self.assertEqual(result['documents'], 1)
+        self.assertEqual(v.validate_recovery_manifest(result), result)
+
+    def test_off_host_recovery_checks_all_data_and_exact_backup(self):
+        evidence = self.portable_manifest()
+        Path(self.plan['repository']).mkdir()
+        with patch.object(v, '_repository_id', return_value='c' * 64):
+            plan = v.make_recovery_plan(self.plan['repository'], self.recovery,
+                                        self.binary, evidence)
+        target = self.base / 'off-host-restore'
+        calls = []
+
+        def command(_plan, arguments, **_kwargs):
+            calls.append(arguments)
+            return ''
+
+        snapshot = {'id': 'd' * 64, 'tags': evidence['required_tags']}
+        with patch.object(v, '_repository_id', return_value='c' * 64), \
+                patch.object(v, '_restic', side_effect=command), \
+                patch.object(v, '_snapshots', return_value=[snapshot]), \
+                patch.object(v, '_locate_backup', return_value=target), \
+                patch.object(v, 'verify_backup', return_value=self.manifest):
+            result = v.recover_off_host(plan, target, plan['plan_id'])
+        self.assertTrue(result['full_data_check'])
+        self.assertFalse(result['source_machine_state_used'])
+        self.assertEqual(result['documents'], 1)
+        self.assertIn(['check', '--read-data'], calls)
+        self.assertTrue(any(arguments[:2] == ['restore', 'd' * 64]
+                            for arguments in calls))
+
+    def test_off_host_recovery_refuses_tampered_portable_manifest(self):
+        evidence = self.portable_manifest()
+        evidence['documents'] = 2
+        Path(self.plan['repository']).mkdir()
+        with patch.object(v, '_repository_id') as repository, \
+                self.assertRaises(ConfigError):
+            v.make_recovery_plan(self.plan['repository'], self.recovery,
+                                 self.binary, evidence)
+        repository.assert_not_called()
 
 
 if __name__ == '__main__':

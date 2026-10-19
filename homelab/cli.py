@@ -178,6 +178,21 @@ def main(arguments=None) -> int:
     snapshot_plan.add_argument('--plan', type=Path, required=True)
     snapshot_plan.add_argument('--source', type=Path, required=True)
     snapshot_plan.add_argument('--output', type=Path, required=True)
+    portable_manifest = vault_actions.add_parser('portable-manifest')
+    portable_manifest.add_argument('--plan', type=Path, required=True)
+    portable_manifest.add_argument('--snapshot-plan', type=Path, required=True)
+    portable_manifest.add_argument('--snapshot-id', required=True)
+    portable_manifest.add_argument('--output', type=Path, required=True)
+    recovery_plan = vault_actions.add_parser('recovery-plan')
+    recovery_plan.add_argument('--repository', type=Path, required=True)
+    recovery_plan.add_argument('--recovery-key-file', type=Path, required=True)
+    recovery_plan.add_argument('--restic', type=Path, required=True)
+    recovery_plan.add_argument('--manifest', type=Path, required=True)
+    recovery_plan.add_argument('--output', type=Path, required=True)
+    off_host_restore = vault_actions.add_parser('recover-off-host')
+    off_host_restore.add_argument('--plan', type=Path, required=True)
+    off_host_restore.add_argument('--target', type=Path, required=True)
+    off_host_restore.add_argument('--confirm', required=True)
     for verb in ('init', 'status', 'store', 'check', 'restore',
                  'retention-preview', 'retention-apply'):
         action = vault_actions.add_parser(verb)
@@ -358,12 +373,26 @@ def main(arguments=None) -> int:
                           'key_custody': {**result['key_custody'],
                                           'password_file': '<operational-key-file>',
                                           'recovery_key_file': '<recovery-key-file>'}}
+            elif args.action == 'recovery-plan':
+                result = module.make_recovery_plan(args.repository, args.recovery_key_file,
+                                                   args.restic, load_json(args.manifest))
+                write_private(args.output, result)
+                result = {**result, 'repository': '<off-host-encrypted-repository>',
+                          'recovery_key_file': '<offline-recovery-key-file>',
+                          'tool': {**result['tool'], 'path': '<reviewed-restic-binary>'}}
+            elif args.action == 'recover-off-host':
+                result = module.recover_off_host(load_json(args.plan), args.target, args.confirm)
+                result = {**result, 'restore_root': '<private-restored-backup>'}
             else:
                 plan = load_json(args.plan)
                 if args.action == 'snapshot-plan':
                     result = module.make_snapshot_plan(plan, args.source)
                     write_private(args.output, result)
                     result = {**result, 'source': '<verified-paperless-backup>'}
+                elif args.action == 'portable-manifest':
+                    result = module.make_recovery_manifest(
+                        plan, load_json(args.snapshot_plan), args.snapshot_id)
+                    write_private(args.output, result)
                 elif args.action == 'init':
                     result = module.initialize(plan, args.confirm)
                 elif args.action == 'status':

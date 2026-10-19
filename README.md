@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Prerelease 0.6.0-alpha.2 adds a bounded encrypted recovery vault to the isolated Paperless-ngx candidate.** It checksum-validates a reviewed restic binary, encrypts only a verified nonempty Paperless backup, checks all repository data, proves decryption plus independent application recovery, and gates retention on a successful restore. The existing personal deployment remains untouched, the general planner remains planning-only, and same-machine encryption is not presented as off-host disaster recovery.
+**Prerelease 0.6.0-alpha.3 adds a portable off-host recovery proof to the isolated Paperless-ngx candidate.** It keeps the encrypted repository separate from a GitHub Actions recovery secret, transfers only encrypted synthetic data, performs a full-data check on a fresh Linux runner, and proves decryption, Paperless import and restart persistence without source-machine state. The existing personal deployment remains untouched; this validates the mechanism, not a production backup.
 
 ## What this project is building
 
@@ -35,6 +35,7 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [Paperless-ngx recovery module](docs/paperless-ngx-module.md) | Isolated document lifecycle, consistent backup set and independent semantic restore |
 | [Paperless encrypted vault](docs/paperless-vault.md) | Reviewed restic tool, key custody, encrypted store/check/restore and retention workflow |
 | [0.6.0-alpha.2 validation](docs/validation/paperless-vault.md) | Windows encryption, independent recovery, cleanup and production-safety evidence |
+| [0.6.0-alpha.3 recovery gate](docs/validation/paperless-off-host-recovery.md) | Off-host transport and fresh-runner recovery contract |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -90,7 +91,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-alpha.2 release review](docs/releases/v0.6.0-alpha.2.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-alpha.3 release review](docs/releases/v0.6.0-alpha.3.md).
 
 ## License
 

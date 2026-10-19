@@ -20,7 +20,7 @@ Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete a
 
 ## Installation and dependencies
 
-The separate [Paperless recovery candidate](../paperless-ngx-module.md) creates a fresh digest-pinned project with synthetic content. Its [0.6.0-alpha.2 encrypted vault](../paperless-vault.md) accepts only that verified backup contract. Neither adapter adopts this observed deployment. Follow their private plan, loopback, ownership and confirmation boundaries; never point a synthetic plan at these live directories or volumes.
+The separate [Paperless recovery candidate](../paperless-ngx-module.md) creates a fresh digest-pinned project with synthetic content. Its [encrypted vault](../paperless-vault.md) accepts only that verified backup contract, and 0.6.0-alpha.3 adds a clean-runner rehearsal for the synthetic repository. Neither adapter adopts this observed deployment. Follow their private plan, loopback, ownership and confirmation boundaries; never point a synthetic plan at these live directories or volumes.
 
 ## Configuration mapping
 
@@ -56,10 +56,10 @@ Capture a consistent backup and required secrets, resolve the exact image/build 
 
 ## Acceptance checks
 
-The candidate passes a nonempty synthetic PDF, searchable marker, metadata edit, original-file checksum and independent semantic restore. Production content, encrypted off-host copies and API-token recovery remain unverified.
+The candidate passes a nonempty synthetic PDF, searchable marker, metadata edit, original-file checksum and independent semantic restore. The hosted gate also transfers and restores an encrypted synthetic repository on a fresh runner. Production content, durable off-host copies and API-token recovery remain unverified.
 
 ## Limitations and follow-up
 
-The live production scripts still have the earlier exporter/database timing gap and zero-document restore evidence. Review them separately before migration. The candidate's plaintext staging contains credentials and documents. The new vault proves local restic encryption, full data check, decryption and independent synthetic application restore, but off-host repository media, offline-key recovery, scheduling and production migration remain pending.
+The live production scripts still have the earlier exporter/database timing gap and zero-document restore evidence. Review them separately before migration. The candidate's plaintext staging contains credentials and documents. The new vault proves Restic encryption, full data checking, clean-runner decryption and independent synthetic application restore, but a durable production repository, real offline-key recovery, scheduling and production migration remain pending.
 
 For upstream links and implementation phase, see the [service catalog](../../catalog/services.json). No third-party application source is copied into this release; see [build provenance](../discovery/build-provenance.md).

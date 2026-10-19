@@ -14,7 +14,7 @@ import subprocess
 import uuid
 
 from .config import ROOT, ConfigError, canonical, keys, load_json, need
-from .doctor import host_platform
+from .doctor import host_architecture, host_platform
 from .paperless import backup_summary, verify_backup
 from .privatefs import (atomic_json, create_lock_file, create_private_directory,
                         operation_lock, read_private, safe_path, verify_private, windows_acl)
@@ -23,6 +23,8 @@ from .sandbox import digest, pending_guard
 
 MODULE = ROOT / 'modules/paperless-ngx'
 CONTRACT = 'paperless-restic-vault-v1'
+RECOVERY_CONTRACT = 'paperless-portable-recovery-v1'
+RECOVERY_PLAN_CONTRACT = 'paperless-off-host-restore-v1'
 HOST = 'homelab-paperless'
 TAGS = ('paperless-ngx', 'phase5-encrypted')
 VERIFIED_TAG = 'recovery-verified'
@@ -55,10 +57,14 @@ def validate_tool(path):
     need(stat.S_ISREG(info.st_mode) and info.st_nlink == 1 and 1_000_000 <= info.st_size <= 100_000_000,
          'Restic candidate must be one bounded regular file')
     reviewed = specification()
-    need(host_platform() == 'windows' and os.name == 'nt',
-         'This restic milestone is certified only on Windows amd64')
-    need(path.suffix.lower() == '.exe', 'Windows restic candidate must be an executable')
-    need(file_sha256(path) == reviewed['windows_amd64']['executable_sha256'],
+    system, architecture = host_platform(), host_architecture()
+    target = system + '_' + architecture
+    need(target in ('windows_amd64', 'linux_amd64') and target in reviewed,
+         'This restic milestone is certified only on Windows amd64 and Linux amd64')
+    need((system != 'windows' or path.suffix.lower() == '.exe')
+         and (system == 'windows' or os.access(path, os.X_OK)),
+         'Restic candidate is not executable on this platform')
+    need(file_sha256(path) == reviewed[target]['executable_sha256'],
          'Restic executable checksum differs from the reviewed official archive')
     try:
         result = subprocess.run([str(path), 'version'], env=_clean_environment(), capture_output=True,
@@ -67,10 +73,10 @@ def validate_tool(path):
         raise ConfigError('Restic candidate could not be executed') from error
     expected = 'restic ' + reviewed['version'] + ' '
     need(result.returncode == 0 and result.stdout.startswith(expected)
-         and 'windows/amd64' in result.stdout, 'Restic version/platform mismatch')
+         and system + '/' + architecture in result.stdout, 'Restic version/platform mismatch')
     return {'path': str(path), 'version': reviewed['version'],
-            'sha256': reviewed['windows_amd64']['executable_sha256'],
-            'archive_sha256': reviewed['windows_amd64']['archive_sha256']}
+            'sha256': reviewed[target]['executable_sha256'],
+            'archive_sha256': reviewed[target]['archive_sha256']}
 
 
 def _key_bytes(path):
@@ -95,6 +101,12 @@ def validate_key_custody(password_file, recovery_key_file):
     need(hmac.compare_digest(first, second), 'Operational and recovery key files do not match')
     return {'password_file': str(password_file), 'recovery_key_file': str(recovery_key_file),
             'different_volumes': password_file.anchor.lower() != recovery_key_file.anchor.lower()}
+
+
+def validate_recovery_key(path):
+    path = safe_path(Path(path))
+    _key_bytes(path)
+    return str(path)
 
 
 def create_keys(password_file, recovery_key_file, confirmation):
@@ -431,3 +443,158 @@ def status(vault_plan):
             'last_verified': state['last_verified'], 'last_check_utc': state['last_check_utc'],
             'last_checked_snapshot': state['last_checked_snapshot'],
             'retention': RETENTION, 'off_host_verified': vault_plan['off_host_verified']}
+
+
+def make_recovery_manifest(vault_plan, snapshot_plan, snapshot_id):
+    validate_plan(vault_plan)
+    validate_snapshot_reference(vault_plan, snapshot_plan)
+    need(isinstance(snapshot_id, str) and re.fullmatch('[0-9a-f]{64}', snapshot_id),
+         'A complete restic snapshot ID is required')
+    state = _state(vault_plan)
+    need(state['last_verified'] == snapshot_id,
+         'Portable recovery requires the selected restore-verified snapshot')
+    need(state['last_snapshot'] == snapshot_id
+         and state['last_checked_snapshot'] == snapshot_id
+         and state['last_check_utc'] is not None,
+         'Portable recovery requires a full data check of the selected latest snapshot')
+    selected = _snapshots(vault_plan, snapshot_id)
+    expected_tags = {*TAGS, VERIFIED_TAG,
+                     'manifest-' + snapshot_plan['manifest_id'][:16]}
+    need(len(selected) == 1 and selected[0].get('id') == snapshot_id
+         and expected_tags.issubset(set(selected[0].get('tags', []))),
+         'Portable recovery snapshot or protection tags are incomplete')
+    value = {
+        'kind': 'homelab-paperless-portable-recovery',
+        'contract': RECOVERY_CONTRACT,
+        'repository_id': state['repository_id'],
+        'snapshot_id': snapshot_id,
+        'manifest_id': snapshot_plan['manifest_id'],
+        'summary_id': digest(snapshot_plan['summary']),
+        'documents': snapshot_plan['summary']['documents'],
+        'restic_version': vault_plan['tool']['version'],
+        'required_tags': sorted(expected_tags),
+        'full_data_check_utc': state['last_check_utc'],
+    }
+    value['recovery_manifest_id'] = digest(value)
+    return value
+
+
+def validate_recovery_manifest(value):
+    keys(value, {'kind', 'contract', 'repository_id', 'snapshot_id', 'manifest_id',
+                 'summary_id', 'documents', 'restic_version', 'required_tags',
+                 'full_data_check_utc', 'recovery_manifest_id'},
+         'Portable Paperless recovery manifest')
+    unsigned = {name: item for name, item in value.items()
+                if name != 'recovery_manifest_id'}
+    need(value['kind'] == 'homelab-paperless-portable-recovery'
+         and value['contract'] == RECOVERY_CONTRACT
+         and value['restic_version'] == specification()['version']
+         and all(isinstance(value[name], str) and re.fullmatch('[0-9a-f]{64}', value[name])
+                 for name in ('repository_id', 'snapshot_id', 'manifest_id', 'summary_id'))
+         and type(value['documents']) is int and value['documents'] > 0
+         and value['required_tags'] == sorted({*TAGS, VERIFIED_TAG,
+                                               'manifest-' + value['manifest_id'][:16]})
+         and isinstance(value['full_data_check_utc'], str)
+         and bool(value['full_data_check_utc'])
+         and value['recovery_manifest_id'] == digest(unsigned),
+         'Portable recovery manifest identity or content is invalid')
+    return value
+
+
+def _recovery_restic_plan(plan):
+    return {
+        'repository': plan['repository'],
+        'tool': plan['tool'],
+        'key_custody': {'password_file': plan['recovery_key_file']},
+    }
+
+
+def make_recovery_plan(repository, recovery_key_file, restic_binary, recovery_manifest):
+    repository = safe_path(Path(repository))
+    need(repository.is_dir(), 'Off-host repository directory is unavailable')
+    recovery_key_file = validate_recovery_key(recovery_key_file)
+    tool = validate_tool(restic_binary)
+    validate_recovery_manifest(recovery_manifest)
+    _separate([repository, Path(recovery_key_file), Path(tool['path'])])
+    plan = {
+        'kind': 'homelab-paperless-off-host-recovery-plan',
+        'contract': RECOVERY_PLAN_CONTRACT,
+        'platform': host_platform(),
+        'architecture': host_architecture(),
+        'repository': str(repository),
+        'recovery_key_file': recovery_key_file,
+        'tool': tool,
+        'recovery_manifest': recovery_manifest,
+        'full_data_check': True,
+        'source_machine_state_required': False,
+    }
+    identity = _repository_id(_recovery_restic_plan(plan))
+    need(identity == recovery_manifest['repository_id'],
+         'Off-host repository identity differs from the recovery manifest')
+    plan['plan_id'] = digest(plan)
+    return plan
+
+
+def validate_recovery_plan(plan):
+    keys(plan, {'kind', 'contract', 'platform', 'architecture', 'repository',
+                'recovery_key_file', 'tool', 'recovery_manifest', 'full_data_check',
+                'source_machine_state_required', 'plan_id'},
+         'Off-host Paperless recovery plan')
+    need(plan['kind'] == 'homelab-paperless-off-host-recovery-plan'
+         and plan['contract'] == RECOVERY_PLAN_CONTRACT
+         and plan['platform'] == host_platform()
+         and plan['architecture'] == host_architecture()
+         and plan['full_data_check'] is True
+         and plan['source_machine_state_required'] is False,
+         'Unsupported off-host Paperless recovery plan')
+    rebuilt = make_recovery_plan(plan['repository'], plan['recovery_key_file'],
+                                 plan['tool']['path'], plan['recovery_manifest'])
+    need(canonical(plan) == canonical(rebuilt),
+         'Off-host recovery plan/tool/key/repository drift; review a new plan')
+    return plan
+
+
+def recover_off_host(plan, target, confirmation):
+    need(isinstance(plan, dict) and confirmation == plan.get('plan_id'),
+         'Confirm the complete reviewed off-host recovery plan ID')
+    validate_recovery_plan(plan)
+    target = safe_path(Path(target))
+    _separate([target, Path(plan['repository']), Path(plan['recovery_key_file']),
+               Path(plan['tool']['path'])])
+    need(not target.exists() and target.parent.is_dir(),
+         'Off-host restore requires an absent destination under an existing parent')
+    restic_plan = _recovery_restic_plan(plan)
+    manifest = plan['recovery_manifest']
+    _restic(restic_plan, ['check', '--read-data'], timeout=1800)
+    selected = _snapshots(restic_plan, manifest['snapshot_id'])
+    need(len(selected) == 1 and selected[0].get('id') == manifest['snapshot_id']
+         and set(manifest['required_tags']).issubset(set(selected[0].get('tags', []))),
+         'Required off-host snapshot or recovery tags are unavailable')
+    create_private_directory(target)
+    _restic(restic_plan, ['restore', manifest['snapshot_id'], '--target', str(target)],
+            timeout=1800)
+    restored_root = _locate_backup(target)
+    restored_manifest = verify_backup(restored_root)
+    summary = backup_summary(restored_manifest)
+    need(digest(restored_manifest) == manifest['manifest_id']
+         and digest(summary) == manifest['summary_id']
+         and summary['documents'] == manifest['documents'],
+         'Off-host restore differs from the portable recovery manifest')
+    value = {
+        'kind': 'homelab-paperless-off-host-recovery-proof',
+        'contract': RECOVERY_PLAN_CONTRACT,
+        'repository_id': manifest['repository_id'],
+        'snapshot_id': manifest['snapshot_id'],
+        'manifest_id': manifest['manifest_id'],
+        'summary_id': manifest['summary_id'],
+        'documents': manifest['documents'],
+        'platform': host_platform(),
+        'architecture': host_architecture(),
+        'restic_version': plan['tool']['version'],
+        'full_data_check': True,
+        'encrypted_repository': True,
+        'source_machine_state_used': False,
+        'restored_utc': datetime.now(timezone.utc).isoformat(),
+    }
+    value['proof_id'] = digest(value)
+    return {**value, 'restore_root': str(restored_root)}

@@ -53,6 +53,8 @@ Version 0.6.0-alpha.1 adds a separate `paperless` adapter. It proves one nonempt
 
 Version 0.6.0-alpha.2 adds the separate `paperless-vault` adapter around that verified staging contract. It validates a checksum-locked restic 0.19.1 Windows amd64 binary, separates key references from repository/state, stores and checks encrypted data, requires a successful decrypted content verification before protection, and gates retention on that restore. Its same-machine trial does not claim off-host or clean-machine disaster recovery. See the [Paperless encrypted vault](paperless-vault.md).
 
+Version 0.6.0-alpha.3 adds a portable manifest that binds repository, snapshot and application-backup identities without carrying source paths or secrets. A manually dispatched two-job workflow stores the encrypted synthetic repository as an immutable hosted artifact while injecting its test key independently from repository secrets. A fresh Linux amd64 runner repeats the full repository check, decrypts the exact snapshot, imports it into a new Paperless project and verifies restart persistence. This is mechanism evidence, not adoption of the household deployment or durable production backup storage.
+
 ```text
 bootstrap.ps1 or bootstrap.sh
   -> doctor: OS, architecture, runtime, resources, storage, port conflicts

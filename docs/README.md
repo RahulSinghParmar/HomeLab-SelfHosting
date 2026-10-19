@@ -30,7 +30,7 @@ The combined decision and remaining gates are in [Phase 4 integrated validation]
 | --- | --- | --- |
 | Paperless-ngx | [Application-aware recovery module](paperless-ngx-module.md) and [encrypted vault](paperless-vault.md) | [Application recovery](validation/paperless-ngx.md) and [encrypted-vault evidence](validation/paperless-vault.md) |
 
-Phase 5 proceeds one personal-data application at a time. Paperless now has experimental application-aware and encrypted local recovery candidates; independently recoverable off-host media and the other five applications remain planned.
+Phase 5 proceeds one personal-data application at a time. Paperless now has experimental application-aware, encrypted local and synthetic off-host clean-runner recovery evidence. Production backup adoption, durable off-host storage and the other five applications remain planned.
 
 ## Operations and recovery
 

@@ -1,6 +1,6 @@
 # Experimental Paperless-ngx recovery module
 
-Version **0.6.0-alpha.2** retains the isolated Paperless-ngx application workflow from `0.6.0-alpha.1` and adds a separately gated encrypted recovery vault. It creates new synthetic projects and never adopts, changes, backs up or migrates an existing Paperless deployment automatically.
+Version **0.6.0-alpha.3** retains the isolated Paperless-ngx application workflow and encrypted vault, then adds a separately gated clean-runner recovery rehearsal. It creates new synthetic projects and never adopts, changes, backs up or migrates an existing Paperless deployment automatically.
 
 ## Boundary and component set
 
@@ -77,12 +77,12 @@ The created directory is **sensitive plaintext staging**. It contains credential
 
 Version `0.6.0-alpha.2` adds the separate [Paperless encrypted recovery vault](paperless-vault.md). It validates a reviewed restic 0.19.1 Windows amd64 binary, keeps key material out of plans/output, accepts only this module's verified nonempty staging set, checks every repository data pack, restores to a new private target and protects the last restore-verified snapshot. The retention target is 7 daily, 4 weekly and 3 monthly points; preview never prunes and apply is separately confirmation-gated.
 
-The validated repository and keys were disposable local copies, so this remains encrypted local recovery evidence rather than independently recoverable off-host disaster recovery. The application backup must still be imported into a new Paperless project to prove application-level content. No automated schedule or production-backup replacement is delivered.
+Version `0.6.0-alpha.3` adds Linux amd64 Restic validation, portable recovery manifests and a manual two-runner hosted rehearsal. The encrypted synthetic repository crosses the host boundary without its key; a fresh runner performs full-data verification, decryption, independent Paperless import and restart validation. No automated schedule, durable production repository or production-backup replacement is delivered.
 
 ## Certified and remaining scope
 
 Certified on the recorded Windows Docker Desktop/Linux amd64 trials: fresh health, synthetic upload/open/search/edit, exact stored-file checksum, application quiesce, exporter, readable PostgreSQL archive, hashed filesystem/configuration set, reviewed restic binary verification, encrypted store, full data check, decrypted manifest equality, independent importer restore, semantic equality and stop/start persistence.
 
-Not certified: the existing personal deployment, real records, public access, user/API-token recovery, SMTP/mail consumption, scanners, large libraries, concurrent ingestion, OCR quality/languages, ARM64, Linux/macOS Docker/restic runtime, independent off-host media/key custody, scheduled retention, retention pruning in the live trial, upgrade/rollback or hardware-failure recovery. Continue using the existing production backup schedule until it is separately reviewed; do not replace it with this candidate.
+Not certified: the existing personal deployment, real records, public access, user/API-token recovery, SMTP/mail consumption, scanners, large libraries, concurrent ingestion, OCR quality/languages, ARM64, macOS runtime, durable production off-host media, real offline-key custody, scheduled retention, retention pruning in the live trial, upgrade/rollback or household hardware-failure recovery. Continue using the existing production backup schedule until it is separately reviewed; do not replace it with this candidate.
 
 Upstream references: [Paperless administration and exporter/importer](https://github.com/paperless-ngx/paperless-ngx/blob/dev/docs/administration.md) and [Paperless-ngx v3.2.1](https://github.com/paperless-ngx/paperless-ngx/releases/tag/v3.2.1).

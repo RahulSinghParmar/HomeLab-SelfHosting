@@ -91,6 +91,8 @@ First bounded milestone: **0.6.0-alpha.1**, an [isolated Paperless-ngx recovery 
 
 Second bounded milestone: **0.6.0-alpha.2**, a [Paperless encrypted recovery vault](paperless-vault.md) that validates a reviewed restic 0.19.1 Windows amd64 binary, binds one verified nonempty application backup, checks all encrypted repository data, decrypts and revalidates it, then proves independent Paperless importer recovery and restart persistence. The live repository and key copies were local and disposable; off-host media, offline-key recovery, scheduling, production migration and the remaining five applications are still not delivered.
 
+Third bounded milestone: **0.6.0-alpha.3**, a portable [Paperless off-host recovery gate](validation/paperless-off-host-recovery.md). It adds reviewed Linux amd64 Restic support and separates an encrypted synthetic repository artifact from its Actions recovery secret, then decrypts and application-restores it on a fresh hosted runner without source-machine state. It proves the mechanism only: production data, durable off-host storage, real offline-key custody, scheduling and the remaining five applications are still not delivered.
+
 Implement application-consistent backup/restore before considering a module complete. Build a portable encrypted recovery kit and retention policy. Test with nonempty synthetic data. Choose a maintained encryption/backup tool after validating its current platform support; do not invent cryptography.
 
 Exit: upload/open/edit/restart/backup/restore checks and a verified recovery-secret workflow for every implemented module. No real financial records or password vaults in test fixtures.
