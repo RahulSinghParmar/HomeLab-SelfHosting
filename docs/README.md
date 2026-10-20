@@ -29,8 +29,9 @@ The combined decision and remaining gates are in [Phase 4 integrated validation]
 | Module | Operator guide | Validation |
 | --- | --- | --- |
 | Paperless-ngx | [Application-aware recovery module](paperless-ngx-module.md) and [encrypted vault](paperless-vault.md) | [Application recovery](validation/paperless-ngx.md) and [encrypted-vault evidence](validation/paperless-vault.md) |
+| AFFiNE | [Application-aware recovery module](affine-module.md) | [Sync, backup and independent restore evidence](validation/affine.md) |
 
-Phase 5 proceeds one personal-data application at a time. Paperless now has experimental application-aware, encrypted local and synthetic off-host clean-runner recovery evidence. Production backup adoption, durable off-host storage and the other five applications remain planned.
+Phase 5 proceeds one personal-data application at a time. Paperless has experimental application-aware, encrypted local and synthetic off-host clean-runner recovery evidence. AFFiNE now has an isolated Windows sync/backup/restore candidate, while its browser-fidelity and encrypted off-host gates remain open. Production backup adoption and the other four applications remain planned.
 
 ## Operations and recovery
 

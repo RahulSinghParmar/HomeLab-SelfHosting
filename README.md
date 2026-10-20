@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Prerelease 0.6.0-alpha.3 adds a portable off-host recovery proof to the isolated Paperless-ngx candidate.** It keeps the encrypted repository separate from a GitHub Actions recovery secret, transfers only encrypted synthetic data, performs a full-data check on a fresh Linux runner, and proves decryption, Paperless import and restart persistence without source-machine state. The existing personal deployment remains untouched; this validates the mechanism, not a production backup.
+**Prerelease 0.6.0-alpha.4 adds an isolated AFFiNE application-aware recovery candidate.** It proves bounded workspace sync through two independent sessions, restart persistence, an application-quiesced PostgreSQL/config/storage backup and semantic recovery in an unrelated fresh project. The existing personal deployment remains untouched; browser-rendered editor fidelity and encrypted off-host recovery remain later gates.
 
 ## What this project is building
 
@@ -36,6 +36,8 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [Paperless encrypted vault](docs/paperless-vault.md) | Reviewed restic tool, key custody, encrypted store/check/restore and retention workflow |
 | [0.6.0-alpha.2 validation](docs/validation/paperless-vault.md) | Windows encryption, independent recovery, cleanup and production-safety evidence |
 | [0.6.0-alpha.3 recovery gate](docs/validation/paperless-off-host-recovery.md) | Off-host transport and fresh-runner recovery contract |
+| [AFFiNE recovery module](docs/affine-module.md) | Isolated workspace sync, consistent backup and independent semantic restore |
+| [0.6.0-alpha.4 validation](docs/validation/affine.md) | Windows Docker Desktop sync, restart, backup and restore evidence |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -70,7 +72,7 @@ Windows also supports `./bootstrap.ps1 catalog`; Linux/macOS supports `sh ./boot
 
 For the opt-in Windows/PowerShell 7 read-only metadata collector, see [evidence and privacy instructions](docs/discovery/evidence.md). Its report belongs outside Git. Windows collector regression tests use mocks and can be run with `./tests/Test-ReferenceCollector.ps1`.
 
-General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless` and `paperless-vault` candidates are bounded execution paths; they do not enable the general planner. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
+General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault` and `affine` candidates are bounded execution paths; they do not enable the general planner. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
 
 ## Service families
 
@@ -91,7 +93,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-alpha.3 release review](docs/releases/v0.6.0-alpha.3.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-alpha.4 release review](docs/releases/v0.6.0-alpha.4.md).
 
 ## License
 

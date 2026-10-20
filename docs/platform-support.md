@@ -2,7 +2,7 @@
 
 ## Current status
 
-The five bounded Phase 4 adapters have module-specific Windows Docker Desktop Linux-amd64 evidence in 0.5.0-rc.1. Paperless-ngx adds bounded Phase 5 application recovery in 0.6.0-alpha.1, encrypted Windows recovery in 0.6.0-alpha.2, and a separately gated Linux amd64 clean-runner rehearsal in 0.6.0-alpha.3. Their exact limits differ and are summarized below; this does not deployment-certify the complete application catalog. The existing homelab is design evidence, not proof that the installer can recreate it. Standard CI remains static/regression validation; the separately dispatched Paperless recovery workflow deploys synthetic containers only.
+The five bounded Phase 4 adapters have module-specific Windows Docker Desktop Linux-amd64 evidence in 0.5.0-rc.1. Paperless-ngx adds bounded Phase 5 application recovery in 0.6.0-alpha.1, encrypted Windows recovery in 0.6.0-alpha.2, and a separately gated Linux amd64 clean-runner rehearsal in 0.6.0-alpha.3. AFFiNE adds an isolated Windows Docker Desktop sync, backup and recovery candidate in 0.6.0-alpha.4. Their exact limits differ and are summarized below; this does not deployment-certify the complete application catalog. The existing homelab is design evidence, not proof that the installer can recreate it. Standard CI remains static/regression validation; the separately dispatched Paperless recovery workflow deploys synthetic containers only.
 
 | Capability | Windows | Linux | macOS |
 | --- | --- | --- | --- |
@@ -10,7 +10,7 @@ The five bounded Phase 4 adapters have module-specific Windows Docker Desktop Li
 | Settings wizard / offline planner | Implemented; local and CI tests | Implemented; CI tests | Implemented; CI tests |
 | Synthetic file executor | Actual Windows ACL/lock tests | Actual POSIX mode/lock tests in CI | Actual POSIX mode/lock tests in CI |
 | Read-only doctor | Live local Docker Desktop check plus mocked tests | Probe implementation; mocked tests only | Probe implementation; mocked tests only |
-| Docker application installation | Five isolated Phase 4 candidates plus Paperless-ngx have bounded live evidence; see module records | Code and mocked tests only; runtime unverified | Code and mocked tests only; runtime unverified |
+| Docker application installation | Five isolated Phase 4 candidates plus Paperless-ngx and AFFiNE have bounded live evidence; see module records | Code and mocked tests only; runtime unverified | Code and mocked tests only; runtime unverified |
 | Native metrics / startup / scheduling | PowerShell, services, Task Scheduler adapter planned | Native tools and systemd adapter planned | Native tools and launchd adapter planned |
 | GPU acceleration | Conditional, driver/runtime/app dependent | Conditional, driver/runtime/app dependent | Not assumed; CPU fallback |
 | Coolify | Existing custom integration; not a portable supported baseline | Upstream-supported installation target | Explicit Linux VM/remote Linux host path |
@@ -45,5 +45,6 @@ Every release carries its matrix. Never imply "all platforms supported" because 
 | Stirling-PDF | Real synthetic rotation, bounded runtime, stopped five-volume backup and independent restore | Authentication/public access, advanced conversion workloads and cross-platform runtime |
 | Portainer | Isolated nested-engine create/inspect/delete, host invisibility and authenticated independent restore | Host-engine control, public access, real workloads and cross-platform runtime |
 | Paperless-ngx | Nonempty upload/search/edit, consistent exporter/dump/files set, reviewed Windows/Linux amd64 Restic encryption/check/decryption, immutable off-host synthetic artifact, clean-runner semantic restore and restart | Production migration, durable production repository, real offline-key custody, scheduling/prune trial, API tokens, public/mail/OCR/load, ARM64 and macOS runtime |
+| AFFiNE | Generated workspace, two authenticated sync sessions, restart persistence, quiesced PostgreSQL/config/storage backup and independent semantic restore | Browser-rendered block tree, desktop/mobile clients, attachments, public/mail/AI/indexing, production migration, encryption/off-host recovery, scale, Linux/macOS/ARM64 runtime |
 
 Phase 3's local filesystem adapter is not a general-purpose native-service or Docker adapter. Use local storage with hard links, atomic replacement and supported permission semantics; network shares, unusual filesystems, concurrent privileged tampering and power-loss durability are not certified. Windows tests do not require SACL/audit-policy changes or blanket administrator rights. If scoped DACL/owner checks fail, execution stops rather than elevating or repairing existing permissions.

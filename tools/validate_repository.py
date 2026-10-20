@@ -40,7 +40,7 @@ def validate_catalog(catalog: object) -> set[str]:
     fields(catalog, {"schema_version", "release", "inventory_date", "modules"}, "catalog")
     require(type(catalog["schema_version"]) is int and catalog["schema_version"] == 1,
             "catalog: unsupported schema")
-    require(catalog["release"] == "0.6.0-alpha.3", "catalog: update validation contract for a new release")
+    require(catalog["release"] == "0.6.0-alpha.4", "catalog: update validation contract for a new release")
     require(isinstance(catalog["inventory_date"], str), "catalog: expected ISO date string")
     date.fromisoformat(catalog["inventory_date"])
     modules = catalog["modules"]

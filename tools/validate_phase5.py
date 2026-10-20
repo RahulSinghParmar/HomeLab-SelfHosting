@@ -1,4 +1,4 @@
-"""Validate the bounded Paperless-ngx Phase 5 prerelease without contacting Docker."""
+"""Validate the bounded Paperless/AFFiNE Phase 5 prerelease without Docker."""
 from __future__ import annotations
 
 import json
@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = '0.6.0-alpha.3'
+RELEASE = '0.6.0-alpha.4'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'
@@ -57,8 +57,14 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'tools/paperless_dr_trial.py',
                      '.github/workflows/paperless-disaster-recovery.yml'):
         require((root / relative).is_file(), f'missing Paperless release file {relative}')
+    for relative in ('homelab/affine.py', 'modules/affine/images.json',
+                     'modules/affine/fixture.mjs', 'tests/test_affine.py',
+                     'docs/affine-module.md', 'docs/validation/affine.md',
+                     'docs/releases/v0.6.0-alpha.4.md'):
+        require((root / relative).is_file(), f'missing AFFiNE release file {relative}')
     require("add_parser('paperless'" in cli, 'missing Paperless CLI command')
     require("'paperless-vault'" in cli, 'missing Paperless encrypted-vault CLI command')
+    require("add_parser('affine'" in cli, 'missing AFFiNE CLI command')
     for command in ('portable-manifest', 'recovery-plan', 'recover-off-host'):
         require(f"add_parser('{command}')" in cli,
                 f'missing Paperless off-host CLI command {command}')
@@ -92,9 +98,19 @@ def validate_phase5(root: Path = ROOT) -> str:
     require('actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9' in workflow
             and 'actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333' in workflow,
             'off-host artifact actions must be immutable reviewed revisions')
-    return ('PASS: Phase 5 0.6.0-alpha.3 Paperless off-host recovery contract validates '
-            'digest-pinned images, Windows/Linux restic checksums, portable recovery plans, '
-            'clean-runner workflow and bounded documentation')
+    affine = load_json(root / 'modules/affine/images.json')
+    require(set(affine) == {'affine', 'database', 'cache'},
+            'AFFiNE image manifest fields changed')
+    for name, image in affine.items():
+        require(isinstance(image, str) and DIGEST.fullmatch(image),
+                f'AFFiNE {name}: exact sha256 image digest required')
+    fixture = (root / 'modules/affine/fixture.mjs').read_text(encoding='utf-8')
+    for contract in ('HOMELAB_FIXTURE_PASSWORD', '/api/setup/create-admin-user',
+                     'space:join', 'space:push-doc-update', 'space:load-doc',
+                     'HomeLab AFFiNE Phase 5 recovery marker v1'):
+        require(contract in fixture, f'AFFiNE fixture contract missing {contract}')
+    return ('PASS: Phase 5 0.6.0-alpha.4 validates Paperless off-host recovery and '
+            'the digest-pinned AFFiNE sync, backup and independent-restore contract')
 
 
 def main() -> int:

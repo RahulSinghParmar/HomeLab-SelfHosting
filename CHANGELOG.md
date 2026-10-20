@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0-alpha.4 — 2026-10-20
+
+- Added a digest-pinned, loopback-only AFFiNE 0.27.4/PostgreSQL pgvector/Redis adapter with a normal one-shot migration, private generated credentials, internal dependency networking and bounded resources.
+- Added a nonempty server-sync exercise that creates an AFFiNE workspace, writes a bounded Yjs marker, verifies it through a second independent authenticated session and proves application restart persistence.
+- Added application-quiesced PostgreSQL/config/storage backup with private recovery inputs, sanitized metadata, complete checksums and post-backup content verification.
+- Restored into an unrelated fresh project, ran the pinned migration, verified semantic state equality and repeated verification after restart on Windows Docker Desktop.
+- Added ten focused tests, expanded the offline Phase 5 validator and retained explicit no-go boundaries for production adoption, browser/client feature coverage and encrypted off-host recovery.
+
 ## 0.6.0-alpha.3 — 2026-10-19
 
 - Added a path-independent Paperless recovery manifest and confirmation-gated clean-host recovery plan.

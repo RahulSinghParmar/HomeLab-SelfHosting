@@ -93,6 +93,8 @@ Second bounded milestone: **0.6.0-alpha.2**, a [Paperless encrypted recovery vau
 
 Third bounded milestone: **0.6.0-alpha.3**, a portable [Paperless off-host recovery gate](validation/paperless-off-host-recovery.md). It adds reviewed Linux amd64 Restic support and separates an encrypted synthetic repository artifact from its Actions recovery secret, then decrypts and application-restores it on a fresh hosted runner without source-machine state. It proves the mechanism only: production data, durable off-host storage, real offline-key custody, scheduling and the remaining five applications are still not delivered.
 
+Fourth bounded milestone: **0.6.0-alpha.4**, an isolated [AFFiNE application-aware recovery candidate](affine-module.md). It proves two-session server sync, restart persistence, an application-quiesced PostgreSQL/config/storage backup and semantic restore into a fresh project on Windows Docker Desktop. Browser-rendered editor fidelity, client sync, encryption/off-host recovery, production migration and the remaining four applications are still not delivered.
+
 Implement application-consistent backup/restore before considering a module complete. Build a portable encrypted recovery kit and retention policy. Test with nonempty synthetic data. Choose a maintained encryption/backup tool after validating its current platform support; do not invent cryptography.
 
 Exit: upload/open/edit/restart/backup/restore checks and a verified recovery-secret workflow for every implemented module. No real financial records or password vaults in test fixtures.

@@ -1,6 +1,6 @@
 # affine
 
-Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope; deployment and restore certification remain planned.
+Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope. The separate [0.6.0-alpha.4 isolated recovery candidate](../affine-module.md) validates synthetic deployment and restore without adopting this observed installation.
 
 ## Evidence and ownership
 
@@ -22,7 +22,7 @@ Digest-pinned stable image, PostgreSQL pg16/pgvector and Redis 8; LAN bind port 
 
 ## Installation and dependencies
 
-There is no installer/template for this module in this release. Reproduce the observed component set only in a separately approved disposable project, using compatible pinned releases and the [platform matrix](../platform-support.md). Existing state must not be implicitly adopted.
+The experimental adapter creates only a separately approved disposable project using compatible pinned releases and the [platform matrix](../platform-support.md). It is not a production installer and existing state must not be implicitly adopted.
 
 ## Configuration mapping
 
@@ -42,13 +42,15 @@ Never publish actual values, database records, private keys or generated content
 
 Use the actual owning Compose project/service or native manager above. Read-only Docker checks are `docker ps -a`, `docker inspect --format '{{.State.Status}}' CONTAINER`, and `docker stats --no-stream`; substitute a verified container, not a guessed generated name. Do not paste unfiltered inspect/log output into public issues. Native status uses the OS service/task manager and the verified listener.
 
-No start, stop, restart, migration, backup or restore was executed for Phase 1. Those operations must preserve deliberately stopped/paused state and require the later module's tested workflow.
+No start, stop, restart, migration, backup or restore was executed against this observed deployment. Use the isolated module only with a new root, plan, credentials, ports and volumes; never point a synthetic plan at these live directories or resources.
 
 ## Backup and recovery
 
 Daily/monthly metadata reports passed restore tests. Script stops app for dump/file snapshot; table counts are captured before stop. Weekly task has not yet run.
 
 Follow the [recovery contract](../recovery.md); reported task success and old verification metadata are not a new restore rehearsal.
+
+The isolated candidate proves a quiesced PostgreSQL/config/storage set and fresh-project semantic restore with generated content. Its backup remains plaintext-sensitive and is not a replacement for the production schedule. See [validation evidence](../validation/affine.md).
 
 ## Update and rollback
 
