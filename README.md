@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Prerelease 0.6.0-alpha.4 adds an isolated AFFiNE application-aware recovery candidate.** It proves bounded workspace sync through two independent sessions, restart persistence, an application-quiesced PostgreSQL/config/storage backup and semantic recovery in an unrelated fresh project. The existing personal deployment remains untouched; browser-rendered editor fidelity and encrypted off-host recovery remain later gates.
+**Prerelease 0.6.0-alpha.5 adds browser-rendered and encrypted off-host recovery gates for AFFiNE.** A real Chromium session creates and reads a synthetic note across independent logins and restarts; the same application-consistent backup is encrypted with reviewed Restic binaries and recoverable on an unrelated clean runner. The existing personal deployment remains untouched, and this remains an experimental recovery component rather than production adoption.
 
 ## What this project is building
 
@@ -38,6 +38,8 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [0.6.0-alpha.3 recovery gate](docs/validation/paperless-off-host-recovery.md) | Off-host transport and fresh-runner recovery contract |
 | [AFFiNE recovery module](docs/affine-module.md) | Isolated workspace sync, consistent backup and independent semantic restore |
 | [0.6.0-alpha.4 validation](docs/validation/affine.md) | Windows Docker Desktop sync, restart, backup and restore evidence |
+| [AFFiNE encrypted vault](docs/affine-vault.md) | Reviewed Restic, separate key custody, portable manifests and retention gates |
+| [0.6.0-alpha.5 recovery gate](docs/validation/affine-off-host-recovery.md) | Browser-rendered local proof and independent clean-runner recovery contract |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -93,7 +95,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-alpha.4 release review](docs/releases/v0.6.0-alpha.4.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-alpha.5 release review](docs/releases/v0.6.0-alpha.5.md).
 
 ## License
 

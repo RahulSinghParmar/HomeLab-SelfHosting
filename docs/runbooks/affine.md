@@ -1,6 +1,6 @@
 # affine
 
-Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope. The separate [0.6.0-alpha.4 isolated recovery candidate](../affine-module.md) validates synthetic deployment and restore without adopting this observed installation.
+Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope. The separate [0.6.0-alpha.5 isolated recovery candidate](../affine-module.md) validates rendered synthetic deployment, encrypted recovery and clean-runner restore without adopting this observed installation.
 
 ## Evidence and ownership
 
@@ -50,7 +50,7 @@ Daily/monthly metadata reports passed restore tests. Script stops app for dump/f
 
 Follow the [recovery contract](../recovery.md); reported task success and old verification metadata are not a new restore rehearsal.
 
-The isolated candidate proves a quiesced PostgreSQL/config/storage set and fresh-project semantic restore with generated content. Its backup remains plaintext-sensitive and is not a replacement for the production schedule. See [validation evidence](../validation/affine.md).
+The isolated candidate proves a quiesced PostgreSQL/config/storage set, browser-rendered fresh-project recovery and a separately encrypted portable Restic copy with generated content. Plaintext staging remains sensitive, and the synthetic workflow is not a replacement for the production schedule or real off-host key custody. See [application evidence](../validation/affine.md) and the [off-host recovery gate](../validation/affine-off-host-recovery.md).
 
 ## Update and rollback
 

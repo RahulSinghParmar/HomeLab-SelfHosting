@@ -196,6 +196,11 @@ async function readFixture(cookie, workspaceId, docId) {
 
 async function main() {
   const mode = process.argv[2];
+  if (mode === 'init') {
+    await initializeAdmin();
+    console.log(JSON.stringify({kind: 'affine-admin-initialized-v1'}));
+    return;
+  }
   if (mode === 'seed') {
     await initializeAdmin();
     const first = await login();
@@ -223,7 +228,7 @@ async function main() {
     }));
     return;
   }
-  fail('Expected seed or verify mode');
+  fail('Expected init, seed or verify mode');
 }
 
 main().catch(error => {

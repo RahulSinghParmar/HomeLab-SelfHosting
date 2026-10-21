@@ -39,3 +39,4 @@ Never reuse a version or move an existing tag. If a published release needs corr
 - [0.6.0-alpha.2](v0.6.0-alpha.2.md) — Paperless-ngx encrypted recovery vault candidate
 - [0.6.0-alpha.3](v0.6.0-alpha.3.md) — Paperless off-host clean-runner recovery candidate
 - [0.6.0-alpha.4](v0.6.0-alpha.4.md) — AFFiNE application-aware recovery candidate
+- [0.6.0-alpha.5](v0.6.0-alpha.5.md) — AFFiNE browser-rendered encrypted off-host recovery candidate

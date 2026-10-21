@@ -35,7 +35,7 @@ Each module will provide:
 
 Internal dependencies such as PostgreSQL, Redis, or a migration job belong to their application's lifecycle. Cross-module integrations such as dashboard links are optional and must not force installation of unrelated apps.
 
-The `0.6.0-alpha.4` AFFiNE adapter applies that boundary to a fresh four-service project: Redis, PostgreSQL, a successful one-shot migration and the long-running application. It binds the UI to loopback, isolates dependencies on an internal network and carries PostgreSQL/config/storage plus required private inputs as one recovery unit. It remains separate from the general planner and from the existing personal deployment.
+The `0.6.0-alpha.5` AFFiNE adapter applies that boundary to a fresh four-service project: Redis, PostgreSQL, a successful one-shot migration and the long-running application. It binds the UI to loopback, isolates dependencies on an internal network, validates a rendered synthetic note with an ephemeral digest-pinned Chromium runtime, and carries PostgreSQL/config/storage plus required private inputs as one encrypted portable recovery unit. It remains separate from the general planner and from the existing personal deployment.
 
 Coolify-managed proxy, sentinel, and generated applications must remain under their actual lifecycle owner. A single top-level command can coordinate them without relabeling or fighting the upstream control plane.
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import os
 from datetime import datetime, timezone
@@ -9,6 +10,8 @@ from pathlib import Path
 import re
 import secrets
 import shutil
+import subprocess
+import tarfile
 import time
 import uuid
 
@@ -32,10 +35,16 @@ LIMITS = {
     'affine': {'memory_mib': 1536, 'cpus': 2.0, 'pids': 512},
 }
 MARKER = 'HomeLab AFFiNE Phase 5 recovery marker v1'
+BROWSER_TITLE = 'AFFiNE browser recovery proof'
+BROWSER_BODY = 'Browser-rendered synthetic document survives encrypted off-host recovery.'
 
 
 def images():
     return load_json(MODULE / 'images.json')
+
+
+def browser_specification():
+    return load_json(MODULE / 'browser.json')
 
 
 def make_plan(root, port, runtime, backup=None):
@@ -385,6 +394,186 @@ def parse_fixture_output(output):
     return value
 
 
+def parse_browser_output(output):
+    rows = []
+    for line in output.splitlines():
+        if line.startswith('{'):
+            try:
+                value = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if value.get('kind') == 'affine-browser-document-v1':
+                rows.append(value)
+    need(len(rows) == 1, 'AFFiNE browser returned no single bounded evidence result')
+    value = rows[0]
+    required = {'kind', 'workspace_id', 'doc_id', 'title', 'body', 'title_sha256',
+                'body_sha256', 'browser', 'headless', 'rendered_title',
+                'rendered_body', 'reload_persistence', 'independent_sessions'}
+    keys(value, required, 'AFFiNE browser evidence')
+    need(value['title'] == BROWSER_TITLE and value['body'] == BROWSER_BODY
+         and value['title_sha256'] == hashlib.sha256(BROWSER_TITLE.encode()).hexdigest()
+         and value['body_sha256'] == hashlib.sha256(BROWSER_BODY.encode()).hexdigest()
+         and value['browser'] == 'chromium' and value['headless'] is True
+         and value['rendered_title'] is True and value['rendered_body'] is True
+         and value['reload_persistence'] is True
+         and value['independent_sessions'] is True,
+         'AFFiNE browser-rendered semantic evidence is invalid')
+    need(isinstance(value['workspace_id'], str) and value['workspace_id']
+         and isinstance(value['doc_id'], str) and value['doc_id'],
+         'AFFiNE browser document identifiers are invalid')
+    return value
+
+
+def browser_source_id():
+    names = ('Dockerfile', 'package.json', 'package-lock.json', 'validate.mjs')
+    values = {name: hashlib.sha256((MODULE / 'browser' / name).read_bytes()).hexdigest()
+              for name in names}
+    values['runtime'] = browser_specification()
+    return digest(values)
+
+
+def browser_image_tag():
+    return 'homelab-affine-browser:' + browser_source_id()[:16]
+
+
+def build_browser_image(plan):
+    specification = browser_specification()
+    inspected = json.loads(docker(['image', 'inspect', specification['image']],
+                                  context=plan['runtime']['context']))[0]
+    need(inspected['Os'] == 'linux' and inspected['Architecture'] == 'amd64',
+         'Reviewed linux/amd64 browser runtime must be cached')
+    docker(['build', '--pull=false', '--label', 'org.homelab.module=affine-browser',
+            '--label', 'org.homelab.browser-source=' + browser_source_id(),
+            '--tag', browser_image_tag(), str(MODULE / 'browser')],
+           context=plan['runtime']['context'], timeout=900)
+    return browser_image_tag()
+
+
+def copy_browser_evidence(plan, container, source, target):
+    target = Path(target)
+    environment = {key: value for key, value in os.environ.items()
+                   if not key.startswith('COMPOSE_')}
+    environment['COMPOSE_DISABLE_ENV_FILE'] = 'true'
+    for key in ('DOCKER_HOST', 'DOCKER_TLS', 'DOCKER_TLS_VERIFY', 'DOCKER_CERT_PATH'):
+        need(not environment.get(key), 'Docker endpoint/TLS overrides require explicit review')
+    command = ['docker', '--context', plan['runtime']['context'], 'cp',
+               container + ':' + source, '-']
+    try:
+        result = subprocess.run(command, env=environment, capture_output=True,
+                                timeout=120, shell=False)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise ConfigError('Docker evidence copy unavailable or interrupted') from error
+    need(result.returncode == 0,
+         'Docker evidence copy command failed; no raw logs exposed; retain state for review')
+    try:
+        with tarfile.open(fileobj=io.BytesIO(result.stdout), mode='r:*') as archive:
+            members = [member for member in archive.getmembers() if member.isfile()]
+            need(len(members) == 1,
+                 'Docker evidence archive regular-file count is ' + str(len(members)))
+            need(members[0].size <= 64 * 1024 * 1024,
+                 'Docker evidence archive file exceeds the 64 MiB bound')
+            source_file = archive.extractfile(members[0])
+            need(source_file is not None, 'Docker evidence archive is unreadable')
+            content = source_file.read()
+            need(len(content) == members[0].size,
+                 'Docker evidence archive is incomplete')
+    except (tarfile.TarError, OSError) as error:
+        raise ConfigError('Docker evidence archive is invalid') from error
+    try:
+        with target.open('xb') as destination:
+            destination.write(content)
+    except OSError as error:
+        raise ConfigError('Docker evidence destination write failed') from error
+    try:
+        protect_file(target)
+    except (ConfigError, OSError) as error:
+        raise ConfigError('Docker evidence private-file protection failed') from error
+
+
+def browser_validate(plan, action, fixture, screenshot_name):
+    need(action in ('seed', 'verify'), 'Unsupported AFFiNE browser validation action')
+    validate_credentials(read_private(Path(plan['root']) / 'credentials.json'))
+    credentials = read_private(Path(plan['root']) / 'credentials.json')
+    evidence_root = Path(plan['root']) / 'browser-evidence'
+    if not evidence_root.exists():
+        create_private_directory(evidence_root)
+    try:
+        image = build_browser_image(plan)
+    except ConfigError as error:
+        raise ConfigError('AFFiNE browser validation failed during image-build') from error
+    screenshot = action + '-' + screenshot_name + '.png'
+    arguments = [
+        'create', '--init', '--read-only', '--network', project(plan) + '_frontend',
+        '--memory', '768m', '--cpus', '1', '--pids-limit', '256',
+        '--security-opt', 'no-new-privileges:true', '--cap-drop', 'ALL',
+        '--shm-size', '512m',
+        '--tmpfs', '/tmp:rw,nosuid,size=256m,uid=1001,gid=1001,mode=0700',
+        '--tmpfs', '/home/pwuser:rw,nosuid,size=64m,uid=1001,gid=1001,mode=0700',
+        '--mount', 'type=volume,destination=/evidence',
+        '--label', 'org.homelab.module=affine-browser',
+        '--label', 'org.homelab.plan=' + plan['plan_id'],
+        '--env', 'AFFINE_BROWSER_BASE_URL=http://127.0.0.1:' + str(plan['port']),
+        '--env', 'AFFINE_BROWSER_LOCAL_PORT=' + str(plan['port']),
+        '--env', 'AFFINE_BROWSER_UPSTREAM_HOST=affine',
+        '--env', 'AFFINE_BROWSER_PASSWORD=' + credentials['fixture_password'],
+        '--env', 'AFFINE_BROWSER_WORKSPACE_ID=' + fixture['workspace_id'],
+        '--env', 'AFFINE_BROWSER_ACTION=' + action,
+        '--env', 'AFFINE_BROWSER_SCREENSHOT=/evidence/' + screenshot,
+    ]
+    if action == 'seed':
+        arguments.extend(['--env', 'AFFINE_BROWSER_SOURCE_DOC_ID=' + fixture['doc_id']])
+    else:
+        arguments.extend(['--env', 'AFFINE_BROWSER_EXPECTED_DOC_ID=' + fixture['doc_id']])
+    try:
+        container = docker(arguments + [image], context=plan['runtime']['context'], timeout=120)
+    except ConfigError as error:
+        raise ConfigError('AFFiNE browser validation failed during container-create') from error
+    need(re.fullmatch('[0-9a-f]{64}', container) is not None,
+         'AFFiNE browser validation container identity is invalid')
+    failed_stage = 'container-start'
+    try:
+        docker(['start', container], context=plan['runtime']['context'], timeout=120)
+        failed_stage = 'container-wait'
+        exit_code = docker(['wait', container], context=plan['runtime']['context'], timeout=900)
+        failed_stage = 'container-logs'
+        output = docker(['logs', '--tail', '100', container],
+                        context=plan['runtime']['context'], timeout=120)
+        if exit_code != '0':
+            failed_stage = 'error-evidence-copy'
+            diagnostic = evidence_root / ('error-' + screenshot)
+            try:
+                copy_browser_evidence(plan, container, '/evidence/' + screenshot, diagnostic)
+            except ConfigError:
+                pass
+            raise ConfigError('AFFiNE browser validation failed: ' + output[-1000:])
+        failed_stage = 'browser-output-parse'
+        value = parse_browser_output(output)
+        target = evidence_root / screenshot
+        failed_stage = 'success-evidence-copy'
+        copy_browser_evidence(plan, container, '/evidence/' + screenshot, target)
+    except ConfigError as error:
+        if str(error).startswith('AFFiNE browser validation failed:'):
+            raise
+        if str(error).startswith('Docker evidence'):
+            raise ConfigError('AFFiNE browser validation failed during '
+                              + failed_stage + ': ' + str(error)) from error
+        raise ConfigError('AFFiNE browser validation failed during ' + failed_stage) from error
+    finally:
+        try:
+            docker(['rm', '-f', '-v', container], context=plan['runtime']['context'], timeout=120)
+        except ConfigError:
+            pass
+    evidence = {**value, 'screenshot_sha256': file_hash(target),
+                'browser_source_id': browser_source_id(),
+                'browser_image': browser_specification()['image']}
+    if action == 'verify':
+        need(all(evidence[name] == fixture[name]
+                 for name in ('workspace_id', 'doc_id', 'title', 'body',
+                              'title_sha256', 'body_sha256')),
+             'Recovered browser-rendered AFFiNE document differs from saved evidence')
+    return evidence
+
+
 def verify_fixture(plan, evidence):
     output = docker(compose_args(plan) + ['exec', '-T', 'affine', 'node',
                     '/homelab/fixture.mjs', 'verify', evidence['workspace_id'], evidence['doc_id']],
@@ -468,16 +657,40 @@ def operate(plan, action, confirmation=None):
             if plan['recovery']:
                 source = verify_backup(Path(plan['recovery']['path']))
                 fixture = source['inventory']
-                atomic_json(root / 'fixture.json', fixture)
+                fixture_path = root / 'fixture.json'
+                if fixture_path.exists():
+                    need(read_private(fixture_path) == fixture,
+                         'Existing recovered AFFiNE fixture differs from backup evidence')
+                else:
+                    atomic_json(fixture_path, fixture)
                 restored = content_inventory(plan)
                 need(restored == fixture, 'Restored AFFiNE document differs from backup evidence')
+                recovery_cycle = ('restored' if state['recovery'] is None else
+                                  'restarted-' + uuid.uuid4().hex[:12])
+                browser = browser_validate(plan, 'verify', source['browser'], recovery_cycle)
+                browser_path = root / 'browser-fixture.json'
+                if browser_path.exists():
+                    existing_browser = read_private(browser_path)
+                    need(all(existing_browser[name] == source['browser'][name]
+                             for name in ('workspace_id', 'doc_id', 'title', 'body',
+                                          'title_sha256', 'body_sha256')),
+                         'Existing recovered browser evidence differs from backup evidence')
+                    atomic_json(browser_path, browser, replace=True)
+                else:
+                    atomic_json(browser_path, browser)
                 docker(compose_args(plan) + ['restart', 'affine'], context=context, timeout=180)
                 wait_health(plan)
                 need(content_inventory(plan) == fixture,
                      'Restored AFFiNE document did not persist across restart')
+                persisted_browser = browser_validate(
+                    plan, 'verify', source['browser'], recovery_cycle + '-application-restart')
+                need(all(persisted_browser[name] == source['browser'][name]
+                         for name in ('workspace_id', 'doc_id', 'title_sha256', 'body_sha256')),
+                     'Browser-rendered AFFiNE document did not persist across restart')
                 state['recovery'] = {'manifest_id': plan['recovery']['manifest_id'],
                                      'verified': True,
-                                     'content_fingerprint': digest(fixture)}
+                                     'content_fingerprint': digest(fixture),
+                                     'browser_fingerprint': digest(source['browser'])}
             state['status'] = 'running'
         elif action == 'stop':
             need(set(containers) == set(SERVICES)
@@ -522,6 +735,14 @@ def exercise(plan, confirmation):
              'Start the complete owned AFFiNE project before exercise')
         need(not (root / 'fixture.json').exists(),
              'AFFiNE synthetic exercise is single-use for a fresh project')
+        initialized = docker(compose_args(plan) + ['exec', '-T', 'affine', 'node',
+                             '/homelab/fixture.mjs', 'init'],
+                             context=plan['runtime']['context'], timeout=120)
+        need('{"kind":"affine-admin-initialized-v1"}' in initialized,
+             'AFFiNE synthetic first-admin initialization failed')
+        browser = browser_validate(
+            plan, 'seed', {'workspace_id': 'bootstrap', 'doc_id': 'bootstrap'}, 'source')
+        atomic_json(root / 'browser-fixture.json', browser)
         output = docker(compose_args(plan) + ['exec', '-T', 'affine', 'node',
                         '/homelab/fixture.mjs', 'seed'],
                         context=plan['runtime']['context'], timeout=180)
@@ -535,11 +756,18 @@ def exercise(plan, confirmation):
         wait_health(plan)
         need(content_inventory(plan) == evidence,
              'AFFiNE synthetic document did not persist across application restart')
+        persisted_browser = browser_validate(plan, 'verify', browser, 'source-restart')
+        need(all(persisted_browser[name] == browser[name]
+                 for name in ('workspace_id', 'doc_id', 'title_sha256', 'body_sha256')),
+             'AFFiNE browser-rendered document did not persist across application restart')
         return {'operation': 'create-edit-sync-restart-read', 'status': 'passed',
                 'workspace_id': value['workspace_id'], 'doc_id': value['doc_id'],
                 'independent_sessions': True, 'restart_persistence': True,
                 'marker_sha256': value['marker_sha256'],
-                'state_sha256': value['state_sha256']}
+                'state_sha256': value['state_sha256'],
+                'browser_rendered': True, 'browser_doc_id': browser['doc_id'],
+                'browser_title_sha256': browser['title_sha256'],
+                'browser_body_sha256': browser['body_sha256']}
 
 
 def file_hash(path):
@@ -554,7 +782,11 @@ def backup_summary(manifest):
     return {'documents': 1, 'workspaces': 1,
             'marker_sha256': manifest['inventory']['marker_sha256'],
             'state_sha256': manifest['inventory']['state_sha256'],
-            'content_fingerprint': digest(manifest['inventory'])}
+            'content_fingerprint': digest(manifest['inventory']),
+            'browser_documents': 1,
+            'browser_title_sha256': manifest['browser']['title_sha256'],
+            'browser_body_sha256': manifest['browser']['body_sha256'],
+            'browser_fingerprint': digest(manifest['browser'])}
 
 
 def verify_backup(root):
@@ -563,13 +795,14 @@ def verify_backup(root):
     manifest = read_private(root / 'manifest.json')
     keys(manifest, {'kind', 'created_utc', 'images', 'method', 'material',
                     'consistency', 'recovery_status', 'credentials_hash',
-                    'configuration_sha256', 'database_sha256', 'trees',
-                    'inventory', 'summary'}, 'AFFiNE backup manifest')
+                    'configuration_sha256', 'database_sha256', 'browser_sha256',
+                    'trees', 'inventory', 'browser', 'summary'}, 'AFFiNE backup manifest')
     need(manifest['kind'] == 'affine-consistent-backup-v1'
          and manifest['images'] == images()
          and manifest['method'] == 'postgres-config-storage',
          'AFFiNE backup image/format mismatch')
-    need(manifest['material'] == ['postgres-custom-dump', 'config', 'storage']
+    need(manifest['material'] == ['postgres-custom-dump', 'config', 'storage',
+                                  'browser-rendered-evidence']
          and manifest['consistency'] == {'application_quiesced': True,
                                          'migration_completed': True,
                                          'postgres_archive_readable': True,
@@ -582,6 +815,9 @@ def verify_backup(root):
          'AFFiNE backup credential checksum mismatch')
     need(file_hash(root / 'affine-postgres.dump') == manifest['database_sha256'],
          'AFFiNE PostgreSQL dump checksum mismatch')
+    need(file_hash(root / 'browser-fixture.json') == manifest['browser_sha256']
+         and read_private(root / 'browser-fixture.json') == manifest['browser'],
+         'AFFiNE browser evidence checksum mismatch')
     need(manifest['configuration_sha256'] == {
         'private': file_hash(root / 'compose.private.json'),
         'sanitized': file_hash(root / 'sanitized-config.json')},
@@ -592,6 +828,10 @@ def verify_backup(root):
     inventory_value = manifest['inventory']
     need(inventory_value.get('marker') == MARKER
          and inventory_value.get('independent_sessions') is True
+         and manifest['browser'].get('rendered_title') is True
+         and manifest['browser'].get('rendered_body') is True
+         and manifest['browser'].get('reload_persistence') is True
+         and manifest['browser'].get('independent_sessions') is True
          and backup_summary(manifest) == manifest['summary'],
          'AFFiNE backup lacks nonempty semantic recovery evidence')
     return manifest
@@ -654,6 +894,7 @@ def backup(plan, destination, confirmation):
             tree_files(destination / 'storage', protect_new=True)
             shutil.copy2(root / 'credentials.json', destination / 'credentials.json')
             shutil.copy2(root / 'compose.json', destination / 'compose.private.json')
+            shutil.copy2(root / 'browser-fixture.json', destination / 'browser-fixture.json')
             atomic_json(destination / 'sanitized-config.json', {
                 'kind': 'affine-sanitized-configuration-v1', 'images': plan['images'],
                 'limits': plan['limits'], 'access': plan['access'],
@@ -663,6 +904,7 @@ def backup(plan, destination, confirmation):
             })
             for path in (destination / 'credentials.json',
                          destination / 'compose.private.json',
+                         destination / 'browser-fixture.json',
                          destination / 'affine-postgres.dump'):
                 protect_file(path)
             trees = {'config': tree_files(destination / 'config'),
@@ -670,7 +912,8 @@ def backup(plan, destination, confirmation):
             manifest = {'kind': 'affine-consistent-backup-v1',
                         'created_utc': datetime.now(timezone.utc).isoformat(),
                         'images': plan['images'], 'method': 'postgres-config-storage',
-                        'material': ['postgres-custom-dump', 'config', 'storage'],
+                        'material': ['postgres-custom-dump', 'config', 'storage',
+                                     'browser-rendered-evidence'],
                         'consistency': {'application_quiesced': True,
                                         'migration_completed': True,
                                         'postgres_archive_readable': True,
@@ -682,7 +925,10 @@ def backup(plan, destination, confirmation):
                             'private': file_hash(destination / 'compose.private.json'),
                             'sanitized': file_hash(destination / 'sanitized-config.json')},
                         'database_sha256': file_hash(destination / 'affine-postgres.dump'),
-                        'trees': trees, 'inventory': inventory_value, 'summary': None}
+                        'browser_sha256': file_hash(destination / 'browser-fixture.json'),
+                        'trees': trees, 'inventory': inventory_value,
+                        'browser': read_private(destination / 'browser-fixture.json'),
+                        'summary': None}
             manifest['summary'] = backup_summary(manifest)
             atomic_json(destination / 'manifest.json', manifest)
             failed_stage = 'manifest-verification'

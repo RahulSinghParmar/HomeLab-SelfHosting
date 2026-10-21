@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = "0.6.0-alpha.4"
+RELEASE = "0.6.0-alpha.5"
 PHASE4_RELEASE = "0.5.0-rc.1"
 DIGEST = re.compile(r"^[^@\s]+@sha256:[0-9a-f]{64}$")
 

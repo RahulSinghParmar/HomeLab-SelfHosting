@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0-alpha.5 — 2026-10-21
+
+- Added a digest-pinned Playwright/Chromium validator that creates and renders a synthetic AFFiNE note through the supported UI, then proves reload, independent-session, source-restart, restored-state and recovered-restart persistence.
+- Added Windows-safe private screenshot evidence transfer without weakening directory ACLs, plus idempotent recovery verification and automatic cleanup of disposable validation volumes.
+- Added an AFFiNE Restic 0.19.1 vault with separate operational/recovery key custody, complete data checks, portable manifests, recovery-gated retention and exact Windows/Linux amd64 checksums.
+- Added a manual two-runner GitHub Actions rehearsal that transfers only the encrypted synthetic repository and nonsecret manifest, injects the test key separately and performs application/browser recovery on a clean runner.
+- Preserved the production AFFiNE deployment untouched and retained no-go boundaries for production adoption, durable backup hosting, real offline-key custody, scheduling, native clients, representative scale and stable 0.6.0.
+
 ## 0.6.0-alpha.4 — 2026-10-20
 
 - Added a digest-pinned, loopback-only AFFiNE 0.27.4/PostgreSQL pgvector/Redis adapter with a normal one-shot migration, private generated credentials, internal dependency networking and bounded resources.

@@ -4,7 +4,7 @@ AFFiNE is the second bounded Phase 5 application candidate. This module creates 
 
 ## Release boundary
 
-Version `0.6.0-alpha.4` provides:
+Version `0.6.0-alpha.5` provides:
 
 - AFFiNE `0.27.4`, PostgreSQL with pgvector and Redis pinned by exact image digest;
 - a one-shot migration service whose successful exit is expected;
@@ -12,8 +12,10 @@ Version `0.6.0-alpha.4` provides:
 - private generated PostgreSQL, Redis and synthetic administrator credentials;
 - disabled public signup, guest access, mail, AI and indexer behavior for the recovery trial;
 - explicit CPU, memory, process and log limits without reserving those resources at idle;
-- a synthetic Yjs document fixture synchronized through two independently authenticated sessions;
-- restart persistence, application-quiesced backup and independent semantic restore.
+- a synthetic Yjs fixture plus a real Chromium-created and rendered AFFiNE note;
+- reload and independently authenticated browser-session checks;
+- source and recovered restart persistence, application-quiesced backup and independent semantic restore;
+- a separately gated encrypted Restic vault and clean-runner recovery workflow.
 
 This is an experimental recovery adapter. It does not enable AFFiNE in the general planner and does not replace the production backup process.
 
@@ -45,9 +47,11 @@ The `up`, `exercise`, `backup`, `stop` and `remove` commands require the exact r
 
 ## Synthetic content exercise
 
-The exercise uses AFFiNE's supported self-host administrator setup and sign-in endpoints, then creates a workspace through GraphQL. It opens the sync protocol from one authenticated session, writes a bounded Yjs text marker, and loads the same document through a second independently authenticated session. The recorded evidence contains identifiers, checksums and booleans only—never credentials or raw session material.
+The exercise initializes AFFiNE through its supported self-host administrator endpoint. A digest-pinned Playwright/Chromium runtime then signs in through the rendered UI, creates a synced workspace, creates and edits a note, verifies the rendered title and paragraph, reloads it, and repeats the read through an independent browser context. A separate bounded server-sync fixture records Yjs state through independently authenticated sessions.
 
-This demonstrates server-side AFFiNE sync state. It does not prove a browser-rendered AFFiNE block tree, native desktop/mobile synchronization, attachments, comments, multi-user conflict handling or feature-complete editor behavior.
+The browser runtime is ephemeral, unprivileged, read-only, resource bounded, attached only to the AFFiNE frontend network and has no Docker socket. Screenshot evidence is copied from a self-cleaning anonymous volume through Docker's archive stream and immediately protected with private filesystem permissions. Evidence contains synthetic text, identifiers, checksums and booleans—never credentials or session material.
+
+This proves the declared title/paragraph path in the web editor. It does not prove native desktop/mobile synchronization, attachments, comments, databases, multi-user conflict handling or every editor block type.
 
 ## Consistent backup
 
@@ -61,7 +65,7 @@ Backup requires a healthy owned project and completed synthetic evidence. It:
 6. emits sanitized configuration metadata, file-tree checksums and a manifest;
 7. restarts AFFiNE and verifies the document again.
 
-The resulting directory is plaintext-sensitive because it contains database content, private configuration and recovery credentials. Keep it outside Git and public/cloud-synchronized folders. This release does not encrypt or transfer the AFFiNE backup off-host.
+The resulting staging directory is plaintext-sensitive because it contains database content, private configuration and recovery credentials. Keep it outside Git and public/cloud-synchronized folders. Use the separately reviewed [AFFiNE encrypted vault](affine-vault.md) before copying a recovery set off-host.
 
 ## Independent restore
 
@@ -72,7 +76,7 @@ python -m homelab affine plan --root C:\Docker\homelab-affine-restore --port 180
 python -m homelab affine up --plan C:\Docker\homelab-affine-restore-plan.json --confirm <restore-plan-id>
 ```
 
-Restore accepts only a complete checksum-valid backup into never-started target resources. It restores PostgreSQL, config and storage, runs the pinned migration, starts AFFiNE, loads the saved document through an authenticated session, compares semantic state, restarts the application and compares it again.
+Restore accepts only a complete checksum-valid backup into never-started target resources. It restores PostgreSQL, config and storage, runs the pinned migration, starts AFFiNE, compares server-sync state, renders the saved note through independent browser sessions, restarts the application and repeats both checks. A recovered project may subsequently stop/start without overwriting its prior evidence; each browser run uses a collision-free evidence name.
 
 ## Update boundary
 
@@ -81,11 +85,10 @@ Do not change only the AFFiNE image around a migrated database. Create a new rev
 ## Current no-go items
 
 - production deployment adoption or migration;
-- browser-rendered document/block-tree fidelity;
 - desktop or mobile client synchronization;
-- attachments, public access, SMTP, OAuth, AI and indexer configuration;
+- attachments, additional editor block types, public access, SMTP, OAuth, AI and indexer configuration;
 - representative multi-user, workspace-size, load or upgrade testing;
-- encrypted off-host storage, independent recovery-key custody and retention;
-- Linux, macOS or ARM64 live runtime certification.
+- durable owner-operated off-host storage, real offline-key loss recovery and scheduling;
+- macOS or ARM64 live runtime certification.
 
-See [AFFiNE validation evidence](validation/affine.md), the [observed deployment runbook](runbooks/affine.md), and the upstream [self-host Compose definition](https://github.com/toeverything/AFFiNE/blob/canary/.docker/selfhost/compose.yml).
+See the [AFFiNE application validation](validation/affine.md), [browser/off-host recovery gate](validation/affine-off-host-recovery.md), [encrypted vault guide](affine-vault.md), the [observed deployment runbook](runbooks/affine.md), and the upstream [self-host Compose definition](https://github.com/toeverything/AFFiNE/blob/canary/.docker/selfhost/compose.yml).

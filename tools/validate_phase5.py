@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = '0.6.0-alpha.4'
+RELEASE = '0.6.0-alpha.5'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'
@@ -57,14 +57,24 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'tools/paperless_dr_trial.py',
                      '.github/workflows/paperless-disaster-recovery.yml'):
         require((root / relative).is_file(), f'missing Paperless release file {relative}')
-    for relative in ('homelab/affine.py', 'modules/affine/images.json',
-                     'modules/affine/fixture.mjs', 'tests/test_affine.py',
-                     'docs/affine-module.md', 'docs/validation/affine.md',
-                     'docs/releases/v0.6.0-alpha.4.md'):
+    for relative in ('homelab/affine.py', 'homelab/affine_vault.py',
+                     'modules/affine/images.json', 'modules/affine/fixture.mjs',
+                     'modules/affine/browser.json', 'modules/affine/browser/Dockerfile',
+                     'modules/affine/browser/package-lock.json',
+                     'modules/affine/browser/validate.mjs', 'modules/affine/restic.json',
+                     'tests/test_affine.py', 'tests/test_affine_vault.py',
+                     'tools/affine_dr_trial.py', 'tools/affine_local_trial.py',
+                     '.github/workflows/affine-disaster-recovery.yml',
+                     'docs/affine-module.md', 'docs/affine-vault.md',
+                     'docs/validation/affine.md',
+                     'docs/validation/affine-off-host-recovery.md',
+                     'docs/releases/v0.6.0-alpha.4.md',
+                     'docs/releases/v0.6.0-alpha.5.md'):
         require((root / relative).is_file(), f'missing AFFiNE release file {relative}')
     require("add_parser('paperless'" in cli, 'missing Paperless CLI command')
     require("'paperless-vault'" in cli, 'missing Paperless encrypted-vault CLI command')
     require("add_parser('affine'" in cli, 'missing AFFiNE CLI command')
+    require("'affine-vault'" in cli, 'missing AFFiNE encrypted-vault CLI command')
     for command in ('portable-manifest', 'recovery-plan', 'recover-off-host'):
         require(f"add_parser('{command}')" in cli,
                 f'missing Paperless off-host CLI command {command}')
@@ -104,13 +114,54 @@ def validate_phase5(root: Path = ROOT) -> str:
     for name, image in affine.items():
         require(isinstance(image, str) and DIGEST.fullmatch(image),
                 f'AFFiNE {name}: exact sha256 image digest required')
+    browser = load_json(root / 'modules/affine/browser.json')
+    require(set(browser) == {'image', 'playwright', 'browser', 'upstream_tag'},
+            'AFFiNE browser manifest fields changed')
+    require(DIGEST.fullmatch(browser['image']) is not None
+            and browser['playwright'] == '1.64.0'
+            and browser['browser'] == 'chromium'
+            and browser['upstream_tag'] == 'v1.64.0-noble',
+            'AFFiNE browser runtime differs from the reviewed pinned release')
+    browser_driver = (root / 'modules/affine/browser/validate.mjs').read_text(encoding='utf-8')
+    for contract in ('affine-browser-document-v1', 'independent_sessions',
+                     'reload_persistence', 'doc-title .inline-editor',
+                     'affine-note affine-paragraph'):
+        require(contract in browser_driver,
+                f'AFFiNE browser validation contract missing {contract}')
+    affine_restic = load_json(root / 'modules/affine/restic.json')
+    require(set(affine_restic) == {'version', *RESTIC_HASHES},
+            'AFFiNE restic manifest fields changed')
+    require(affine_restic['version'] == RESTIC_VERSION,
+            'AFFiNE restic reviewed version changed')
+    for target, expected in RESTIC_HASHES.items():
+        item = affine_restic[target]
+        require(set(item) == {'archive_url', 'archive_sha256', 'executable_sha256'},
+                f'AFFiNE restic {target} manifest fields changed')
+        require(item['archive_url'] ==
+                f'https://github.com/restic/restic/releases/download/v{RESTIC_VERSION}/restic_{RESTIC_VERSION}_{target}.{expected["extension"]}',
+                f'AFFiNE restic {target} archive URL changed')
+        require(item['archive_sha256'] == expected['archive']
+                and item['executable_sha256'] == expected['executable'],
+                f'AFFiNE restic {target} reviewed checksums changed')
+    affine_workflow = (root / '.github/workflows/affine-disaster-recovery.yml').read_text(
+        encoding='utf-8')
+    require('workflow_dispatch:' in affine_workflow
+            and 'AFFINE_DR_TEST_PASSWORD' in affine_workflow,
+            'AFFiNE off-host workflow must be manual and use separate secret custody')
+    require('Prepare encrypted off-host artifact' in affine_workflow
+            and 'Recover on independent clean runner' in affine_workflow,
+            'AFFiNE off-host workflow must separate preparation and recovery jobs')
+    require('actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9' in affine_workflow
+            and 'actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333' in affine_workflow,
+            'AFFiNE off-host artifact actions must be immutable reviewed revisions')
     fixture = (root / 'modules/affine/fixture.mjs').read_text(encoding='utf-8')
     for contract in ('HOMELAB_FIXTURE_PASSWORD', '/api/setup/create-admin-user',
                      'space:join', 'space:push-doc-update', 'space:load-doc',
                      'HomeLab AFFiNE Phase 5 recovery marker v1'):
         require(contract in fixture, f'AFFiNE fixture contract missing {contract}')
-    return ('PASS: Phase 5 0.6.0-alpha.4 validates Paperless off-host recovery and '
-            'the digest-pinned AFFiNE sync, backup and independent-restore contract')
+    return ('PASS: Phase 5 0.6.0-alpha.5 validates Paperless off-host recovery and '
+            'the digest-pinned AFFiNE sync, browser, encrypted off-host and '
+            'independent-restore contracts')
 
 
 def main() -> int:

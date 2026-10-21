@@ -1,5 +1,6 @@
 """AFFiNE isolation, sync evidence and recovery contracts."""
 import copy
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -94,6 +95,24 @@ class AffineTests(unittest.TestCase):
             with self.assertRaises(ConfigError):
                 a.parse_fixture_output(json.dumps(change))
 
+    def test_browser_parser_requires_rendered_reload_and_independent_session(self):
+        value = {
+            'kind': 'affine-browser-document-v1', 'workspace_id': 'workspace',
+            'doc_id': 'document', 'title': a.BROWSER_TITLE, 'body': a.BROWSER_BODY,
+            'title_sha256': hashlib.sha256(a.BROWSER_TITLE.encode()).hexdigest(),
+            'body_sha256': hashlib.sha256(a.BROWSER_BODY.encode()).hexdigest(),
+            'browser': 'chromium', 'headless': True, 'rendered_title': True,
+            'rendered_body': True, 'reload_persistence': True,
+            'independent_sessions': True,
+        }
+        self.assertEqual(a.parse_browser_output('browser log\n' + json.dumps(value)), value)
+        for change in ({**value, 'rendered_body': False},
+                       {**value, 'reload_persistence': False},
+                       {**value, 'independent_sessions': False},
+                       {**value, 'body_sha256': '0' * 64}):
+            with self.subTest(change=change), self.assertRaises(ConfigError):
+                a.parse_browser_output(json.dumps(change))
+
     def test_verify_fixture_invokes_bounded_read_only_mode(self):
         evidence = {'kind': 'affine-synthetic-document-v1',
                     'workspace_id': 'workspace', 'doc_id': 'document',
@@ -149,11 +168,25 @@ class AffineBackupTests(unittest.TestCase):
                           'marker': a.MARKER, 'marker_sha256': '3' * 64,
                           'state_sha256': '4' * 64,
                           'independent_sessions': True}
+        self.browser = {
+            'kind': 'affine-browser-document-v1',
+            'workspace_id': 'workspace', 'doc_id': 'browser-document',
+            'title': a.BROWSER_TITLE, 'body': a.BROWSER_BODY,
+            'title_sha256': hashlib.sha256(a.BROWSER_TITLE.encode()).hexdigest(),
+            'body_sha256': hashlib.sha256(a.BROWSER_BODY.encode()).hexdigest(),
+            'browser': 'chromium', 'headless': True, 'rendered_title': True,
+            'rendered_body': True, 'reload_persistence': True,
+            'independent_sessions': True, 'screenshot_sha256': '5' * 64,
+            'browser_source_id': '6' * 64,
+            'browser_image': 'mcr.microsoft.com/playwright@sha256:' + '7' * 64,
+        }
+        atomic_json(self.root / 'browser-fixture.json', self.browser)
         self.manifest = {
             'kind': 'affine-consistent-backup-v1',
             'created_utc': '2026-10-20T00:00:00+00:00', 'images': a.images(),
             'method': 'postgres-config-storage',
-            'material': ['postgres-custom-dump', 'config', 'storage'],
+            'material': ['postgres-custom-dump', 'config', 'storage',
+                         'browser-rendered-evidence'],
             'consistency': {'application_quiesced': True,
                             'migration_completed': True,
                             'postgres_archive_readable': True,
@@ -165,9 +198,10 @@ class AffineBackupTests(unittest.TestCase):
                 'private': a.file_hash(self.root / 'compose.private.json'),
                 'sanitized': a.file_hash(self.root / 'sanitized-config.json')},
             'database_sha256': a.file_hash(self.root / 'affine-postgres.dump'),
+            'browser_sha256': a.file_hash(self.root / 'browser-fixture.json'),
             'trees': {'config': a.tree_files(self.root / 'config'),
                       'storage': a.tree_files(self.root / 'storage')},
-            'inventory': self.inventory, 'summary': None,
+            'inventory': self.inventory, 'browser': self.browser, 'summary': None,
         }
         self.manifest['summary'] = a.backup_summary(self.manifest)
         atomic_json(self.root / 'manifest.json', self.manifest)

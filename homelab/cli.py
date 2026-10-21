@@ -218,6 +218,50 @@ def main(arguments=None) -> int:
         if verb == 'restore':
             action.add_argument('--snapshot-id', required=True)
             action.add_argument('--target', type=Path, required=True)
+    affine_vault = sub.add_parser(
+        'affine-vault', help='Encrypted restic repository for verified AFFiNE recovery sets')
+    affine_vault_actions = affine_vault.add_subparsers(dest='action', required=True)
+    affine_vault_keys = affine_vault_actions.add_parser('key-create')
+    affine_vault_keys.add_argument('--password-file', type=Path, required=True)
+    affine_vault_keys.add_argument('--recovery-key-file', type=Path, required=True)
+    affine_vault_keys.add_argument('--confirm', required=True)
+    affine_vault_plan = affine_vault_actions.add_parser('plan')
+    affine_vault_plan.add_argument('--state-root', type=Path, required=True)
+    affine_vault_plan.add_argument('--repository', type=Path, required=True)
+    affine_vault_plan.add_argument('--password-file', type=Path, required=True)
+    affine_vault_plan.add_argument('--recovery-key-file', type=Path, required=True)
+    affine_vault_plan.add_argument('--restic', type=Path, required=True)
+    affine_vault_plan.add_argument('--output', type=Path, required=True)
+    affine_snapshot_plan = affine_vault_actions.add_parser('snapshot-plan')
+    affine_snapshot_plan.add_argument('--plan', type=Path, required=True)
+    affine_snapshot_plan.add_argument('--source', type=Path, required=True)
+    affine_snapshot_plan.add_argument('--output', type=Path, required=True)
+    affine_portable_manifest = affine_vault_actions.add_parser('portable-manifest')
+    affine_portable_manifest.add_argument('--plan', type=Path, required=True)
+    affine_portable_manifest.add_argument('--snapshot-plan', type=Path, required=True)
+    affine_portable_manifest.add_argument('--snapshot-id', required=True)
+    affine_portable_manifest.add_argument('--output', type=Path, required=True)
+    affine_recovery_plan = affine_vault_actions.add_parser('recovery-plan')
+    affine_recovery_plan.add_argument('--repository', type=Path, required=True)
+    affine_recovery_plan.add_argument('--recovery-key-file', type=Path, required=True)
+    affine_recovery_plan.add_argument('--restic', type=Path, required=True)
+    affine_recovery_plan.add_argument('--manifest', type=Path, required=True)
+    affine_recovery_plan.add_argument('--output', type=Path, required=True)
+    affine_off_host = affine_vault_actions.add_parser('recover-off-host')
+    affine_off_host.add_argument('--plan', type=Path, required=True)
+    affine_off_host.add_argument('--target', type=Path, required=True)
+    affine_off_host.add_argument('--confirm', required=True)
+    for verb in ('init', 'status', 'store', 'check', 'restore',
+                 'retention-preview', 'retention-apply'):
+        action = affine_vault_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        if verb not in ('status', 'retention-preview'):
+            action.add_argument('--confirm', required=True)
+        if verb in ('store', 'restore'):
+            action.add_argument('--snapshot-plan', type=Path, required=True)
+        if verb == 'restore':
+            action.add_argument('--snapshot-id', required=True)
+            action.add_argument('--target', type=Path, required=True)
     beszel = sub.add_parser('beszel', help='Experimental upstream Beszel hub and restricted agent; no native-host adoption')
     beszel_actions = beszel.add_subparsers(dest='action', required=True)
     beszel_plan = beszel_actions.add_parser('plan')
@@ -384,8 +428,13 @@ def main(arguments=None) -> int:
                                         getattr(args, 'confirm', None))
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
-        if args.command == 'paperless-vault':
-            from . import paperless_vault as module
+        if args.command in ('paperless-vault', 'affine-vault'):
+            if args.command == 'paperless-vault':
+                from . import paperless_vault as module
+                backup_label = '<verified-paperless-backup>'
+            else:
+                from . import affine_vault as module
+                backup_label = '<verified-affine-backup>'
             if args.action == 'key-create':
                 result = module.create_keys(args.password_file, args.recovery_key_file, args.confirm)
                 result = {**result, 'password_file': '<operational-key-file>',
@@ -422,7 +471,7 @@ def main(arguments=None) -> int:
                 if args.action == 'snapshot-plan':
                     result = module.make_snapshot_plan(plan, args.source)
                     write_private(args.output, result)
-                    result = {**result, 'source': '<verified-paperless-backup>'}
+                    result = {**result, 'source': backup_label}
                 elif args.action == 'portable-manifest':
                     result = module.make_recovery_manifest(
                         plan, load_json(args.snapshot_plan), args.snapshot_id)

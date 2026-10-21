@@ -1,0 +1,12 @@
+{
+  "name": "homelab-affine-browser-validation",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "playwright": "1.64.0"
+  }
+}
