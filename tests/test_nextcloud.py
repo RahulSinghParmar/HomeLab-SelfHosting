@@ -245,9 +245,12 @@ class NextcloudBackupTests(unittest.TestCase):
         (self.root / 'filesystem/data/fixture.bin').write_bytes(n.FIXTURE_BODY)
         if n.os.name == 'nt':
             n.windows_acl(self.root / 'filesystem/data/fixture.bin', create=True)
-        (self.root / 'filesystem/data/extra.bin').write_bytes(b'extra')
+        extra = self.root / 'filesystem/data/extra.bin'
+        extra.write_bytes(b'extra')
         if n.os.name == 'nt':
-            n.windows_acl(self.root / 'filesystem/data/extra.bin', create=True)
+            n.windows_acl(extra, create=True)
+        else:
+            extra.chmod(0o600)
         with self.assertRaisesRegex(ConfigError, 'checksum'):
             n.verify_backup(self.root)
 
