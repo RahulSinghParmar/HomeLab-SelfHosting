@@ -37,6 +37,8 @@ Internal dependencies such as PostgreSQL, Redis, or a migration job belong to th
 
 The `0.6.0-alpha.5` AFFiNE adapter applies that boundary to a fresh four-service project: Redis, PostgreSQL, a successful one-shot migration and the long-running application. It binds the UI to loopback, isolates dependencies on an internal network, validates a rendered synthetic note with an ephemeral digest-pinned Chromium runtime, and carries PostgreSQL/config/storage plus required private inputs as one encrypted portable recovery unit. It remains separate from the general planner and from the existing personal deployment.
 
+The `0.6.0-alpha.6` Nextcloud adapter applies the same ownership boundary to a fresh app/cron/PostgreSQL/Redis project. It proves a WebDAV file and real cron cycle, quiesces writes with maintenance mode plus stopped app/cron services, and treats the PostgreSQL archive, application database role, config, data, custom apps and themes as one local recovery unit. Core HTML and Redis state are recreated from the exact pinned images. The adapter is local plaintext recovery evidence only; it does not adopt the personal deployment or claim encrypted off-host recovery.
+
 Coolify-managed proxy, sentinel, and generated applications must remain under their actual lifecycle owner. A single top-level command can coordinate them without relabeling or fighting the upstream control plane.
 
 ## Planned user workflow

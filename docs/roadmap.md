@@ -97,6 +97,8 @@ Fourth bounded milestone: **0.6.0-alpha.4**, an isolated [AFFiNE application-awa
 
 Fifth bounded milestone: **0.6.0-alpha.5**, the [AFFiNE browser and encrypted off-host recovery gate](validation/affine-off-host-recovery.md). It adds a digest-pinned Chromium check that creates and renders a synthetic note across reloads, independent sessions, backup, restore and restart, plus a reviewed Restic vault and path-independent clean-runner recovery workflow. Native clients, attachments, multi-user editing, durable production storage, real offline-key custody, scheduling, production migration and the remaining four applications are still not delivered.
 
+Sixth bounded milestone: **0.6.0-alpha.6**, an isolated [Nextcloud application-aware recovery candidate](nextcloud-module.md). It proves exact WebDAV upload/download, a quiesced cron cycle, maintenance-mode PostgreSQL/config/data/custom-apps/themes backup, application-role recovery, independent restore and recovered stop/start persistence on Windows Docker Desktop. Desktop/mobile clients, external storage, custom SMB support, public access, upgrades, encryption/off-host recovery, production migration and the remaining three applications are still not delivered.
+
 Implement application-consistent backup/restore before considering a module complete. Build a portable encrypted recovery kit and retention policy. Test with nonempty synthetic data. Choose a maintained encryption/backup tool after validating its current platform support; do not invent cryptography.
 
 Exit: upload/open/edit/restart/backup/restore checks and a verified recovery-secret workflow for every implemented module. No real financial records or password vaults in test fixtures.

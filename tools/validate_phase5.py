@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = '0.6.0-alpha.5'
+RELEASE = '0.6.0-alpha.6'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'
@@ -71,10 +71,16 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'docs/releases/v0.6.0-alpha.4.md',
                      'docs/releases/v0.6.0-alpha.5.md'):
         require((root / relative).is_file(), f'missing AFFiNE release file {relative}')
+    for relative in ('homelab/nextcloud.py', 'modules/nextcloud/images.json',
+                     'tests/test_nextcloud.py', 'tools/nextcloud_local_trial.py',
+                     'docs/nextcloud-module.md', 'docs/validation/nextcloud.md',
+                     'docs/releases/v0.6.0-alpha.6.md'):
+        require((root / relative).is_file(), f'missing Nextcloud release file {relative}')
     require("add_parser('paperless'" in cli, 'missing Paperless CLI command')
     require("'paperless-vault'" in cli, 'missing Paperless encrypted-vault CLI command')
     require("add_parser('affine'" in cli, 'missing AFFiNE CLI command')
     require("'affine-vault'" in cli, 'missing AFFiNE encrypted-vault CLI command')
+    require("add_parser(\n        'nextcloud'" in cli, 'missing Nextcloud CLI command')
     for command in ('portable-manifest', 'recovery-plan', 'recover-off-host'):
         require(f"add_parser('{command}')" in cli,
                 f'missing Paperless off-host CLI command {command}')
@@ -159,9 +165,22 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'space:join', 'space:push-doc-update', 'space:load-doc',
                      'HomeLab AFFiNE Phase 5 recovery marker v1'):
         require(contract in fixture, f'AFFiNE fixture contract missing {contract}')
-    return ('PASS: Phase 5 0.6.0-alpha.5 validates Paperless off-host recovery and '
-            'the digest-pinned AFFiNE sync, browser, encrypted off-host and '
-            'independent-restore contracts')
+    nextcloud = load_json(root / 'modules/nextcloud/images.json')
+    require(set(nextcloud) == {'app', 'database', 'cache'},
+            'Nextcloud image manifest fields changed')
+    for name, image in nextcloud.items():
+        require(isinstance(image, str) and DIGEST.fullmatch(image),
+                f'Nextcloud {name}: exact sha256 image digest required')
+    nextcloud_code = (root / 'homelab/nextcloud.py').read_text(encoding='utf-8')
+    for contract in ('nextcloud-isolated-recovery-v1', 'postgres-filesystem-restore',
+                     'phase5-nextcloud-recovery.txt', 'database-application-role.json',
+                     'background:cron', 'NEXTCLOUD_ADMIN_PASSWORD_FILE',
+                     'windows_tree_acl'):
+        require(contract in nextcloud_code,
+                f'Nextcloud recovery contract missing {contract}')
+    return ('PASS: Phase 5 0.6.0-alpha.6 validates Paperless off-host recovery, '
+            'AFFiNE sync and off-host recovery, and the digest-pinned Nextcloud '
+            'WebDAV, consistent-backup and independent local-restore contracts')
 
 
 def main() -> int:

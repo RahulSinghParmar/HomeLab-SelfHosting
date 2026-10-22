@@ -72,6 +72,60 @@ if (-not $ownRule) { throw 'Owner access missing' }
         raise ConfigError("Private ACL adapter unavailable; no automatic elevation") from error
 
 
+def windows_tree_acl(path: Path, *, create: bool = False) -> None:
+    """Set or verify the private ACL contract for one already path-checked tree."""
+    safe_path(path)
+    need(path.is_dir(), "Private ACL tree root must be a directory")
+    script = r'''
+$ErrorActionPreference = 'Stop'
+$request = [Console]::In.ReadToEnd() | ConvertFrom-Json
+$root = $request.path
+$sid = [Security.Principal.WindowsIdentity]::GetCurrent().User
+$approved = @($sid.Value, 'S-1-5-18', 'S-1-5-32-544') | Select-Object -Unique
+$targets = @($root) + @(Get-ChildItem -LiteralPath $root -Force -Recurse | ForEach-Object { $_.FullName })
+foreach ($target in $targets) {
+    $item = Get-Item -LiteralPath $target -Force
+    if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'Reparse point refused' }
+    $isDirectory = $item.PSIsContainer
+    if ($request.create) {
+        $acl = if ($isDirectory) { [Security.AccessControl.DirectorySecurity]::new() } else { [Security.AccessControl.FileSecurity]::new() }
+        $acl.SetOwner($sid)
+        $acl.SetAccessRuleProtection($true, $false)
+        foreach ($value in $approved) {
+            $principal = [Security.Principal.SecurityIdentifier]::new($value)
+            $rule = if ($isDirectory) { [Security.AccessControl.FileSystemAccessRule]::new($principal, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow') } else { [Security.AccessControl.FileSystemAccessRule]::new($principal, 'FullControl', 'Allow') }
+            $acl.AddAccessRule($rule)
+        }
+        if ($isDirectory) { [IO.Directory]::SetAccessControl($target, $acl) } else { [IO.File]::SetAccessControl($target, $acl) }
+    }
+    $sections = [Security.AccessControl.AccessControlSections]::Access -bor [Security.AccessControl.AccessControlSections]::Owner
+    $actual = if ($isDirectory) { [IO.Directory]::GetAccessControl($target, $sections) } else { [IO.File]::GetAccessControl($target, $sections) }
+    if ($actual.GetOwner([Security.Principal.SecurityIdentifier]).Value -ne $sid.Value) { throw 'Owner mismatch' }
+    $rules = @($actual.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]))
+    if ($rules.Count -eq 0) { throw 'Empty ACL' }
+    $ownRule = $false
+    foreach ($rule in $rules) {
+        if ($rule.IdentityReference.Value -notin $approved) { throw 'Unapproved principal' }
+        if ($rule.AccessControlType -ne 'Allow') { throw 'Unexpected deny rule' }
+        if ($rule.IdentityReference.Value -eq $sid.Value -and ($rule.FileSystemRights -band [Security.AccessControl.FileSystemRights]::FullControl) -eq [Security.AccessControl.FileSystemRights]::FullControl) { $ownRule = $true }
+    }
+    if (-not $ownRule) { throw 'Owner access missing' }
+}
+[Console]::Write('acl-tree-ok')
+'''
+    try:
+        environment = os.environ.copy()
+        environment.pop('PSModulePath', None)
+        result = subprocess.run(
+            ['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', script],
+            input=json.dumps({'path': str(path), 'create': create}), capture_output=True,
+            text=True, timeout=120, shell=False, env=environment)
+        need(result.returncode == 0 and result.stdout == 'acl-tree-ok',
+             "Private ACL tree verification failed; no existing permission repair attempted")
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise ConfigError("Private ACL tree adapter unavailable; no automatic elevation") from error
+
+
 def verify_private(path: Path, *, directory: bool = False) -> None:
     safe_path(path)
     info = path.stat()

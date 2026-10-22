@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Prerelease 0.6.0-alpha.5 adds browser-rendered and encrypted off-host recovery gates for AFFiNE.** A real Chromium session creates and reads a synthetic note across independent logins and restarts; the same application-consistent backup is encrypted with reviewed Restic binaries and recoverable on an unrelated clean runner. The existing personal deployment remains untouched, and this remains an experimental recovery component rather than production adoption.
+**Prerelease 0.6.0-alpha.6 adds isolated Nextcloud application recovery.** A real WebDAV file and cron cycle survive an application-consistent PostgreSQL/config/data/custom-apps/themes backup, independent restore and recovered-project restart. The existing personal Nextcloud deployment remains untouched; encryption, off-host transport and production adoption are not included.
 
 ## What this project is building
 
@@ -40,6 +40,8 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [0.6.0-alpha.4 validation](docs/validation/affine.md) | Windows Docker Desktop sync, restart, backup and restore evidence |
 | [AFFiNE encrypted vault](docs/affine-vault.md) | Reviewed Restic, separate key custody, portable manifests and retention gates |
 | [0.6.0-alpha.5 recovery gate](docs/validation/affine-off-host-recovery.md) | Browser-rendered local proof and independent clean-runner recovery contract |
+| [Nextcloud recovery module](docs/nextcloud-module.md) | Isolated WebDAV/cron exercise, consistent backup and independent restore |
+| [0.6.0-alpha.6 validation](docs/validation/nextcloud.md) | Windows Docker Desktop recovery and restart evidence |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -74,7 +76,7 @@ Windows also supports `./bootstrap.ps1 catalog`; Linux/macOS supports `sh ./boot
 
 For the opt-in Windows/PowerShell 7 read-only metadata collector, see [evidence and privacy instructions](docs/discovery/evidence.md). Its report belongs outside Git. Windows collector regression tests use mocks and can be run with `./tests/Test-ReferenceCollector.ps1`.
 
-General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault` and `affine` candidates are bounded execution paths; they do not enable the general planner. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
+General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault`, `affine` and `nextcloud` candidates are bounded execution paths; they do not enable the general planner. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
 
 ## Service families
 
@@ -95,7 +97,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-alpha.5 release review](docs/releases/v0.6.0-alpha.5.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-alpha.6 release review](docs/releases/v0.6.0-alpha.6.md).
 
 ## License
 

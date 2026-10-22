@@ -1,6 +1,6 @@
 # nextcloud
 
-Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope; deployment and restore certification remain planned.
+Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope. The separate [0.6.0-alpha.6 isolated recovery candidate](../nextcloud-module.md) validates synthetic local backup and restore without adopting this observed installation.
 
 ## Evidence and ownership
 
@@ -44,9 +44,9 @@ No start, stop, restart, migration, backup or restore was executed for Phase 1. 
 
 ## Backup and recovery
 
-No dedicated Nextcloud scheduled backup identified in scoped discovery. Full consistent database/data/config recovery must be implemented and rehearsed.
+No dedicated Nextcloud scheduled backup was identified in scoped discovery. Version 0.6.0-alpha.6 provides a separate experimental workflow that enters maintenance mode, stops cron and app writes, validates a PostgreSQL custom archive, captures the application database role plus config/data/custom-apps/themes, and restores into a fresh project. That evidence is synthetic and plaintext-sensitive; it is not the production backup job and does not cover the observed external-drive mappings.
 
-Follow the [recovery contract](../recovery.md); reported task success and old verification metadata are not a new restore rehearsal.
+Follow the [recovery contract](../recovery.md) and [Nextcloud validation record](../validation/nextcloud.md); reported task success and old verification metadata are not a new restore rehearsal.
 
 ## Update and rollback
 

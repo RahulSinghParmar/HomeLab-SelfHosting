@@ -1,0 +1,5 @@
+{
+  "app": "docker.io/library/nextcloud:34.0.5-apache@sha256:6fa4abe69092501914598949276b60ef0774c0efa5fa14672fd0993107de95dd",
+  "database": "docker.io/library/postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873",
+  "cache": "docker.io/library/redis:8.2-alpine@sha256:b51665e66f00759be7c3152ad5ac3c66fb2f619c13ef62dea7cc1f9914524635"
+}

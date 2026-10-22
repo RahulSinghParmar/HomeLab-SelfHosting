@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0-alpha.6 — 2026-10-22
+
+- Added a digest-pinned, loopback-only Nextcloud 34.0.5/PostgreSQL 18/Redis 8.2 adapter with file-based secrets, internal dependency networking, separate cron and bounded resources.
+- Added a deterministic WebDAV upload/download fixture and quiesced real cron execution, including contention-safe cron service handling.
+- Added maintenance-mode, application-quiesced backup of a readable PostgreSQL custom archive, the application database role, config, data, custom apps, themes, private recovery inputs, sanitized metadata and complete checksums.
+- Restored into an unrelated fresh project with derived-core initialization, original PostgreSQL ownership, exact WebDAV comparison and recovered stop/start persistence on Windows Docker Desktop.
+- Added twelve focused tests, batched Windows tree ACL verification and explicit no-go boundaries for production adoption, external storage, custom SMB builds, encryption/off-host retention, public access and stable 0.6.0.
+
 ## 0.6.0-alpha.5 — 2026-10-21
 
 - Added a digest-pinned Playwright/Chromium validator that creates and renders a synthetic AFFiNE note through the supported UI, then proves reload, independent-session, source-restart, restored-state and recovered-restart persistence.
