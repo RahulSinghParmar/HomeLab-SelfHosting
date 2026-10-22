@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0-alpha.7 — 2026-10-23
+
+- Added a Nextcloud Restic 0.19.1 vault with exact Windows/Linux amd64 checksums, distinct operational/recovery key custody, complete data checks and portable recovery manifests.
+- Added confirmation-gated encrypted store, check, decrypt, status and restore-gated 7/4/3 retention commands under `nextcloud-vault`.
+- Added a manual two-runner rehearsal that transfers only the encrypted synthetic repository and nonsecret manifest, injects the recovery secret separately and reconstructs a fresh Nextcloud project.
+- Repeated exact WebDAV content and recovered stop/start persistence checks after clean-runner decryption, with production data explicitly excluded.
+- Preserved no-go boundaries for production adoption, external-drive recovery, durable backup hosting, scheduling, real offline-key custody and stable 0.6.0.
+
 ## 0.6.0-alpha.6 — 2026-10-22
 
 - Added a digest-pinned, loopback-only Nextcloud 34.0.5/PostgreSQL 18/Redis 8.2 adapter with file-based secrets, internal dependency networking, separate cron and bounded resources.

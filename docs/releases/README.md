@@ -41,3 +41,4 @@ Never reuse a version or move an existing tag. If a published release needs corr
 - [0.6.0-alpha.4](v0.6.0-alpha.4.md) — AFFiNE application-aware recovery candidate
 - [0.6.0-alpha.5](v0.6.0-alpha.5.md) — AFFiNE browser-rendered encrypted off-host recovery candidate
 - [0.6.0-alpha.6](v0.6.0-alpha.6.md) — Nextcloud application-aware local recovery candidate
+- [0.6.0-alpha.7](v0.6.0-alpha.7.md) — Nextcloud encrypted off-host clean-runner recovery candidate

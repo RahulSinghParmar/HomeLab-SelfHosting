@@ -1,6 +1,6 @@
 # Nextcloud application-aware recovery module
 
-Version `0.6.0-alpha.6` adds a bounded Nextcloud recovery candidate for new synthetic deployments. It does not inspect user files, adopt, restart, upgrade or copy the existing personal Nextcloud deployment.
+Version `0.6.0-alpha.7` retains the bounded Nextcloud recovery candidate for new synthetic deployments and adds a separately gated encrypted off-host layer. It does not inspect user files, adopt, restart, upgrade or copy the existing personal Nextcloud deployment.
 
 ## Release boundary
 
@@ -37,7 +37,7 @@ Backup requires a healthy owned project and the exact WebDAV fixture. It stops c
 - the private Compose definition and generated recovery credentials;
 - sanitized configuration, complete tree checksums and semantic fixture evidence.
 
-The app is restarted, maintenance mode is disabled, cron is restored and health is checked in all exit paths. The backup is plaintext-sensitive and must stay outside Git or public synchronization. Follow-up work must add separately keyed encryption, an owner-operated off-host destination and retention only after independent recovery succeeds.
+The app is restarted, maintenance mode is disabled, cron is restored and health is checked in all exit paths. The backup is plaintext-sensitive and must stay outside Git or public synchronization. Use the separately reviewed [Nextcloud encrypted vault](nextcloud-vault.md) before moving a recovery set off-host.
 
 ## Independent restore
 
@@ -50,7 +50,7 @@ The HTML core and Redis data are derived. They are not authoritative backup inpu
 - adoption, update or migration of the personal deployment;
 - external storage, broad drive mappings, SMB client additions or the existing custom image;
 - desktop/mobile client, sharing, mail, SSO, encryption-app or public-domain behavior;
-- encrypted off-host recovery, scheduling, 7/4/3 retention or real offline-key custody;
+- scheduling, durable owner-operated storage or real offline-key custody;
 - representative data size, concurrent users, upgrade rehearsal, Linux/macOS or ARM64 runtime certification.
 
-See the [Windows validation record](validation/nextcloud.md) and [observed deployment runbook](runbooks/nextcloud.md).
+See the [Windows validation record](validation/nextcloud.md), [encrypted clean-runner gate](validation/nextcloud-off-host-recovery.md), [vault operator guide](nextcloud-vault.md) and [observed deployment runbook](runbooks/nextcloud.md).

@@ -8,6 +8,8 @@ class Phase5ReleaseTests(unittest.TestCase):
         result = validate_phase5(ROOT)
         self.assertIn('Paperless off-host recovery', result)
         self.assertIn('AFFiNE sync', result)
+        self.assertIn('Nextcloud', result)
+        self.assertIn('encrypted off-host', result)
 
 
 if __name__ == '__main__':

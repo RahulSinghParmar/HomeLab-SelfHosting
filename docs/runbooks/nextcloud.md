@@ -1,6 +1,6 @@
 # nextcloud
 
-Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope. The separate [0.6.0-alpha.6 isolated recovery candidate](../nextcloud-module.md) validates synthetic local backup and restore without adopting this observed installation.
+Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope. The separate [0.6.0-alpha.7 recovery candidate](../nextcloud-module.md) validates synthetic local and encrypted clean-runner recovery without adopting this observed installation.
 
 ## Evidence and ownership
 
@@ -44,9 +44,9 @@ No start, stop, restart, migration, backup or restore was executed for Phase 1. 
 
 ## Backup and recovery
 
-No dedicated Nextcloud scheduled backup was identified in scoped discovery. Version 0.6.0-alpha.6 provides a separate experimental workflow that enters maintenance mode, stops cron and app writes, validates a PostgreSQL custom archive, captures the application database role plus config/data/custom-apps/themes, and restores into a fresh project. That evidence is synthetic and plaintext-sensitive; it is not the production backup job and does not cover the observed external-drive mappings.
+No dedicated Nextcloud scheduled backup was identified in scoped discovery. Version 0.6.0-alpha.7 provides a separate experimental workflow that enters maintenance mode, stops cron and app writes, validates a PostgreSQL custom archive, captures the application database role plus config/data/custom-apps/themes, encrypts the verified staging set and restores it on an independent runner. That evidence is synthetic; it is not the production backup job and does not cover the observed external-drive mappings.
 
-Follow the [recovery contract](../recovery.md) and [Nextcloud validation record](../validation/nextcloud.md); reported task success and old verification metadata are not a new restore rehearsal.
+Follow the [recovery contract](../recovery.md), [Nextcloud validation record](../validation/nextcloud.md) and [off-host recovery gate](../validation/nextcloud-off-host-recovery.md); reported task success and old verification metadata are not a new restore rehearsal.
 
 ## Update and rollback
 

@@ -277,6 +277,50 @@ def main(arguments=None) -> int:
         if verb == 'restore':
             action.add_argument('--snapshot-id', required=True)
             action.add_argument('--target', type=Path, required=True)
+    nextcloud_vault = sub.add_parser(
+        'nextcloud-vault', help='Encrypted restic repository for verified Nextcloud recovery sets')
+    nextcloud_vault_actions = nextcloud_vault.add_subparsers(dest='action', required=True)
+    nextcloud_vault_keys = nextcloud_vault_actions.add_parser('key-create')
+    nextcloud_vault_keys.add_argument('--password-file', type=Path, required=True)
+    nextcloud_vault_keys.add_argument('--recovery-key-file', type=Path, required=True)
+    nextcloud_vault_keys.add_argument('--confirm', required=True)
+    nextcloud_vault_plan = nextcloud_vault_actions.add_parser('plan')
+    nextcloud_vault_plan.add_argument('--state-root', type=Path, required=True)
+    nextcloud_vault_plan.add_argument('--repository', type=Path, required=True)
+    nextcloud_vault_plan.add_argument('--password-file', type=Path, required=True)
+    nextcloud_vault_plan.add_argument('--recovery-key-file', type=Path, required=True)
+    nextcloud_vault_plan.add_argument('--restic', type=Path, required=True)
+    nextcloud_vault_plan.add_argument('--output', type=Path, required=True)
+    nextcloud_snapshot_plan = nextcloud_vault_actions.add_parser('snapshot-plan')
+    nextcloud_snapshot_plan.add_argument('--plan', type=Path, required=True)
+    nextcloud_snapshot_plan.add_argument('--source', type=Path, required=True)
+    nextcloud_snapshot_plan.add_argument('--output', type=Path, required=True)
+    nextcloud_portable_manifest = nextcloud_vault_actions.add_parser('portable-manifest')
+    nextcloud_portable_manifest.add_argument('--plan', type=Path, required=True)
+    nextcloud_portable_manifest.add_argument('--snapshot-plan', type=Path, required=True)
+    nextcloud_portable_manifest.add_argument('--snapshot-id', required=True)
+    nextcloud_portable_manifest.add_argument('--output', type=Path, required=True)
+    nextcloud_recovery_plan = nextcloud_vault_actions.add_parser('recovery-plan')
+    nextcloud_recovery_plan.add_argument('--repository', type=Path, required=True)
+    nextcloud_recovery_plan.add_argument('--recovery-key-file', type=Path, required=True)
+    nextcloud_recovery_plan.add_argument('--restic', type=Path, required=True)
+    nextcloud_recovery_plan.add_argument('--manifest', type=Path, required=True)
+    nextcloud_recovery_plan.add_argument('--output', type=Path, required=True)
+    nextcloud_off_host = nextcloud_vault_actions.add_parser('recover-off-host')
+    nextcloud_off_host.add_argument('--plan', type=Path, required=True)
+    nextcloud_off_host.add_argument('--target', type=Path, required=True)
+    nextcloud_off_host.add_argument('--confirm', required=True)
+    for verb in ('init', 'status', 'store', 'check', 'restore',
+                 'retention-preview', 'retention-apply'):
+        action = nextcloud_vault_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        if verb not in ('status', 'retention-preview'):
+            action.add_argument('--confirm', required=True)
+        if verb in ('store', 'restore'):
+            action.add_argument('--snapshot-plan', type=Path, required=True)
+        if verb == 'restore':
+            action.add_argument('--snapshot-id', required=True)
+            action.add_argument('--target', type=Path, required=True)
     beszel = sub.add_parser('beszel', help='Experimental upstream Beszel hub and restricted agent; no native-host adoption')
     beszel_actions = beszel.add_subparsers(dest='action', required=True)
     beszel_plan = beszel_actions.add_parser('plan')
@@ -463,13 +507,16 @@ def main(arguments=None) -> int:
                                         getattr(args, 'confirm', None))
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
-        if args.command in ('paperless-vault', 'affine-vault'):
+        if args.command in ('paperless-vault', 'affine-vault', 'nextcloud-vault'):
             if args.command == 'paperless-vault':
                 from . import paperless_vault as module
                 backup_label = '<verified-paperless-backup>'
-            else:
+            elif args.command == 'affine-vault':
                 from . import affine_vault as module
                 backup_label = '<verified-affine-backup>'
+            else:
+                from . import nextcloud_vault as module
+                backup_label = '<verified-nextcloud-backup>'
             if args.action == 'key-create':
                 result = module.create_keys(args.password_file, args.recovery_key_file, args.confirm)
                 result = {**result, 'password_file': '<operational-key-file>',

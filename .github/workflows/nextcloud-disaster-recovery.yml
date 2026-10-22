@@ -1,0 +1,132 @@
+name: Nextcloud off-host recovery rehearsal
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-encrypted-repository:
+    name: Prepare encrypted off-host artifact
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      artifact_digest: ${{ steps.upload.outputs.artifact-digest }}
+    steps:
+      - name: Check out exact reviewed source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Validate recovery secret availability
+        env:
+          NEXTCLOUD_DR_TEST_PASSWORD: ${{ secrets.NEXTCLOUD_DR_TEST_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${#NEXTCLOUD_DR_TEST_PASSWORD}" -ge 48
+      - name: Install reviewed Restic binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/restic_0.19.1_linux_amd64.bz2"
+          binary="$RUNNER_TEMP/restic"
+          curl --fail --location --silent --show-error \
+            https://github.com/restic/restic/releases/download/v0.19.1/restic_0.19.1_linux_amd64.bz2 \
+            --output "$archive"
+          echo "f415415624dcc452f2a02b8c33641791a8c6d6d3b65bbb3543fcf9a25151585c  $archive" | sha256sum --check --strict
+          python -c "import bz2,pathlib,sys; pathlib.Path(sys.argv[2]).write_bytes(bz2.decompress(pathlib.Path(sys.argv[1]).read_bytes()))" "$archive" "$binary"
+          echo "20d4142678d0d95ec11a4759def1b73fd9190abc9ca19e4b62d067c0b387e639  $binary" | sha256sum --check --strict
+          chmod 700 "$binary"
+          echo "RESTIC_BIN=$binary" >> "$GITHUB_ENV"
+      - name: Pull digest-pinned Nextcloud images
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -r '.[]' modules/nextcloud/images.json | while IFS= read -r image; do
+            docker pull "$image"
+          done
+      - name: Create verified encrypted recovery artifact
+        env:
+          NEXTCLOUD_DR_TEST_PASSWORD: ${{ secrets.NEXTCLOUD_DR_TEST_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m tools.nextcloud_dr_trial prepare \
+            --work-root "$RUNNER_TEMP/nextcloud-dr-source" \
+            --artifact-root "$RUNNER_TEMP/nextcloud-off-host-artifact" \
+            --restic "$RESTIC_BIN"
+      - name: Upload encrypted repository without recovery secret
+        id: upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: nextcloud-encrypted-repository-${{ github.run_id }}
+          path: ${{ runner.temp }}/nextcloud-off-host-artifact
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  recover-on-clean-runner:
+    name: Recover on independent clean runner
+    needs: prepare-encrypted-repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out exact reviewed source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Download immutable encrypted repository artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: nextcloud-encrypted-repository-${{ github.run_id }}
+          path: ${{ runner.temp }}/nextcloud-off-host-artifact
+      - name: Install reviewed Restic binary independently
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/restic_0.19.1_linux_amd64.bz2"
+          binary="$RUNNER_TEMP/restic"
+          curl --fail --location --silent --show-error \
+            https://github.com/restic/restic/releases/download/v0.19.1/restic_0.19.1_linux_amd64.bz2 \
+            --output "$archive"
+          echo "f415415624dcc452f2a02b8c33641791a8c6d6d3b65bbb3543fcf9a25151585c  $archive" | sha256sum --check --strict
+          python -c "import bz2,pathlib,sys; pathlib.Path(sys.argv[2]).write_bytes(bz2.decompress(pathlib.Path(sys.argv[1]).read_bytes()))" "$archive" "$binary"
+          echo "20d4142678d0d95ec11a4759def1b73fd9190abc9ca19e4b62d067c0b387e639  $binary" | sha256sum --check --strict
+          chmod 700 "$binary"
+          echo "RESTIC_BIN=$binary" >> "$GITHUB_ENV"
+      - name: Pull digest-pinned Nextcloud images independently
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -r '.[]' modules/nextcloud/images.json | while IFS= read -r image; do
+            docker pull "$image"
+          done
+      - name: Verify decryption, application import and restart persistence
+        env:
+          NEXTCLOUD_DR_TEST_PASSWORD: ${{ secrets.NEXTCLOUD_DR_TEST_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m tools.nextcloud_dr_trial recover \
+            --work-root "$RUNNER_TEMP/nextcloud-dr-recovery" \
+            --artifact-root "$RUNNER_TEMP/nextcloud-off-host-artifact" \
+            --restic "$RESTIC_BIN" \
+            --proof-root "$RUNNER_TEMP/nextcloud-dr-proof" \
+            --artifact-digest "${{ needs.prepare-encrypted-repository.outputs.artifact_digest }}" \
+            --source-sha "${{ github.sha }}"
+      - name: Upload sanitized recovery proof
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: nextcloud-recovery-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/nextcloud-dr-proof/recovery-proof.json
+          if-no-files-found: error
+          retention-days: 30

@@ -99,6 +99,8 @@ Fifth bounded milestone: **0.6.0-alpha.5**, the [AFFiNE browser and encrypted of
 
 Sixth bounded milestone: **0.6.0-alpha.6**, an isolated [Nextcloud application-aware recovery candidate](nextcloud-module.md). It proves exact WebDAV upload/download, a quiesced cron cycle, maintenance-mode PostgreSQL/config/data/custom-apps/themes backup, application-role recovery, independent restore and recovered stop/start persistence on Windows Docker Desktop. Desktop/mobile clients, external storage, custom SMB support, public access, upgrades, encryption/off-host recovery, production migration and the remaining three applications are still not delivered.
 
+Seventh bounded milestone: **0.6.0-alpha.7**, the [Nextcloud encrypted off-host recovery gate](validation/nextcloud-off-host-recovery.md). It adds a reviewed Restic vault, distinct operational/recovery key paths, full-data checks, portable manifests, encrypted-only artifact transfer, independent clean-runner application recovery and restore-gated 7/4/3 retention. Durable owner storage, real offline-key custody, scheduling, production migration, external-drive recovery and the remaining three applications are still not delivered.
+
 Implement application-consistent backup/restore before considering a module complete. Build a portable encrypted recovery kit and retention policy. Test with nonempty synthetic data. Choose a maintained encryption/backup tool after validating its current platform support; do not invent cryptography.
 
 Exit: upload/open/edit/restart/backup/restore checks and a verified recovery-secret workflow for every implemented module. No real financial records or password vaults in test fixtures.

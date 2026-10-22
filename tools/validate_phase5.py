@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = '0.6.0-alpha.6'
+RELEASE = '0.6.0-alpha.7'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'
@@ -71,16 +71,24 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'docs/releases/v0.6.0-alpha.4.md',
                      'docs/releases/v0.6.0-alpha.5.md'):
         require((root / relative).is_file(), f'missing AFFiNE release file {relative}')
-    for relative in ('homelab/nextcloud.py', 'modules/nextcloud/images.json',
-                     'tests/test_nextcloud.py', 'tools/nextcloud_local_trial.py',
+    for relative in ('homelab/nextcloud.py', 'homelab/nextcloud_vault.py',
+                     'modules/nextcloud/images.json', 'modules/nextcloud/restic.json',
+                     'tests/test_nextcloud.py', 'tests/test_nextcloud_vault.py',
+                     'tools/nextcloud_local_trial.py', 'tools/nextcloud_dr_trial.py',
+                     '.github/workflows/nextcloud-disaster-recovery.yml',
                      'docs/nextcloud-module.md', 'docs/validation/nextcloud.md',
-                     'docs/releases/v0.6.0-alpha.6.md'):
+                     'docs/nextcloud-vault.md',
+                     'docs/validation/nextcloud-off-host-recovery.md',
+                     'docs/releases/v0.6.0-alpha.6.md',
+                     'docs/releases/v0.6.0-alpha.7.md'):
         require((root / relative).is_file(), f'missing Nextcloud release file {relative}')
     require("add_parser('paperless'" in cli, 'missing Paperless CLI command')
     require("'paperless-vault'" in cli, 'missing Paperless encrypted-vault CLI command')
     require("add_parser('affine'" in cli, 'missing AFFiNE CLI command')
     require("'affine-vault'" in cli, 'missing AFFiNE encrypted-vault CLI command')
     require("add_parser(\n        'nextcloud'" in cli, 'missing Nextcloud CLI command')
+    require("'nextcloud-vault'" in cli,
+            'missing Nextcloud encrypted-vault CLI command')
     for command in ('portable-manifest', 'recovery-plan', 'recover-off-host'):
         require(f"add_parser('{command}')" in cli,
                 f'missing Paperless off-host CLI command {command}')
@@ -171,6 +179,32 @@ def validate_phase5(root: Path = ROOT) -> str:
     for name, image in nextcloud.items():
         require(isinstance(image, str) and DIGEST.fullmatch(image),
                 f'Nextcloud {name}: exact sha256 image digest required')
+    nextcloud_restic = load_json(root / 'modules/nextcloud/restic.json')
+    require(set(nextcloud_restic) == {'version', *RESTIC_HASHES},
+            'Nextcloud restic manifest fields changed')
+    require(nextcloud_restic['version'] == RESTIC_VERSION,
+            'Nextcloud restic reviewed version changed')
+    for target, expected in RESTIC_HASHES.items():
+        item = nextcloud_restic[target]
+        require(set(item) == {'archive_url', 'archive_sha256', 'executable_sha256'},
+                f'Nextcloud restic {target} manifest fields changed')
+        require(item['archive_url'] ==
+                f'https://github.com/restic/restic/releases/download/v{RESTIC_VERSION}/restic_{RESTIC_VERSION}_{target}.{expected["extension"]}',
+                f'Nextcloud restic {target} archive URL changed')
+        require(item['archive_sha256'] == expected['archive']
+                and item['executable_sha256'] == expected['executable'],
+                f'Nextcloud restic {target} reviewed checksums changed')
+    nextcloud_workflow = (root / '.github/workflows/nextcloud-disaster-recovery.yml').read_text(
+        encoding='utf-8')
+    require('workflow_dispatch:' in nextcloud_workflow
+            and 'NEXTCLOUD_DR_TEST_PASSWORD' in nextcloud_workflow,
+            'Nextcloud off-host workflow must be manual and use separate secret custody')
+    require('Prepare encrypted off-host artifact' in nextcloud_workflow
+            and 'Recover on independent clean runner' in nextcloud_workflow,
+            'Nextcloud off-host workflow must separate preparation and recovery jobs')
+    require('actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9' in nextcloud_workflow
+            and 'actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333' in nextcloud_workflow,
+            'Nextcloud off-host artifact actions must be immutable reviewed revisions')
     nextcloud_code = (root / 'homelab/nextcloud.py').read_text(encoding='utf-8')
     for contract in ('nextcloud-isolated-recovery-v1', 'postgres-filesystem-restore',
                      'phase5-nextcloud-recovery.txt', 'database-application-role.json',
@@ -178,9 +212,16 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'windows_tree_acl'):
         require(contract in nextcloud_code,
                 f'Nextcloud recovery contract missing {contract}')
-    return ('PASS: Phase 5 0.6.0-alpha.6 validates Paperless off-host recovery, '
-            'AFFiNE sync and off-host recovery, and the digest-pinned Nextcloud '
-            'WebDAV, consistent-backup and independent local-restore contracts')
+    nextcloud_vault = (root / 'homelab/nextcloud_vault.py').read_text(encoding='utf-8')
+    for contract in ('nextcloud-restic-vault-v1', 'nextcloud-portable-recovery-v1',
+                     'nextcloud-off-host-restore-v1',
+                     'CREATE-NEXTCLOUD-RECOVERY-KEY', 'check', '--read-data',
+                     'recovery-verified'):
+        require(contract in nextcloud_vault,
+                f'Nextcloud encrypted recovery contract missing {contract}')
+    return ('PASS: Phase 5 0.6.0-alpha.7 validates Paperless off-host recovery, '
+            'AFFiNE sync and off-host recovery, and digest-pinned Nextcloud '
+            'WebDAV plus encrypted off-host clean-runner recovery contracts')
 
 
 def main() -> int:
