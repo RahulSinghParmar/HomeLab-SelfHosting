@@ -670,9 +670,12 @@ def tree_files(root, *, protect_new=False):
                 path.chmod(0o700 if path.is_dir() else 0o600)
             verify_private(path, directory=path.is_dir())
     if os.name == 'nt':
-        # The root is created with protected inheritable rules before Docker copies
-        # into it. Verify descendants in one pass; never repair an unexpected child.
-        windows_tree_acl(root)
+        # ``protect_new`` is used only for this module's newly created backup
+        # staging tree.  Docker and hosted Windows runners may assign a default
+        # owner while creating descendants, so apply the private DACL there in
+        # one pass.  All later reads remain verification-only and never repair
+        # an existing archive.
+        windows_tree_acl(root, create=protect_new)
     for path in paths:
         if path.is_file():
             result[path.relative_to(root).as_posix()] = file_hash(path)
