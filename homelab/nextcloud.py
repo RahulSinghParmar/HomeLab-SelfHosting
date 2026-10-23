@@ -539,7 +539,9 @@ def operate(plan, action, confirmation=None):
                  'Incomplete Nextcloud creation; retain state for review')
             need(not any(row['State'].get('Paused') for row in containers.values()),
                  'Paused state requires manual review')
-            port_free(plan['port'])
+            # New projects are probed before creation. Once the exact owned
+            # containers exist, Docker is the bind authority: a separate probe
+            # can reject a legitimate retained or recently released binding.
             if plan['recovery'] and state['status'] == 'prepared':
                 need(not any(row['State']['Running'] for row in containers.values()),
                      'Recovery must target never-started application containers')

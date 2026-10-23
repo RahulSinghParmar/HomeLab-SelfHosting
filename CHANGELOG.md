@@ -6,6 +6,7 @@
 - Added confirmation-gated encrypted store, check, decrypt, status and restore-gated 7/4/3 retention commands under `nextcloud-vault`.
 - Added a manual two-runner rehearsal that transfers only the encrypted synthetic repository and nonsecret manifest, injects the recovery secret separately and reconstructs a fresh Nextcloud project.
 - Repeated exact WebDAV content and recovered stop/start persistence checks after clean-runner decryption, with production data explicitly excluded.
+- Fixed recovered-project restart validation so an already-owned stopped Compose project does not mistake its retained or recently released loopback binding for a foreign listener; Docker still enforces the bind on restart.
 - Preserved no-go boundaries for production adoption, external-drive recovery, durable backup hosting, scheduling, real offline-key custody and stable 0.6.0.
 
 ## 0.6.0-alpha.6 — 2026-10-22

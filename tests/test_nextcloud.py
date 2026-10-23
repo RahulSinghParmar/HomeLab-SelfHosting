@@ -160,6 +160,33 @@ class NextcloudTests(unittest.TestCase):
             n.backup(self.plan, self.base / 'backup', 'wrong')
         runtime.assert_not_called()
 
+    def test_owned_stopped_project_restarts_without_loopback_reprobe(self):
+        state = {'kind': 'nextcloud-owned-v1', 'owner': self.owner,
+                 'plan_id': self.plan['plan_id'], 'status': 'stopped',
+                 'recovery': None}
+        containers = {
+            role: {'State': {'Running': False, 'Paused': False, 'Status': 'exited'}}
+            for role in n.SERVICES
+        }
+        resources = {'containers': containers, 'networks': [],
+                     'volumes': [{} for _ in n.VOLUMES]}
+        with patch.object(n, 'prepare'), \
+                patch.object(n, 'local_runtime', return_value=self.runtime), \
+                patch.object(n, 'state_read', return_value=state), \
+                patch.object(n, 'inventory', return_value=resources), \
+                patch.object(n, 'operation_lock'), \
+                patch.object(n, 'read_private', return_value=state), \
+                patch.object(n, 'atomic_json'), \
+                patch.object(n, 'wait_health'), \
+                patch.object(n, '_occ'), \
+                patch.object(n, 'docker') as docker, \
+                patch.object(n, 'port_free') as port_probe:
+            result = n.operate(self.plan, 'up', self.plan['plan_id'])
+        port_probe.assert_not_called()
+        self.assertTrue(any(call.args[0][-5:] == ['up', '-d', '--no-build', '--pull', 'never']
+                            for call in docker.call_args_list))
+        self.assertEqual(result['state'], 'running')
+
 
 class NextcloudBackupTests(unittest.TestCase):
     def setUp(self):
