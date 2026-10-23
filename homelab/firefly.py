@@ -725,6 +725,21 @@ def operate(plan, action, confirmation=None):
                 'recovery': state['recovery']}
 
 
+def fixture_evidence(plan):
+    """Read the exact synthetic finance fixture from a healthy owned project."""
+    validate_plan(plan)
+    need(local_runtime() == plan['runtime'], 'Local Docker context/engine changed')
+    root = Path(plan['root'])
+    with operation_lock(root / 'operation.lock'):
+        state = state_read(plan)
+        resources = inventory(plan, state['owner'])
+        need(state['status'] == 'running' and set(resources['containers']) == set(SERVICES)
+             and all(row['State']['Running'] for row in resources['containers'].values()),
+             'Start the complete owned Firefly project before reading fixture evidence')
+        auth = _php_payload(plan, create_user=False)
+        return fixture_inventory(plan, auth['token'])
+
+
 def exercise(plan, confirmation):
     validate_plan(plan)
     need(confirmation == plan['plan_id'], 'Confirm the complete reviewed plan ID')

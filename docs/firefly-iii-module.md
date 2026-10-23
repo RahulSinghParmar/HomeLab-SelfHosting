@@ -44,7 +44,7 @@ The recovery set contains:
 - the private Compose definition and sanitized configuration metadata;
 - complete checksums and semantic evidence for the transaction, attachment and exports.
 
-The app and cron are returned to healthy state after capture. The backup is plaintext-sensitive and must remain outside Git, cloud synchronization and public support bundles. `0.6.0-alpha.8` has no encrypted vault or off-host retention workflow.
+The app and cron are returned to healthy state after capture. The backup is plaintext-sensitive and must remain outside Git, cloud synchronization and public support bundles. Version `0.6.0-alpha.9` adds a separate [encrypted vault](firefly-vault.md) that accepts only this verified staging contract; plaintext staging should be removed only after encrypted and application restores pass.
 
 ## Independent restore
 

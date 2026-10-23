@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0-alpha.9 — 2026-10-23
+
+- Added a Firefly III Restic 0.19.1 vault with exact Windows/Linux amd64 checksums, distinct operational/recovery key custody, full-data checks and portable recovery manifests.
+- Added confirmation-gated encrypted store, decrypt, status and restore-gated 7/4/3 retention commands under `firefly-vault`.
+- Added a manual two-runner rehearsal that transfers only the encrypted synthetic repository and nonsecret manifest, injects the key separately and reconstructs a fresh Firefly project.
+- Bound recovery proof to the complete backup manifest, transaction count, raw attachment size/hash, upload/export file counts and recovered stop/start persistence.
+- Added eighteen focused vault tests and expanded repository, security, platform and release validation without touching the personal Firefly deployment.
+- Preserved no-go boundaries for production adoption, durable backup hosting, scheduling, real offline-key custody, bank/import integrations and stable 0.6.0.
+
 ## 0.6.0-alpha.8 — 2026-10-23
 
 - Added a digest-pinned, loopback-only Firefly III 6.6.6/MariaDB 10.11.18/Alpine 3.22 adapter with private generated secrets, an internal dependency network and bounded resources.

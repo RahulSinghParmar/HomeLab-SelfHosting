@@ -43,3 +43,4 @@ Never reuse a version or move an existing tag. If a published release needs corr
 - [0.6.0-alpha.6](v0.6.0-alpha.6.md) — Nextcloud application-aware local recovery candidate
 - [0.6.0-alpha.7](v0.6.0-alpha.7.md) — Nextcloud encrypted off-host clean-runner recovery candidate
 - [0.6.0-alpha.8](v0.6.0-alpha.8.md) — Firefly III application-aware local recovery candidate
+- [0.6.0-alpha.9](v0.6.0-alpha.9.md) — Firefly III encrypted off-host clean-runner recovery candidate

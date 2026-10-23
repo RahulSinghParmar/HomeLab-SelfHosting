@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = '0.6.0-alpha.8'
+RELEASE = '0.6.0-alpha.9'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'
@@ -82,10 +82,17 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'docs/releases/v0.6.0-alpha.6.md',
                      'docs/releases/v0.6.0-alpha.7.md'):
         require((root / relative).is_file(), f'missing Nextcloud release file {relative}')
-    for relative in ('homelab/firefly.py', 'modules/firefly-iii/images.json',
-                     'tests/test_firefly.py', 'docs/firefly-iii-module.md',
+    for relative in ('homelab/firefly.py', 'homelab/firefly_vault.py',
+                     'modules/firefly-iii/images.json',
+                     'modules/firefly-iii/restic.json',
+                     'tests/test_firefly.py', 'tests/test_firefly_vault.py',
+                     'tools/firefly_dr_trial.py',
+                     '.github/workflows/firefly-disaster-recovery.yml',
+                     'docs/firefly-iii-module.md', 'docs/firefly-vault.md',
                      'docs/validation/firefly-iii.md',
-                     'docs/releases/v0.6.0-alpha.8.md'):
+                     'docs/validation/firefly-off-host-recovery.md',
+                     'docs/releases/v0.6.0-alpha.8.md',
+                     'docs/releases/v0.6.0-alpha.9.md'):
         require((root / relative).is_file(), f'missing Firefly release file {relative}')
     require("add_parser('paperless'" in cli, 'missing Paperless CLI command')
     require("'paperless-vault'" in cli, 'missing Paperless encrypted-vault CLI command')
@@ -96,6 +103,8 @@ def validate_phase5(root: Path = ROOT) -> str:
             'missing Nextcloud encrypted-vault CLI command')
     require("add_parser(\n        'firefly'" in cli,
             'missing Firefly III CLI command')
+    require("'firefly-vault'" in cli,
+            'missing Firefly III encrypted-vault CLI command')
     for command in ('portable-manifest', 'recovery-plan', 'recover-off-host'):
         require(f"add_parser('{command}')" in cli,
                 f'missing Paperless off-host CLI command {command}')
@@ -240,9 +249,42 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'windows_tree_acl'):
         require(contract in firefly_code,
                 f'Firefly III recovery contract missing {contract}')
-    return ('PASS: Phase 5 0.6.0-alpha.8 validates Paperless off-host recovery, '
-            'AFFiNE sync and off-host recovery, and digest-pinned Nextcloud '
-            'WebDAV plus encrypted off-host recovery, with Firefly III local recovery')
+    firefly_restic = load_json(root / 'modules/firefly-iii/restic.json')
+    require(set(firefly_restic) == {'version', *RESTIC_HASHES},
+            'Firefly III restic manifest fields changed')
+    require(firefly_restic['version'] == RESTIC_VERSION,
+            'Firefly III restic reviewed version changed')
+    for target, expected in RESTIC_HASHES.items():
+        item = firefly_restic[target]
+        require(set(item) == {'archive_url', 'archive_sha256', 'executable_sha256'},
+                f'Firefly III restic {target} manifest fields changed')
+        require(item['archive_url'] ==
+                f'https://github.com/restic/restic/releases/download/v{RESTIC_VERSION}/restic_{RESTIC_VERSION}_{target}.{expected["extension"]}',
+                f'Firefly III restic {target} archive URL changed')
+        require(item['archive_sha256'] == expected['archive']
+                and item['executable_sha256'] == expected['executable'],
+                f'Firefly III restic {target} reviewed checksums changed')
+    firefly_workflow = (root / '.github/workflows/firefly-disaster-recovery.yml').read_text(
+        encoding='utf-8')
+    require('workflow_dispatch:' in firefly_workflow
+            and 'FIREFLY_DR_TEST_PASSWORD' in firefly_workflow,
+            'Firefly III off-host workflow must be manual and use separate secret custody')
+    require('Prepare encrypted off-host artifact' in firefly_workflow
+            and 'Recover on independent clean runner' in firefly_workflow,
+            'Firefly III off-host workflow must separate preparation and recovery jobs')
+    require('actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9' in firefly_workflow
+            and 'actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333' in firefly_workflow,
+            'Firefly III off-host artifact actions must be immutable reviewed revisions')
+    firefly_vault = (root / 'homelab/firefly_vault.py').read_text(encoding='utf-8')
+    for contract in ('firefly-restic-vault-v1', 'firefly-portable-recovery-v1',
+                     'firefly-off-host-restore-v1',
+                     'CREATE-FIREFLY-RECOVERY-KEY', 'check', '--read-data',
+                     'recovery-verified', 'attachment_sha256'):
+        require(contract in firefly_vault,
+                f'Firefly III encrypted recovery contract missing {contract}')
+    return ('PASS: Phase 5 0.6.0-alpha.9 validates Paperless off-host recovery, '
+            'AFFiNE sync and off-host recovery, digest-pinned Nextcloud WebDAV '
+            'off-host recovery, and Firefly III encrypted off-host recovery')
 
 
 def main() -> int:

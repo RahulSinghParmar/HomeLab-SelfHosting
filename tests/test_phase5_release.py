@@ -9,7 +9,7 @@ class Phase5ReleaseTests(unittest.TestCase):
         self.assertIn('Paperless off-host recovery', result)
         self.assertIn('AFFiNE sync', result)
         self.assertIn('Nextcloud', result)
-        self.assertIn('Firefly III local recovery', result)
+        self.assertIn('Firefly III encrypted off-host recovery', result)
         self.assertIn('encrypted off-host', result)
 
 

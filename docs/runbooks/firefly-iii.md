@@ -1,6 +1,6 @@
 # firefly-iii
 
-Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope. Version `0.6.0-alpha.8` adds a separate [synthetic application-aware recovery candidate](../firefly-iii-module.md); it does not adopt or certify this observed personal deployment.
+Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope. Version `0.6.0-alpha.8` adds a separate [synthetic application-aware recovery candidate](../firefly-iii-module.md), and `0.6.0-alpha.9` adds its [encrypted off-host vault](../firefly-vault.md); neither adopts or certifies this observed personal deployment.
 
 ## Evidence and ownership
 
@@ -41,7 +41,7 @@ Never publish actual values, database records, private keys or generated content
 
 Use the actual owning Compose project/service or native manager above. Read-only Docker checks are `docker ps -a`, `docker inspect --format '{{.State.Status}}' CONTAINER`, and `docker stats --no-stream`; substitute a verified container, not a guessed generated name. Do not paste unfiltered inspect/log output into public issues. Native status uses the OS service/task manager and the verified listener.
 
-No start, stop, restart, migration, backup or restore was executed against the observed deployment for Phase 1 or `0.6.0-alpha.8`. The synthetic adapter uses a separate root, project identity, loopback port and volumes, and requires the complete reviewed plan ID for mutation.
+No start, stop, restart, migration, backup or restore was executed against the observed deployment for Phase 1, `0.6.0-alpha.8` or `0.6.0-alpha.9`. The synthetic adapter uses a separate root, project identity, loopback port and volumes, and requires the complete reviewed plan ID for mutation. The hosted encrypted-recovery workflow uses generated non-personal data on disposable runners only.
 
 ## Backup and recovery
 

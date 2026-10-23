@@ -31,9 +31,9 @@ The combined decision and remaining gates are in [Phase 4 integrated validation]
 | Paperless-ngx | [Application-aware recovery module](paperless-ngx-module.md) and [encrypted vault](paperless-vault.md) | [Application recovery](validation/paperless-ngx.md) and [encrypted-vault evidence](validation/paperless-vault.md) |
 | AFFiNE | [Application-aware recovery module](affine-module.md) and [encrypted vault](affine-vault.md) | [Application recovery](validation/affine.md) and [off-host recovery gate](validation/affine-off-host-recovery.md) |
 | Nextcloud | [Application-aware recovery module](nextcloud-module.md) and [encrypted vault](nextcloud-vault.md) | [Local recovery evidence](validation/nextcloud.md) and [off-host recovery gate](validation/nextcloud-off-host-recovery.md) |
-| Firefly III | [Application-aware recovery module](firefly-iii-module.md) | [Local recovery evidence](validation/firefly-iii.md) |
+| Firefly III | [Application-aware recovery module](firefly-iii-module.md) and [encrypted vault](firefly-vault.md) | [Local recovery evidence](validation/firefly-iii.md) and [off-host recovery gate](validation/firefly-off-host-recovery.md) |
 
-Phase 5 proceeds one personal-data application at a time. Paperless, AFFiNE and Nextcloud have experimental application-aware and encrypted synthetic off-host recovery paths. Firefly III has a bounded local finance/attachment/cron backup and independent-restore path, but not encryption or off-host recovery. Production backup adoption, durable owner-operated storage and the remaining two applications remain planned.
+Phase 5 proceeds one personal-data application at a time. Paperless, AFFiNE, Nextcloud and Firefly III have experimental application-aware and encrypted synthetic off-host recovery paths. Production backup adoption, durable owner-operated storage and the remaining two applications remain planned.
 
 ## Operations and recovery
 

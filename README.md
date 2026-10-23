@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Prerelease 0.6.0-alpha.8 adds application-aware Firefly III recovery.** A synthetic transaction, attachment, exports and cron cycle are verified through a quiesced MariaDB/filesystem backup, fresh-project restore and recovered stop/start. The existing personal deployment remains untouched; the local staging backup is sensitive and unencrypted, so production adoption and off-host retention are not included.
+**Prerelease 0.6.0-alpha.9 adds encrypted off-host Firefly III recovery.** A reviewed Restic vault accepts only the verified application backup, checks every encrypted data pack, transfers no recovery secret, and reconstructs the exact synthetic transaction and attachment on an independent clean runner. The existing personal deployment remains untouched; durable owner storage, scheduling and production adoption are not included.
 
 ## What this project is building
 
@@ -46,6 +46,8 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [0.6.0-alpha.7 recovery gate](docs/validation/nextcloud-off-host-recovery.md) | Encrypted-only transfer and independent clean-runner application recovery |
 | [Firefly III recovery module](docs/firefly-iii-module.md) | Isolated finance fixture, consistent backup and independent restore |
 | [0.6.0-alpha.8 validation](docs/validation/firefly-iii.md) | Windows Docker Desktop content, cron, backup, restore and restart evidence |
+| [Firefly III encrypted vault](docs/firefly-vault.md) | Reviewed Restic, separate key custody, portable manifest and retention gates |
+| [0.6.0-alpha.9 recovery gate](docs/validation/firefly-off-host-recovery.md) | Encrypted-only transfer and independent clean-runner finance recovery |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |

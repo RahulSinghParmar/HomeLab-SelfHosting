@@ -336,6 +336,50 @@ def main(arguments=None) -> int:
         if verb == 'restore':
             action.add_argument('--snapshot-id', required=True)
             action.add_argument('--target', type=Path, required=True)
+    firefly_vault = sub.add_parser(
+        'firefly-vault', help='Encrypted restic repository for verified Firefly III recovery sets')
+    firefly_vault_actions = firefly_vault.add_subparsers(dest='action', required=True)
+    firefly_vault_keys = firefly_vault_actions.add_parser('key-create')
+    firefly_vault_keys.add_argument('--password-file', type=Path, required=True)
+    firefly_vault_keys.add_argument('--recovery-key-file', type=Path, required=True)
+    firefly_vault_keys.add_argument('--confirm', required=True)
+    firefly_vault_plan = firefly_vault_actions.add_parser('plan')
+    firefly_vault_plan.add_argument('--state-root', type=Path, required=True)
+    firefly_vault_plan.add_argument('--repository', type=Path, required=True)
+    firefly_vault_plan.add_argument('--password-file', type=Path, required=True)
+    firefly_vault_plan.add_argument('--recovery-key-file', type=Path, required=True)
+    firefly_vault_plan.add_argument('--restic', type=Path, required=True)
+    firefly_vault_plan.add_argument('--output', type=Path, required=True)
+    firefly_snapshot_plan = firefly_vault_actions.add_parser('snapshot-plan')
+    firefly_snapshot_plan.add_argument('--plan', type=Path, required=True)
+    firefly_snapshot_plan.add_argument('--source', type=Path, required=True)
+    firefly_snapshot_plan.add_argument('--output', type=Path, required=True)
+    firefly_portable_manifest = firefly_vault_actions.add_parser('portable-manifest')
+    firefly_portable_manifest.add_argument('--plan', type=Path, required=True)
+    firefly_portable_manifest.add_argument('--snapshot-plan', type=Path, required=True)
+    firefly_portable_manifest.add_argument('--snapshot-id', required=True)
+    firefly_portable_manifest.add_argument('--output', type=Path, required=True)
+    firefly_recovery_plan = firefly_vault_actions.add_parser('recovery-plan')
+    firefly_recovery_plan.add_argument('--repository', type=Path, required=True)
+    firefly_recovery_plan.add_argument('--recovery-key-file', type=Path, required=True)
+    firefly_recovery_plan.add_argument('--restic', type=Path, required=True)
+    firefly_recovery_plan.add_argument('--manifest', type=Path, required=True)
+    firefly_recovery_plan.add_argument('--output', type=Path, required=True)
+    firefly_off_host = firefly_vault_actions.add_parser('recover-off-host')
+    firefly_off_host.add_argument('--plan', type=Path, required=True)
+    firefly_off_host.add_argument('--target', type=Path, required=True)
+    firefly_off_host.add_argument('--confirm', required=True)
+    for verb in ('init', 'status', 'store', 'check', 'restore',
+                 'retention-preview', 'retention-apply'):
+        action = firefly_vault_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        if verb not in ('status', 'retention-preview'):
+            action.add_argument('--confirm', required=True)
+        if verb in ('store', 'restore'):
+            action.add_argument('--snapshot-plan', type=Path, required=True)
+        if verb == 'restore':
+            action.add_argument('--snapshot-id', required=True)
+            action.add_argument('--target', type=Path, required=True)
     beszel = sub.add_parser('beszel', help='Experimental upstream Beszel hub and restricted agent; no native-host adoption')
     beszel_actions = beszel.add_subparsers(dest='action', required=True)
     beszel_plan = beszel_actions.add_parser('plan')
@@ -542,16 +586,20 @@ def main(arguments=None) -> int:
                                         getattr(args, 'confirm', None))
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
-        if args.command in ('paperless-vault', 'affine-vault', 'nextcloud-vault'):
+        if args.command in ('paperless-vault', 'affine-vault', 'nextcloud-vault',
+                            'firefly-vault'):
             if args.command == 'paperless-vault':
                 from . import paperless_vault as module
                 backup_label = '<verified-paperless-backup>'
             elif args.command == 'affine-vault':
                 from . import affine_vault as module
                 backup_label = '<verified-affine-backup>'
-            else:
+            elif args.command == 'nextcloud-vault':
                 from . import nextcloud_vault as module
                 backup_label = '<verified-nextcloud-backup>'
+            else:
+                from . import firefly_vault as module
+                backup_label = '<verified-firefly-backup>'
             if args.action == 'key-create':
                 result = module.create_keys(args.password_file, args.recovery_key_file, args.confirm)
                 result = {**result, 'password_file': '<operational-key-file>',
