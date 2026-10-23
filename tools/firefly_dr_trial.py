@@ -67,15 +67,19 @@ def prepare(work_root: Path, artifact_root: Path, restic: Path) -> dict:
     write_secret(operational)
     write_secret(recovery)
 
+    progress('start-synthetic-source')
     runtime = firefly.local_runtime()
     source_plan = firefly.make_plan(
         source_parent / 'firefly-source', 18042, runtime)
     firefly.operate(source_plan, 'up', source_plan['plan_id'])
+    progress('exercise-finance-fixture')
     exercise = firefly.exercise(source_plan, source_plan['plan_id'])
+    progress('capture-application-backup')
     backup_root = staging_parent / 'firefly-backup'
     firefly.backup(source_plan, backup_root, source_plan['plan_id'])
     verified_backup = firefly.verify_backup(backup_root)
 
+    progress('initialize-encrypted-repository')
     repository = artifact / 'repository'
     vault_plan = firefly_vault.make_plan(
         state_parent / 'vault-state', repository, operational, recovery, restic)
@@ -83,7 +87,9 @@ def prepare(work_root: Path, artifact_root: Path, restic: Path) -> dict:
     snapshot_plan = firefly_vault.make_snapshot_plan(vault_plan, backup_root)
     stored = firefly_vault.store(
         vault_plan, snapshot_plan, snapshot_plan['snapshot_plan_id'])
+    progress('check-all-encrypted-data')
     firefly_vault.check(vault_plan, vault_plan['plan_id'])
+    progress('verify-local-decryption')
     local_restore = firefly_vault.restore(
         vault_plan, snapshot_plan, stored['snapshot_id'], root / 'local-decrypted',
         snapshot_plan['snapshot_plan_id'])
@@ -91,6 +97,7 @@ def prepare(work_root: Path, artifact_root: Path, restic: Path) -> dict:
         vault_plan, snapshot_plan, local_restore['snapshot_id'])
     atomic_json(artifact / 'recovery-manifest.json', recovery_manifest)
 
+    progress('remove-synthetic-source')
     firefly.operate(source_plan, 'stop', source_plan['plan_id'])
     firefly.operate(source_plan, 'remove', source_plan['plan_id'])
     return {

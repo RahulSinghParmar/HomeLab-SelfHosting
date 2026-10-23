@@ -60,6 +60,12 @@ jobs:
             --work-root "$RUNNER_TEMP/firefly-dr-source" \
             --artifact-root "$RUNNER_TEMP/firefly-off-host-artifact" \
             --restic "$RESTIC_BIN"
+      - name: Report bounded synthetic container state on failure
+        if: failure()
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker ps --all --format '{{.Image}}|{{.Status}}'
       - name: Upload encrypted repository without recovery secret
         id: upload
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
