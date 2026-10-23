@@ -64,12 +64,14 @@ jobs:
         if: failure()
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
           docker ps --all --format '{{.Image}}|{{.Status}}'
-          app_id="$(docker ps --all --quiet --filter ancestor=fireflyiii/core:version-6.6.6 | head -n 1)"
+          app_id="$(docker ps --all --quiet \
+            --filter label=org.homelab.module=firefly-iii \
+            --filter label=com.docker.compose.service=app | head -n 1)"
           if [ -n "$app_id" ]; then
             docker inspect --format '{{range .State.Health.Log}}{{.ExitCode}}{{"\n"}}{{end}}' "$app_id"
-            docker exec "$app_id" /bin/sh -ec '
+            docker exec "$app_id" /bin/sh -c '
               set +e
               for name in app_key database_password cron_token; do
                 test -r "/run/secrets/$name"
