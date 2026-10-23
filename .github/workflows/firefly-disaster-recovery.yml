@@ -66,6 +66,25 @@ jobs:
         run: |
           set -euo pipefail
           docker ps --all --format '{{.Image}}|{{.Status}}'
+          app_id="$(docker ps --all --quiet --filter ancestor=fireflyiii/core:version-6.6.6 | head -n 1)"
+          if [ -n "$app_id" ]; then
+            docker inspect --format '{{range .State.Health.Log}}{{.ExitCode}}{{"\n"}}{{end}}' "$app_id"
+            docker exec "$app_id" /bin/sh -ec '
+              set +e
+              for name in app_key database_password cron_token; do
+                test -r "/run/secrets/$name"
+                echo "secret-$name-readable=$?"
+              done
+              health_code="$(curl -sS -o /dev/null --max-time 10 -w "%{http_code}" http://127.0.0.1:8080/health)"
+              echo "health-http-code=$health_code"
+              root_code="$(curl -sS -o /dev/null --max-time 10 -w "%{http_code}" http://127.0.0.1:8080/)"
+              echo "root-http-code=$root_code"
+              php artisan about >/dev/null 2>&1
+              echo "artisan-about-exit=$?"
+              php artisan migrate:status >/dev/null 2>&1
+              echo "migration-status-exit=$?"
+            '
+          fi
       - name: Upload encrypted repository without recovery secret
         id: upload
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
