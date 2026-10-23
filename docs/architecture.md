@@ -39,6 +39,8 @@ The `0.6.0-alpha.5` AFFiNE adapter applies that boundary to a fresh four-service
 
 The `0.6.0-alpha.7` Nextcloud adapter applies the same ownership boundary to a fresh app/cron/PostgreSQL/Redis project. It proves a WebDAV file and real cron cycle, quiesces writes with maintenance mode plus stopped app/cron services, and treats the PostgreSQL archive, application database role, config, data, custom apps and themes as one recovery unit. Core HTML and Redis state are recreated from exact pinned images. A separate Restic layer encrypts only a verified staging backup, checks all repository data and supports path-independent clean-runner recovery without adopting the personal deployment.
 
+The `0.6.0-alpha.8` Firefly III adapter owns a separate app/MariaDB/cron project. It binds only the app to loopback, keeps MariaDB and cron on an internal network, verifies a synthetic transaction plus attachment and treats the logical database dump, upload/export trees and required secrets as one local recovery unit. Backup stops application writers, validates dump and live database commands independently, and restore uses one short-lived root helper with only `CAP_CHOWN` before returning the app to its non-root user. It neither adopts nor reads the personal finance deployment.
+
 Coolify-managed proxy, sentinel, and generated applications must remain under their actual lifecycle owner. A single top-level command can coordinate them without relabeling or fighting the upstream control plane.
 
 ## Planned user workflow

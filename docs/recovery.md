@@ -32,7 +32,7 @@ Keep encrypted off-host copies, periodically test reading them, and rehearse rec
 | Immich | Database with compatible extensions, originals/upload/library/profile as applicable, reviewed full upload storage policy, secrets |
 | Nextcloud | Database, data, config, app/custom-image provenance, secrets and any encryption keys |
 | Vaultwarden | Verified database backup, attachments/sends, configuration and required keys; exact backend must be discovered |
-| Firefly III | Database, uploads where configured, APP_KEY and relevant configuration |
+| Firefly III | Database, uploads/attachments, required exports, APP_KEY, database/cron credentials and relevant configuration |
 | Matrix | Database, media, server signing keys and unchanged server identity; client E2EE recovery keys handled separately |
 | code-server | Workspaces, settings/extensions manifests, private SSH/GPG material through encrypted recovery—not Git |
 | Coolify | Database, APP_KEY and other required secrets, SSH keys, actual configuration sources and managed project data |

@@ -1,4 +1,4 @@
-"""Validate the bounded Paperless/AFFiNE Phase 5 prerelease without Docker."""
+"""Validate the bounded personal-data Phase 5 prerelease without Docker."""
 from __future__ import annotations
 
 import json
@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = '0.6.0-alpha.7'
+RELEASE = '0.6.0-alpha.8'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'
@@ -82,6 +82,11 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'docs/releases/v0.6.0-alpha.6.md',
                      'docs/releases/v0.6.0-alpha.7.md'):
         require((root / relative).is_file(), f'missing Nextcloud release file {relative}')
+    for relative in ('homelab/firefly.py', 'modules/firefly-iii/images.json',
+                     'tests/test_firefly.py', 'docs/firefly-iii-module.md',
+                     'docs/validation/firefly-iii.md',
+                     'docs/releases/v0.6.0-alpha.8.md'):
+        require((root / relative).is_file(), f'missing Firefly release file {relative}')
     require("add_parser('paperless'" in cli, 'missing Paperless CLI command')
     require("'paperless-vault'" in cli, 'missing Paperless encrypted-vault CLI command')
     require("add_parser('affine'" in cli, 'missing AFFiNE CLI command')
@@ -89,6 +94,8 @@ def validate_phase5(root: Path = ROOT) -> str:
     require("add_parser(\n        'nextcloud'" in cli, 'missing Nextcloud CLI command')
     require("'nextcloud-vault'" in cli,
             'missing Nextcloud encrypted-vault CLI command')
+    require("add_parser(\n        'firefly'" in cli,
+            'missing Firefly III CLI command')
     for command in ('portable-manifest', 'recovery-plan', 'recover-off-host'):
         require(f"add_parser('{command}')" in cli,
                 f'missing Paperless off-host CLI command {command}')
@@ -219,9 +226,23 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'recovery-verified'):
         require(contract in nextcloud_vault,
                 f'Nextcloud encrypted recovery contract missing {contract}')
-    return ('PASS: Phase 5 0.6.0-alpha.7 validates Paperless off-host recovery, '
+    firefly = load_json(root / 'modules/firefly-iii/images.json')
+    require(set(firefly) == {'app', 'database', 'cron'},
+            'Firefly III image manifest fields changed')
+    for name, image in firefly.items():
+        require(isinstance(image, str) and DIGEST.fullmatch(image),
+                f'Firefly III {name}: exact sha256 image digest required')
+    firefly_code = (root / 'homelab/firefly.py').read_text(encoding='utf-8')
+    for contract in ('firefly-isolated-recovery-v1', 'mariadb-filesystem-restore',
+                     'phase5-firefly-receipt.txt', 'application/octet-stream',
+                     'mariadb-check --user=firefly --check-upgrade firefly',
+                     'grep -q "Dump completed"', "'--cap-add', 'CHOWN'",
+                     'windows_tree_acl'):
+        require(contract in firefly_code,
+                f'Firefly III recovery contract missing {contract}')
+    return ('PASS: Phase 5 0.6.0-alpha.8 validates Paperless off-host recovery, '
             'AFFiNE sync and off-host recovery, and digest-pinned Nextcloud '
-            'WebDAV plus encrypted off-host clean-runner recovery contracts')
+            'WebDAV plus encrypted off-host recovery, with Firefly III local recovery')
 
 
 def main() -> int:

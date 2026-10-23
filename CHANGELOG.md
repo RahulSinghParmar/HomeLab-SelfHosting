@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0-alpha.8 — 2026-10-23
+
+- Added a digest-pinned, loopback-only Firefly III 6.6.6/MariaDB 10.11.18/Alpine 3.22 adapter with private generated secrets, an internal dependency network and bounded resources.
+- Added one exact synthetic finance transaction, raw 49-byte attachment round trip, two supported exports, the Firefly integrity report and a controlled real cron call.
+- Added application-quiesced backup of an independently checked logical MariaDB dump, upload/export trees, private recovery inputs, sanitized metadata, complete checksums and semantic fixture evidence.
+- Restored into an unrelated fresh project, verified the live database and exact application content, and repeated verification after a recovered stop/start cycle on Windows Docker Desktop.
+- Fixed Windows-copied restore ownership with a disposable root helper limited to `CAP_CHOWN`; long-running services retain their non-privileged security profile.
+- Added twelve focused tests and expanded repository/Phase 5 documentation and validation while retaining no-go boundaries for production adoption, encryption/off-host retention, scheduling and stable 0.6.0.
+
 ## 0.6.0-alpha.7 — 2026-10-23
 
 - Added a Nextcloud Restic 0.19.1 vault with exact Windows/Linux amd64 checksums, distinct operational/recovery key custody, complete data checks and portable recovery manifests.

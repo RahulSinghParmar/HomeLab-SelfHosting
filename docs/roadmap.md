@@ -101,6 +101,8 @@ Sixth bounded milestone: **0.6.0-alpha.6**, an isolated [Nextcloud application-a
 
 Seventh bounded milestone: **0.6.0-alpha.7**, the [Nextcloud encrypted off-host recovery gate](validation/nextcloud-off-host-recovery.md). It adds a reviewed Restic vault, distinct operational/recovery key paths, full-data checks, portable manifests, encrypted-only artifact transfer, independent clean-runner application recovery and restore-gated 7/4/3 retention. Durable owner storage, real offline-key custody, scheduling, production migration, external-drive recovery and the remaining three applications are still not delivered.
 
+Eighth bounded milestone: **0.6.0-alpha.8**, an isolated [Firefly III application-aware recovery candidate](firefly-iii-module.md). It proves one synthetic finance transaction and attachment, two supported exports, database integrity and a real cron call; then captures an independently checked MariaDB dump, upload/export files and required private inputs, restores them into a fresh project and repeats semantic verification after stop/start on Windows Docker Desktop. Encryption, off-host storage, scheduling, production migration and the remaining two applications are still not delivered.
+
 Implement application-consistent backup/restore before considering a module complete. Build a portable encrypted recovery kit and retention policy. Test with nonempty synthetic data. Choose a maintained encryption/backup tool after validating its current platform support; do not invent cryptography.
 
 Exit: upload/open/edit/restart/backup/restore checks and a verified recovery-secret workflow for every implemented module. No real financial records or password vaults in test fixtures.

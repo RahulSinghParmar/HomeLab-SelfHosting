@@ -189,6 +189,21 @@ def main(arguments=None) -> int:
             action.add_argument('--confirm', required=True)
         if verb == 'backup':
             action.add_argument('--output', type=Path, required=True)
+    firefly = sub.add_parser(
+        'firefly', help='Experimental isolated Firefly III with finance-aware recovery')
+    firefly_actions = firefly.add_subparsers(dest='action', required=True)
+    firefly_plan = firefly_actions.add_parser('plan')
+    firefly_plan.add_argument('--root', type=Path, required=True)
+    firefly_plan.add_argument('--port', type=int, default=18040)
+    firefly_plan.add_argument('--output', type=Path, required=True)
+    firefly_plan.add_argument('--restore-backup', type=Path)
+    for verb in ('up', 'status', 'stop', 'remove', 'exercise', 'backup'):
+        action = firefly_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        if verb != 'status':
+            action.add_argument('--confirm', required=True)
+        if verb == 'backup':
+            action.add_argument('--output', type=Path, required=True)
     paperless_vault = sub.add_parser(
         'paperless-vault', help='Encrypted restic repository for verified Paperless recovery sets')
     vault_actions = paperless_vault.add_subparsers(dest='action', required=True)
@@ -489,6 +504,26 @@ def main(arguments=None) -> int:
             return 0
         if args.command == 'nextcloud':
             from . import nextcloud as module
+            if args.action == 'plan':
+                result = module.make_plan(args.root, args.port, module.local_runtime(),
+                                          args.restore_backup)
+                if args.output.resolve().is_relative_to(Path(result['root'])):
+                    raise ConfigError('Plan output must be outside installation storage')
+                write_private(args.output, result)
+                result = {**result, 'root': '<installation-root>',
+                          'runtime': '<local-engine-reference>',
+                          'recovery': '<private-backup-reference>' if result['recovery'] else None}
+            elif args.action == 'backup':
+                result = module.backup(load_json(args.plan), args.output, args.confirm)
+            elif args.action == 'exercise':
+                result = module.exercise(load_json(args.plan), args.confirm)
+            else:
+                result = module.operate(load_json(args.plan), args.action,
+                                        getattr(args, 'confirm', None))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'firefly':
+            from . import firefly as module
             if args.action == 'plan':
                 result = module.make_plan(args.root, args.port, module.local_runtime(),
                                           args.restore_backup)

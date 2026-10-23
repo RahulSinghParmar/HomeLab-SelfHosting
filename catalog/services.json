@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "release": "0.6.0-alpha.7",
+  "release": "0.6.0-alpha.8",
   "inventory_date": "2026-10-03",
   "modules": [
     {"id": "glance", "name": "Glance", "kind": "compose", "phase": 4, "status": "planned", "dependencies": [], "components": ["dashboard"], "state": ["configuration", "custom widgets"], "upstream": "https://github.com/glanceapp/glance"},
@@ -11,7 +11,7 @@
     {"id": "affine", "name": "AFFiNE", "kind": "compose", "phase": 5, "status": "planned", "dependencies": [], "components": ["server", "one-shot migration", "PostgreSQL with pgvector", "Redis"], "state": ["database", "config", "storage", "required secrets"], "upstream": "https://github.com/toeverything/AFFiNE"},
     {"id": "paperless-ngx", "name": "Paperless-ngx", "kind": "compose", "phase": 5, "status": "planned", "dependencies": [], "components": ["web and worker", "PostgreSQL", "Valkey"], "state": ["database", "data", "media", "export", "document exporter output", "required secrets"], "upstream": "https://github.com/paperless-ngx/paperless-ngx"},
     {"id": "nextcloud", "name": "Nextcloud", "kind": "compose", "phase": 5, "status": "planned", "dependencies": [], "components": ["custom app image", "cron", "PostgreSQL", "Redis"], "state": ["database", "data", "config", "app manifests", "custom build", "encryption material"], "upstream": "https://github.com/nextcloud/docker"},
-    {"id": "firefly-iii", "name": "Firefly III", "kind": "compose", "phase": 5, "status": "planned", "dependencies": [], "components": ["app", "MariaDB", "scheduler"], "state": ["database", "uploads", "APP_KEY", "configuration"], "upstream": "https://github.com/firefly-iii/firefly-iii"},
+    {"id": "firefly-iii", "name": "Firefly III", "kind": "compose", "phase": 5, "status": "planned", "dependencies": [], "components": ["app", "MariaDB", "scheduler"], "state": ["database", "uploads and attachments", "exports", "APP_KEY", "database and cron credentials", "configuration"], "upstream": "https://github.com/firefly-iii/firefly-iii"},
     {"id": "vaultwarden", "name": "Vaultwarden", "kind": "compose", "phase": 5, "status": "planned", "dependencies": [], "components": ["password manager", "database backend to verify"], "state": ["database", "attachments", "sends", "configuration", "required keys"], "upstream": "https://github.com/dani-garcia/vaultwarden"},
     {"id": "karakeep", "name": "Karakeep", "kind": "compose", "phase": 5, "status": "planned", "dependencies": [], "components": ["app", "browser", "Meilisearch"], "state": ["authoritative database and assets to verify", "configuration", "index recovery policy"], "upstream": "https://github.com/karakeep-app/karakeep"},
     {"id": "immich", "name": "Immich", "kind": "compose", "phase": 6, "status": "planned", "dependencies": [], "components": ["server", "machine learning", "PostgreSQL with release-coupled extensions", "Valkey"], "state": ["database", "originals", "profile data", "derived file policy", "secrets"], "upstream": "https://github.com/immich-app/immich"},

@@ -1,6 +1,6 @@
 # firefly-iii
 
-Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope; deployment and restore certification remain planned.
+Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope. Version `0.6.0-alpha.8` adds a separate [synthetic application-aware recovery candidate](../firefly-iii-module.md); it does not adopt or certify this observed personal deployment.
 
 ## Evidence and ownership
 
@@ -21,7 +21,7 @@ Core 6.6.6, MariaDB 10.11.18 and cron image pinned by digest; loopback 8085.
 
 ## Installation and dependencies
 
-There is no installer/template for this module in this release. Reproduce the observed component set only in a separately approved disposable project, using compatible pinned releases and the [platform matrix](../platform-support.md). Existing state must not be implicitly adopted.
+The experimental `firefly` command can create only a new, empty, separately owned project with compatible digest-pinned releases and the [platform matrix](../platform-support.md). Existing state must not be implicitly adopted. Use the [module operator workflow](../firefly-iii-module.md#operator-workflow) for disposable validation; it is not a production migration command.
 
 ## Configuration mapping
 
@@ -41,13 +41,15 @@ Never publish actual values, database records, private keys or generated content
 
 Use the actual owning Compose project/service or native manager above. Read-only Docker checks are `docker ps -a`, `docker inspect --format '{{.State.Status}}' CONTAINER`, and `docker stats --no-stream`; substitute a verified container, not a guessed generated name. Do not paste unfiltered inspect/log output into public issues. Native status uses the OS service/task manager and the verified listener.
 
-No start, stop, restart, migration, backup or restore was executed for Phase 1. Those operations must preserve deliberately stopped/paused state and require the later module's tested workflow.
+No start, stop, restart, migration, backup or restore was executed against the observed deployment for Phase 1 or `0.6.0-alpha.8`. The synthetic adapter uses a separate root, project identity, loopback port and volumes, and requires the complete reviewed plan ID for mutation.
 
 ## Backup and recovery
 
-Daily task result 0. Script dumps database and saves configuration/DPAPI secrets; upload/export directories are not copied by the inspected script.
+The observed daily task reported result 0. Its script dumps the database and saves configuration/DPAPI secrets, but the inspected implementation does not copy upload/export directories.
 
-Follow the [recovery contract](../recovery.md); reported task success and old verification metadata are not a new restore rehearsal.
+The separate candidate fixes those design gaps for generated data: it stops application writers, verifies `mariadb-check` and the logical dump independently, captures upload/export trees and required private inputs, checks every file, restores into fresh resources and verifies the exact synthetic finance content after restart. Its local staging backup remains plaintext-sensitive and is not a replacement for the observed backup.
+
+Follow the [recovery contract](../recovery.md) and [Firefly validation record](../validation/firefly-iii.md); reported task success and old verification metadata are not a new restore rehearsal.
 
 ## Update and rollback
 
@@ -55,10 +57,10 @@ Capture a consistent backup and required secrets, resolve the exact image/build 
 
 ## Acceptance checks
 
-Restore synthetic transactions and uploads with the original test APP_KEY; separately validate database dump and archive.
+Restore synthetic transactions, attachments and exports with the original test APP_KEY; separately validate the database dump, live database and recovered stop/start behavior. The isolated candidate passes this bounded check.
 
 ## Limitations and follow-up
 
-Dump pipeline can mask the database command failing because gzip determines pipeline success. DPAPI alone is not portable disaster recovery.
+The observed dump pipeline can mask the database command failing because gzip determines pipeline success. DPAPI alone is not portable disaster recovery. The candidate corrects dump failure detection and local asset coverage, but encrypted off-host recovery, production adoption and real independent key custody remain unproven.
 
 For upstream links and implementation phase, see the [service catalog](../../catalog/services.json). No third-party application source is copied into this release; see [build provenance](../discovery/build-provenance.md).
