@@ -43,6 +43,7 @@ FIXTURE_EMAIL = 'phase5-firefly@example.invalid'
 FIXTURE_DESCRIPTION = 'HomeLab Firefly III Phase 5 recovery marker v1'
 FIXTURE_AMOUNT = '42.15'
 FIXTURE_CURRENCY = 'USD'
+POSIX_COMPOSE_SECRET_MODE = 0o404
 FIXTURE_SOURCE = 'Phase 5 Synthetic Asset'
 FIXTURE_DESTINATION = 'Phase 5 Synthetic Expense'
 FIXTURE_CATEGORY = 'Phase 5 Recovery'
@@ -141,7 +142,23 @@ def _write_secret(path, value):
         os.fsync(stream.fileno())
     if os.name == 'nt':
         windows_acl(path, create=True)
-    verify_private(path)
+    else:
+        path.chmod(POSIX_COMPOSE_SECRET_MODE)
+    _verify_compose_secret(path)
+
+
+def _verify_compose_secret(path):
+    safe_path(path)
+    verify_private(path.parent, directory=True)
+    info = path.stat()
+    need(stat.S_ISREG(info.st_mode) and info.st_nlink == 1,
+         'Unexpected Compose secret resource type')
+    if os.name == 'nt':
+        verify_private(path)
+    else:
+        need(info.st_uid == os.getuid()
+             and stat.S_IMODE(info.st_mode) == POSIX_COMPOSE_SECRET_MODE,
+             'Compose secret owner/mode verification failed; no permission repair attempted')
 
 
 def _secret_paths(plan):
@@ -152,7 +169,7 @@ def _secret_paths(plan):
 
 def _verify_secret_files(plan, credentials):
     for name, path in _secret_paths(plan).items():
-        verify_private(path)
+        _verify_compose_secret(path)
         need(path.read_text(encoding='utf-8') == credentials[name],
              'Private secret file differs from reviewed credentials')
 

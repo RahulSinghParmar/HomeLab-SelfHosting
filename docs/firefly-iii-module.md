@@ -10,6 +10,8 @@ Resource ceilings are 1024 MiB and two CPUs for the app, 512 MiB and one CPU for
 
 Firefly runs as `www-data` with `no-new-privileges`. The one restore step that must return Windows-copied volume files to that user runs in a disposable `--rm` helper as UID 0 with only `CAP_CHOWN`; the long-running services do not receive that override.
 
+On POSIX hosts, Docker Compose implements file-backed secrets as read-only bind mounts and does not remap their owner. The module therefore keeps the containing installation and `secrets` directories owner-only (`0700`) while giving each secret source the minimum non-owner read bit (`0404`) required by Firefly's `www-data` process. The path is still unreachable to other host users through the private parent, each service receives only its declared secret, hard links are refused and the container mount remains read-only. Windows retains the owner-scoped ACL contract.
+
 ## Operator workflow
 
 Use a new root and keep the private plan outside it:

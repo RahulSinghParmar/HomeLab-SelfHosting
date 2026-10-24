@@ -2,7 +2,9 @@
 import base64
 import hashlib
 import json
+import os
 from pathlib import Path
+import stat
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -67,6 +69,20 @@ class FireflyTests(unittest.TestCase):
                 {**self.credentials, 'cron_token': 'x' * 32}):
             with self.assertRaises(ConfigError):
                 f.validate_credentials(changed)
+
+    def test_compose_secret_is_readable_only_through_private_parent_on_posix(self):
+        root = self.base / 'installation'
+        create_private_directory(root)
+        secret_root = root / 'secrets'
+        create_private_directory(secret_root)
+        secret = secret_root / 'app_key.txt'
+        f._write_secret(secret, self.credentials['app_key'])
+        f._verify_compose_secret(secret)
+        self.assertEqual(secret.read_text(encoding='utf-8'), self.credentials['app_key'])
+        if os.name != 'nt':
+            self.assertEqual(stat.S_IMODE(secret_root.stat().st_mode), 0o700)
+            self.assertEqual(stat.S_IMODE(secret.stat().st_mode),
+                             f.POSIX_COMPOSE_SECRET_MODE)
 
     def test_api_fixture_inventory_requires_exact_semantics_and_attachment(self):
         transaction = {'data': [{
