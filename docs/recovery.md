@@ -31,7 +31,7 @@ Keep encrypted off-host copies, periodically test reading them, and rehearse rec
 | Paperless-ngx | Document exporter output, PostgreSQL dump, data/media/export, configuration, required keys |
 | Immich | Database with compatible extensions, originals/upload/library/profile as applicable, reviewed full upload storage policy, secrets |
 | Nextcloud | Database, data, config, app/custom-image provenance, secrets and any encryption keys |
-| Vaultwarden | Verified database backup, attachments/sends, configuration and required keys; exact backend must be discovered |
+| Vaultwarden | Built-in consistent SQLite snapshot, attachments, sends, RSA keys, optional configuration, compatible release and private recovery inputs; verify decrypted content and exact attachment bytes after restore |
 | Firefly III | Database, uploads/attachments, required exports, APP_KEY, database/cron credentials and relevant configuration |
 | Matrix | Database, media, server signing keys and unchanged server identity; client E2EE recovery keys handled separately |
 | code-server | Workspaces, settings/extensions manifests, private SSH/GPG material through encrypted recovery—not Git |

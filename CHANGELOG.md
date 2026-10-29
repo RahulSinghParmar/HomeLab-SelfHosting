@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0-alpha.10 — 2026-10-30
+
+- Added a digest-pinned, loopback-only Vaultwarden 1.37.1 recovery adapter with a private bridge, read-only root, dropped capabilities, no-new-privileges and bounded CPU, memory, PID and log resources.
+- Added a Playwright/Chromium Web Vault fixture that registers a generated user, creates and decrypts one secure note, uploads/downloads exact attachment bytes, and proves reload, independent-session and restart persistence.
+- Added application-consistent backup using Vaultwarden's built-in SQLite snapshot plus quiesced RSA keys, attachments, sends, optional configuration, generated recovery inputs, sanitized metadata and complete checksums.
+- Restored the recovery set into an unrelated fresh project and repeated browser decryption, attachment download and recovered restart validation on Windows Docker Desktop.
+- Added nine focused tests and expanded repository/Phase 5 documentation and validation while retaining no-go boundaries for personal-vault adoption, encrypted off-host recovery, scheduling, Karakeep and stable 0.6.0.
+
 ## 0.6.0-alpha.9 — 2026-10-23
 
 - Added a Firefly III Restic 0.19.1 vault with exact Windows/Linux amd64 checksums, distinct operational/recovery key custody, full-data checks and portable recovery manifests.

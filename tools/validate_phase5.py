@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = '0.6.0-alpha.9'
+RELEASE = '0.6.0-alpha.10'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'
@@ -94,6 +94,18 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'docs/releases/v0.6.0-alpha.8.md',
                      'docs/releases/v0.6.0-alpha.9.md'):
         require((root / relative).is_file(), f'missing Firefly release file {relative}')
+    for relative in ('homelab/vaultwarden.py',
+                     'modules/vaultwarden/images.json',
+                     'modules/vaultwarden/browser.json',
+                     'modules/vaultwarden/browser/Dockerfile',
+                     'modules/vaultwarden/browser/package.json',
+                     'modules/vaultwarden/browser/package-lock.json',
+                     'modules/vaultwarden/browser/validate.mjs',
+                     'tests/test_vaultwarden.py',
+                     'docs/vaultwarden-module.md',
+                     'docs/validation/vaultwarden.md',
+                     'docs/releases/v0.6.0-alpha.10.md'):
+        require((root / relative).is_file(), f'missing Vaultwarden release file {relative}')
     require("add_parser('paperless'" in cli, 'missing Paperless CLI command')
     require("'paperless-vault'" in cli, 'missing Paperless encrypted-vault CLI command')
     require("add_parser('affine'" in cli, 'missing AFFiNE CLI command')
@@ -105,6 +117,8 @@ def validate_phase5(root: Path = ROOT) -> str:
             'missing Firefly III CLI command')
     require("'firefly-vault'" in cli,
             'missing Firefly III encrypted-vault CLI command')
+    require("add_parser(\n        'vaultwarden'" in cli,
+            'missing Vaultwarden CLI command')
     for command in ('portable-manifest', 'recovery-plan', 'recover-off-host'):
         require(f"add_parser('{command}')" in cli,
                 f'missing Paperless off-host CLI command {command}')
@@ -282,9 +296,40 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'recovery-verified', 'attachment_sha256'):
         require(contract in firefly_vault,
                 f'Firefly III encrypted recovery contract missing {contract}')
-    return ('PASS: Phase 5 0.6.0-alpha.9 validates Paperless off-host recovery, '
+    vaultwarden = load_json(root / 'modules/vaultwarden/images.json')
+    require(set(vaultwarden) == {'app'},
+            'Vaultwarden image manifest fields changed')
+    require(DIGEST.fullmatch(vaultwarden['app']) is not None,
+            'Vaultwarden app exact sha256 image digest required')
+    vaultwarden_browser = load_json(root / 'modules/vaultwarden/browser.json')
+    require(set(vaultwarden_browser) == {'image', 'playwright', 'browser',
+                                         'upstream_tag'},
+            'Vaultwarden browser manifest fields changed')
+    require(DIGEST.fullmatch(vaultwarden_browser['image']) is not None
+            and vaultwarden_browser['playwright'] == '1.64.0'
+            and vaultwarden_browser['browser'] == 'chromium'
+            and vaultwarden_browser['upstream_tag'] == 'v1.64.0-noble',
+            'Vaultwarden browser runtime differs from the reviewed pinned release')
+    vaultwarden_code = (root / 'homelab/vaultwarden.py').read_text(encoding='utf-8')
+    for contract in ('vaultwarden-isolated-recovery-v1',
+                     'sqlite-vacuum-filesystem-restore',
+                     'vaultwarden-consistent-backup-v1',
+                     'phase5-vaultwarden-attachment.txt',
+                     "'/vaultwarden', 'backup'", 'DISABLE_ADMIN_TOKEN',
+                     'browser_fingerprint', 'windows_acl'):
+        require(contract in vaultwarden_code,
+                f'Vaultwarden recovery contract missing {contract}')
+    vaultwarden_driver = (root / 'modules/vaultwarden/browser/validate.mjs').read_text(
+        encoding='utf-8')
+    for contract in ('vaultwarden-browser-vault-v1', 'independent_sessions',
+                     'attachment_downloaded', 'decrypted_body',
+                     'phase5-vaultwarden-attachment.txt'):
+        require(contract in vaultwarden_driver,
+                f'Vaultwarden browser validation contract missing {contract}')
+    return ('PASS: Phase 5 0.6.0-alpha.10 validates Paperless off-host recovery, '
             'AFFiNE sync and off-host recovery, digest-pinned Nextcloud WebDAV '
-            'off-host recovery, and Firefly III encrypted off-host recovery')
+            'off-host recovery, Firefly III encrypted off-host recovery, and '
+            'Vaultwarden browser-verified local recovery')
 
 
 def main() -> int:

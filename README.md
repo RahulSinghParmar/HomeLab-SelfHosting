@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Prerelease 0.6.0-alpha.9 adds encrypted off-host Firefly III recovery.** A reviewed Restic vault accepts only the verified application backup, checks every encrypted data pack, transfers no recovery secret, and reconstructs the exact synthetic transaction and attachment on an independent clean runner. The existing personal deployment remains untouched; durable owner storage, scheduling and production adoption are not included.
+**Prerelease 0.6.0-alpha.10 adds isolated Vaultwarden application recovery.** A digest-pinned, loopback-only trial creates and decrypts a synthetic secure note and attachment in the rendered Web Vault, captures a consistent SQLite/file recovery set, and proves the same content after an independent restore and restart. The existing personal deployment remains untouched; encrypted off-host recovery, scheduling and production adoption are not included.
 
 ## What this project is building
 
@@ -48,6 +48,8 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [0.6.0-alpha.8 validation](docs/validation/firefly-iii.md) | Windows Docker Desktop content, cron, backup, restore and restart evidence |
 | [Firefly III encrypted vault](docs/firefly-vault.md) | Reviewed Restic, separate key custody, portable manifest and retention gates |
 | [0.6.0-alpha.9 recovery gate](docs/validation/firefly-off-host-recovery.md) | Encrypted-only transfer and independent clean-runner finance recovery |
+| [Vaultwarden recovery module](docs/vaultwarden-module.md) | Isolated Web Vault note/attachment lifecycle, consistent SQLite/files backup and independent restore |
+| [0.6.0-alpha.10 validation](docs/validation/vaultwarden.md) | Browser-rendered decryption, attachment bytes, restart and fresh-project recovery evidence |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -82,7 +84,7 @@ Windows also supports `./bootstrap.ps1 catalog`; Linux/macOS supports `sh ./boot
 
 For the opt-in Windows/PowerShell 7 read-only metadata collector, see [evidence and privacy instructions](docs/discovery/evidence.md). Its report belongs outside Git. Windows collector regression tests use mocks and can be run with `./tests/Test-ReferenceCollector.ps1`.
 
-General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault`, `affine`, `affine-vault`, `nextcloud`, `nextcloud-vault` and `firefly` candidates are bounded execution paths; they do not enable the general planner. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
+General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault`, `affine`, `affine-vault`, `nextcloud`, `nextcloud-vault`, `firefly`, `firefly-vault` and `vaultwarden` candidates are bounded execution paths; they do not enable the general planner. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
 
 ## Service families
 

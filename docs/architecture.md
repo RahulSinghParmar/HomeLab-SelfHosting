@@ -41,6 +41,8 @@ The `0.6.0-alpha.7` Nextcloud adapter applies the same ownership boundary to a f
 
 The `0.6.0-alpha.9` Firefly III adapter owns a separate app/MariaDB/cron project. It binds only the app to loopback, keeps MariaDB and cron on an internal network, verifies a synthetic transaction plus attachment and treats the logical database dump, upload/export trees and required secrets as one recovery unit. Backup stops application writers, validates dump and live database commands independently, and restore uses one short-lived root helper with only `CAP_CHOWN` before returning the app to its non-root user. A separate Restic layer accepts only a verified staging set, checks every encrypted pack and supports path-independent clean-runner recovery without adopting or reading the personal finance deployment.
 
+The `0.6.0-alpha.10` Vaultwarden adapter owns one separate app project and one ephemeral digest-pinned browser helper. It publishes only a loopback diagnostic port, creates/decrypts a generated secure note and exact attachment through the rendered Web Vault, then binds a built-in consistent SQLite snapshot to RSA keys, attachments, sends, private recovery inputs and browser evidence. Restore initializes a new project from that curated set and repeats decryption/download after restart without inspecting or adopting the personal vault.
+
 Coolify-managed proxy, sentinel, and generated applications must remain under their actual lifecycle owner. A single top-level command can coordinate them without relabeling or fighting the upstream control plane.
 
 ## Planned user workflow
