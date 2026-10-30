@@ -1,6 +1,6 @@
 # vaultwarden
 
-Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope. Version `0.6.0-alpha.10` adds a separate [synthetic application-aware recovery candidate](../vaultwarden-module.md); it does not adopt or certify this observed personal deployment.
+Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope. Version `0.6.0-alpha.11` adds a separate [synthetic encrypted off-host recovery candidate](../vaultwarden-vault.md) on top of the [application-aware module](../vaultwarden-module.md); it does not adopt or certify this observed personal deployment.
 
 ## Evidence and ownership
 
@@ -39,11 +39,11 @@ Never publish actual values, database records, private keys or generated content
 
 Use the actual owning Compose project/service or native manager above. Read-only Docker checks are `docker ps -a`, `docker inspect --format '{{.State.Status}}' CONTAINER`, and `docker stats --no-stream`; substitute a verified container, not a guessed generated name. Do not paste unfiltered inspect/log output into public issues. Native status uses the OS service/task manager and the verified listener.
 
-No start, stop, restart, migration, backup or restore was executed against the observed deployment for Phase 1 or `0.6.0-alpha.10`. The synthetic adapter uses a separate root, project identity and loopback port, and requires the complete reviewed plan ID for every mutation.
+No start, stop, restart, migration, backup or restore was executed against the observed deployment for Phase 1, `0.6.0-alpha.10` or `0.6.0-alpha.11`. The synthetic adapter uses a separate root, project identity and loopback port, and requires the complete reviewed plan ID for every mutation.
 
 ## Backup and recovery
 
-No dedicated scheduled production Vaultwarden backup was identified. The synthetic module uses Vaultwarden's built-in backup command for a consistent SQLite snapshot, then quiesces the app while copying RSA keys, attachments, sends and optional configuration into one checksummed recovery set.
+No dedicated scheduled production Vaultwarden backup was identified. The synthetic module uses Vaultwarden's built-in backup command for a consistent SQLite snapshot, then quiesces the app while copying RSA keys, attachments, sends and optional configuration into one checksummed recovery set. The separate encrypted-vault module accepts only a verified set, reads every Restic data pack and requires fresh-project browser recovery before retention can prune it.
 
 Follow the [recovery contract](../recovery.md); reported task success and old verification metadata are not a new restore rehearsal.
 
@@ -57,6 +57,6 @@ Use only a synthetic vault for decryption/login/attachment/restore checks.
 
 ## Limitations and follow-up
 
-Configuration JSON contains secrets and must never be published; file existence alone is not database-integrity evidence. The local recovery candidate is plaintext-sensitive and does not supply encrypted off-host storage or production scheduling.
+Configuration JSON contains secrets and must never be published; file existence alone is not database-integrity evidence. The staging set remains plaintext-sensitive until encrypted. The recovery candidate does not supply durable owner-operated off-host storage, real offline-key custody or production scheduling.
 
 For upstream links and implementation phase, see the [service catalog](../../catalog/services.json). No third-party application source is copied into this release; see [build provenance](../discovery/build-provenance.md).

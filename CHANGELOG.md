@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0-alpha.11 — 2026-10-30
+
+- Added a Vaultwarden Restic 0.19.1 vault with exact Windows/Linux amd64 checksums, distinct operational/recovery key custody, complete repository data checks and portable recovery manifests.
+- Added confirmation-gated encrypted store, decrypt, status and restore-gated 7/4/3 retention commands under `vaultwarden-vault`.
+- Added a manual two-runner rehearsal that transfers only the encrypted synthetic repository and nonsecret manifest, injects the recovery key separately and reconstructs a fresh Vaultwarden project.
+- Bound recovery proof to the complete backup manifest, vault-item count, exact attachment size/hash, rendered secure-note decryption, independent browser sessions and recovered restart persistence.
+- Added eighteen focused vault tests and expanded repository, platform, recovery and release validation without touching the personal Vaultwarden deployment.
+- Preserved no-go boundaries for production adoption, durable backup hosting, scheduling, real offline-key custody, advanced Vaultwarden features, Karakeep and stable 0.6.0.
+
 ## 0.6.0-alpha.10 — 2026-10-30
 
 - Added a digest-pinned, loopback-only Vaultwarden 1.37.1 recovery adapter with a private bridge, read-only root, dropped capabilities, no-new-privileges and bounded CPU, memory, PID and log resources.

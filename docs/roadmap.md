@@ -107,6 +107,8 @@ Ninth bounded milestone: **0.6.0-alpha.9**, the [Firefly III encrypted off-host 
 
 Tenth bounded milestone: **0.6.0-alpha.10**, an isolated [Vaultwarden application-aware recovery candidate](vaultwarden-module.md). It creates and decrypts one synthetic secure note in the rendered Web Vault, uploads and downloads exact attachment bytes, repeats those checks after restart, captures a built-in consistent SQLite snapshot plus RSA keys, attachments and sends, and restores the complete set into a fresh project. The staging backup remains plaintext-sensitive. Organizations, Sends semantics, TOTP/passkeys, native clients, SMTP, public access, upgrades, encrypted off-host recovery, production migration and Karakeep are still not delivered.
 
+Eleventh bounded milestone: **0.6.0-alpha.11**, the [Vaultwarden encrypted off-host recovery gate](validation/vaultwarden-off-host-recovery.md). It adds a reviewed Restic vault, distinct operational/recovery key paths, full-data checks, a vault-evidence portable manifest, encrypted-only artifact transfer, independent clean-runner Web Vault recovery and restore-gated 7/4/3 retention. Durable owner storage, real offline-key custody, scheduling, production migration and Karakeep are still not delivered.
+
 Implement application-consistent backup/restore before considering a module complete. Build a portable encrypted recovery kit and retention policy. Test with nonempty synthetic data. Choose a maintained encryption/backup tool after validating its current platform support; do not invent cryptography.
 
 Exit: upload/open/edit/restart/backup/restore checks and a verified recovery-secret workflow for every implemented module. No real financial records or password vaults in test fixtures.

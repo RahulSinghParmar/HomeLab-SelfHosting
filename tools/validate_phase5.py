@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = '0.6.0-alpha.10'
+RELEASE = '0.6.0-alpha.11'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'
@@ -95,16 +95,24 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'docs/releases/v0.6.0-alpha.9.md'):
         require((root / relative).is_file(), f'missing Firefly release file {relative}')
     for relative in ('homelab/vaultwarden.py',
+                     'homelab/vaultwarden_vault.py',
                      'modules/vaultwarden/images.json',
                      'modules/vaultwarden/browser.json',
+                     'modules/vaultwarden/restic.json',
                      'modules/vaultwarden/browser/Dockerfile',
                      'modules/vaultwarden/browser/package.json',
                      'modules/vaultwarden/browser/package-lock.json',
                      'modules/vaultwarden/browser/validate.mjs',
                      'tests/test_vaultwarden.py',
+                     'tests/test_vaultwarden_vault.py',
+                     'tools/vaultwarden_dr_trial.py',
+                     '.github/workflows/vaultwarden-disaster-recovery.yml',
                      'docs/vaultwarden-module.md',
+                     'docs/vaultwarden-vault.md',
                      'docs/validation/vaultwarden.md',
-                     'docs/releases/v0.6.0-alpha.10.md'):
+                     'docs/validation/vaultwarden-off-host-recovery.md',
+                     'docs/releases/v0.6.0-alpha.10.md',
+                     'docs/releases/v0.6.0-alpha.11.md'):
         require((root / relative).is_file(), f'missing Vaultwarden release file {relative}')
     require("add_parser('paperless'" in cli, 'missing Paperless CLI command')
     require("'paperless-vault'" in cli, 'missing Paperless encrypted-vault CLI command')
@@ -119,6 +127,8 @@ def validate_phase5(root: Path = ROOT) -> str:
             'missing Firefly III encrypted-vault CLI command')
     require("add_parser(\n        'vaultwarden'" in cli,
             'missing Vaultwarden CLI command')
+    require("'vaultwarden-vault'" in cli,
+            'missing Vaultwarden encrypted-vault CLI command')
     for command in ('portable-manifest', 'recovery-plan', 'recover-off-host'):
         require(f"add_parser('{command}')" in cli,
                 f'missing Paperless off-host CLI command {command}')
@@ -310,6 +320,21 @@ def validate_phase5(root: Path = ROOT) -> str:
             and vaultwarden_browser['browser'] == 'chromium'
             and vaultwarden_browser['upstream_tag'] == 'v1.64.0-noble',
             'Vaultwarden browser runtime differs from the reviewed pinned release')
+    vaultwarden_restic = load_json(root / 'modules/vaultwarden/restic.json')
+    require(set(vaultwarden_restic) == {'version', *RESTIC_HASHES},
+            'Vaultwarden restic manifest fields changed')
+    require(vaultwarden_restic['version'] == RESTIC_VERSION,
+            'Vaultwarden restic reviewed version changed')
+    for target, expected in RESTIC_HASHES.items():
+        item = vaultwarden_restic[target]
+        require(set(item) == {'archive_url', 'archive_sha256', 'executable_sha256'},
+                f'Vaultwarden restic {target} manifest fields changed')
+        require(item['archive_url'] ==
+                f'https://github.com/restic/restic/releases/download/v{RESTIC_VERSION}/restic_{RESTIC_VERSION}_{target}.{expected["extension"]}',
+                f'Vaultwarden restic {target} archive URL changed')
+        require(item['archive_sha256'] == expected['archive']
+                and item['executable_sha256'] == expected['executable'],
+                f'Vaultwarden restic {target} reviewed checksums changed')
     vaultwarden_code = (root / 'homelab/vaultwarden.py').read_text(encoding='utf-8')
     for contract in ('vaultwarden-isolated-recovery-v1',
                      'sqlite-vacuum-filesystem-restore',
@@ -326,10 +351,38 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'phase5-vaultwarden-attachment.txt'):
         require(contract in vaultwarden_driver,
                 f'Vaultwarden browser validation contract missing {contract}')
-    return ('PASS: Phase 5 0.6.0-alpha.10 validates Paperless off-host recovery, '
+    vaultwarden_workflow = (
+        root / '.github/workflows/vaultwarden-disaster-recovery.yml').read_text(
+            encoding='utf-8')
+    require('workflow_dispatch:' in vaultwarden_workflow
+            and 'VAULTWARDEN_DR_TEST_PASSWORD' in vaultwarden_workflow,
+            'Vaultwarden off-host workflow must be manual and use separate secret custody')
+    require('Prepare encrypted off-host artifact' in vaultwarden_workflow
+            and 'Recover on independent clean runner' in vaultwarden_workflow,
+            'Vaultwarden off-host workflow must separate preparation and recovery jobs')
+    require('actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9' in vaultwarden_workflow
+            and 'actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333' in vaultwarden_workflow,
+            'Vaultwarden off-host artifact actions must use immutable reviewed revisions')
+    vaultwarden_vault = (root / 'homelab/vaultwarden_vault.py').read_text(
+        encoding='utf-8')
+    for contract in ('vaultwarden-restic-vault-v1',
+                     'vaultwarden-portable-recovery-v1',
+                     'vaultwarden-off-host-restore-v1',
+                     'CREATE-VAULTWARDEN-RECOVERY-KEY', 'check', '--read-data',
+                     'recovery-verified', 'attachment_sha256'):
+        require(contract in vaultwarden_vault,
+                f'Vaultwarden encrypted recovery contract missing {contract}')
+    vaultwarden_trial = (root / 'tools/vaultwarden_dr_trial.py').read_text(
+        encoding='utf-8')
+    for contract in ('browser_rendered', 'decrypted_note_verified',
+                     'attachment_download_verified', 'independent_sessions_verified',
+                     'restart_persistence_verified', 'production_data_used'):
+        require(contract in vaultwarden_trial,
+                f'Vaultwarden clean-runner proof missing {contract}')
+    return ('PASS: Phase 5 0.6.0-alpha.11 validates Paperless off-host recovery, '
             'AFFiNE sync and off-host recovery, digest-pinned Nextcloud WebDAV '
             'off-host recovery, Firefly III encrypted off-host recovery, and '
-            'Vaultwarden browser-verified local recovery')
+            'Vaultwarden encrypted browser-verified off-host recovery')
 
 
 def main() -> int:

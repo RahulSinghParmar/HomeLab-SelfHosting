@@ -395,6 +395,53 @@ def main(arguments=None) -> int:
         if verb == 'restore':
             action.add_argument('--snapshot-id', required=True)
             action.add_argument('--target', type=Path, required=True)
+    vaultwarden_vault = sub.add_parser(
+        'vaultwarden-vault',
+        help='Encrypted restic repository for verified Vaultwarden recovery sets')
+    vaultwarden_vault_actions = vaultwarden_vault.add_subparsers(
+        dest='action', required=True)
+    vaultwarden_vault_keys = vaultwarden_vault_actions.add_parser('key-create')
+    vaultwarden_vault_keys.add_argument('--password-file', type=Path, required=True)
+    vaultwarden_vault_keys.add_argument('--recovery-key-file', type=Path, required=True)
+    vaultwarden_vault_keys.add_argument('--confirm', required=True)
+    vaultwarden_vault_plan = vaultwarden_vault_actions.add_parser('plan')
+    vaultwarden_vault_plan.add_argument('--state-root', type=Path, required=True)
+    vaultwarden_vault_plan.add_argument('--repository', type=Path, required=True)
+    vaultwarden_vault_plan.add_argument('--password-file', type=Path, required=True)
+    vaultwarden_vault_plan.add_argument('--recovery-key-file', type=Path, required=True)
+    vaultwarden_vault_plan.add_argument('--restic', type=Path, required=True)
+    vaultwarden_vault_plan.add_argument('--output', type=Path, required=True)
+    vaultwarden_snapshot_plan = vaultwarden_vault_actions.add_parser('snapshot-plan')
+    vaultwarden_snapshot_plan.add_argument('--plan', type=Path, required=True)
+    vaultwarden_snapshot_plan.add_argument('--source', type=Path, required=True)
+    vaultwarden_snapshot_plan.add_argument('--output', type=Path, required=True)
+    vaultwarden_portable_manifest = vaultwarden_vault_actions.add_parser(
+        'portable-manifest')
+    vaultwarden_portable_manifest.add_argument('--plan', type=Path, required=True)
+    vaultwarden_portable_manifest.add_argument('--snapshot-plan', type=Path, required=True)
+    vaultwarden_portable_manifest.add_argument('--snapshot-id', required=True)
+    vaultwarden_portable_manifest.add_argument('--output', type=Path, required=True)
+    vaultwarden_recovery_plan = vaultwarden_vault_actions.add_parser('recovery-plan')
+    vaultwarden_recovery_plan.add_argument('--repository', type=Path, required=True)
+    vaultwarden_recovery_plan.add_argument('--recovery-key-file', type=Path, required=True)
+    vaultwarden_recovery_plan.add_argument('--restic', type=Path, required=True)
+    vaultwarden_recovery_plan.add_argument('--manifest', type=Path, required=True)
+    vaultwarden_recovery_plan.add_argument('--output', type=Path, required=True)
+    vaultwarden_off_host = vaultwarden_vault_actions.add_parser('recover-off-host')
+    vaultwarden_off_host.add_argument('--plan', type=Path, required=True)
+    vaultwarden_off_host.add_argument('--target', type=Path, required=True)
+    vaultwarden_off_host.add_argument('--confirm', required=True)
+    for verb in ('init', 'status', 'store', 'check', 'restore',
+                 'retention-preview', 'retention-apply'):
+        action = vaultwarden_vault_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        if verb not in ('status', 'retention-preview'):
+            action.add_argument('--confirm', required=True)
+        if verb in ('store', 'restore'):
+            action.add_argument('--snapshot-plan', type=Path, required=True)
+        if verb == 'restore':
+            action.add_argument('--snapshot-id', required=True)
+            action.add_argument('--target', type=Path, required=True)
     beszel = sub.add_parser('beszel', help='Experimental upstream Beszel hub and restricted agent; no native-host adoption')
     beszel_actions = beszel.add_subparsers(dest='action', required=True)
     beszel_plan = beszel_actions.add_parser('plan')
@@ -622,7 +669,7 @@ def main(arguments=None) -> int:
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command in ('paperless-vault', 'affine-vault', 'nextcloud-vault',
-                            'firefly-vault'):
+                            'firefly-vault', 'vaultwarden-vault'):
             if args.command == 'paperless-vault':
                 from . import paperless_vault as module
                 backup_label = '<verified-paperless-backup>'
@@ -632,9 +679,12 @@ def main(arguments=None) -> int:
             elif args.command == 'nextcloud-vault':
                 from . import nextcloud_vault as module
                 backup_label = '<verified-nextcloud-backup>'
-            else:
+            elif args.command == 'firefly-vault':
                 from . import firefly_vault as module
                 backup_label = '<verified-firefly-backup>'
+            else:
+                from . import vaultwarden_vault as module
+                backup_label = '<verified-vaultwarden-backup>'
             if args.action == 'key-create':
                 result = module.create_keys(args.password_file, args.recovery_key_file, args.confirm)
                 result = {**result, 'password_file': '<operational-key-file>',
