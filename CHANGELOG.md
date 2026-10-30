@@ -7,6 +7,7 @@
 - Added application-consistent backup using Vaultwarden's built-in SQLite snapshot plus quiesced RSA keys, attachments, sends, optional configuration, generated recovery inputs, sanitized metadata and complete checksums.
 - Restored the recovery set into an unrelated fresh project and repeated browser decryption, attachment download and recovered restart validation on Windows Docker Desktop.
 - Added nine focused tests and expanded repository/Phase 5 documentation and validation while retaining no-go boundaries for personal-vault adoption, encrypted off-host recovery, scheduling, Karakeep and stable 0.6.0.
+- Increased the unchanged cross-platform matrix job ceiling from 20 to 30 minutes after Windows/Python 3.12 reached the old limit while its regression assertions were still passing; no test or platform gate was removed.
 
 ## 0.6.0-alpha.9 — 2026-10-23
 
