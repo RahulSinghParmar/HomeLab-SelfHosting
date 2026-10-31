@@ -341,7 +341,7 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'vaultwarden-consistent-backup-v1',
                      'phase5-vaultwarden-attachment.txt',
                      "'/vaultwarden', 'backup'", 'DISABLE_ADMIN_TOKEN',
-                     'browser_fingerprint', 'windows_acl'):
+                     'browser_fingerprint', 'runtime_user', 'windows_acl'):
         require(contract in vaultwarden_code,
                 f'Vaultwarden recovery contract missing {contract}')
     vaultwarden_driver = (root / 'modules/vaultwarden/browser/validate.mjs').read_text(

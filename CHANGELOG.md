@@ -6,6 +6,7 @@
 - Added confirmation-gated encrypted store, decrypt, status and restore-gated 7/4/3 retention commands under `vaultwarden-vault`.
 - Added a manual two-runner rehearsal that transfers only the encrypted synthetic repository and nonsecret manifest, injects the recovery key separately and reconstructs a fresh Vaultwarden project.
 - Bound recovery proof to the complete backup manifest, vault-item count, exact attachment size/hash, rendered secure-note decryption, independent browser sessions and recovered restart persistence.
+- Bound Linux Vaultwarden execution to the private host directory's numeric owner and matched the private tmpfs ownership, preserving capability-free execution without world-readable recovery data.
 - Added eighteen focused vault tests and expanded repository, platform, recovery and release validation without touching the personal Vaultwarden deployment.
 - Preserved no-go boundaries for production adoption, durable backup hosting, scheduling, real offline-key custody, advanced Vaultwarden features, Karakeep and stable 0.6.0.
 

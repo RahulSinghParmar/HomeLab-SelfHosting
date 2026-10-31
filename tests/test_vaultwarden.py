@@ -30,11 +30,13 @@ class VaultwardenPlanTests(unittest.TestCase):
         self.assertFalse(self.plan['docker_socket'])
         self.assertEqual(self.plan['recovery_method'],
                          'sqlite-vacuum-filesystem-restore')
+        self.assertEqual(set(self.plan['runtime_user']), {'uid', 'gid', 'source'})
 
     def test_plan_tampering_and_unsafe_inputs_are_refused(self):
         for field, value in [('images', {}), ('port', 80), ('access', 'public'),
                              ('admin', 'enabled'), ('docker_socket', True),
-                             ('registration', 'public')]:
+                             ('registration', 'public'), ('runtime_user', {
+                                 'uid': 65534, 'gid': 65534, 'source': 'tampered'})]:
             changed = copy.deepcopy(self.plan)
             changed[field] = value
             with self.subTest(field=field), self.assertRaises(ConfigError):
@@ -56,6 +58,13 @@ class VaultwardenPlanTests(unittest.TestCase):
         self.assertTrue(service['read_only'])
         self.assertEqual(service['cap_drop'], ['ALL'])
         self.assertIn('no-new-privileges:true', service['security_opt'])
+        self.assertEqual(service['user'],
+                         f'{self.plan["runtime_user"]["uid"]}:'
+                         f'{self.plan["runtime_user"]["gid"]}')
+        self.assertEqual(service['tmpfs'], [
+            '/tmp:rw,noexec,nosuid,size=64m,uid='
+            + str(self.plan['runtime_user']['uid']) + ',gid='
+            + str(self.plan['runtime_user']['gid']) + ',mode=0700'])
         self.assertEqual(service['mem_limit'], '384m')
         self.assertEqual(service['memswap_limit'], '512m')
         self.assertEqual(service['pids_limit'], 256)
@@ -63,6 +72,17 @@ class VaultwardenPlanTests(unittest.TestCase):
         self.assertEqual(service['environment']['INVITATIONS_ALLOWED'], 'false')
         self.assertNotIn('docker.sock', json.dumps(spec))
         self.assertIn('@sha256:', service['image'])
+
+    def test_linux_runtime_matches_private_host_directory_owner(self):
+        with patch.object(v, 'host_platform', return_value='linux'), \
+                patch.object(v.os, 'getuid', return_value=1001, create=True), \
+                patch.object(v.os, 'getgid', return_value=1002, create=True):
+            plan = v.make_plan(self.base / 'linux-install', 18051, self.runtime)
+            self.assertEqual(plan['runtime_user'], {
+                'uid': 1001, 'gid': 1002, 'source': 'host-owner'})
+            service = v.compose(plan, self.owner)['services']['app']
+            self.assertEqual(service['user'], '1001:1002')
+            self.assertIn('uid=1001,gid=1002,mode=0700', service['tmpfs'][0])
 
     def test_credentials_are_random_synthetic_and_strict(self):
         first, second = v.new_credentials(), v.new_credentials()

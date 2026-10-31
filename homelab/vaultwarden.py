@@ -45,6 +45,14 @@ def browser_specification():
     return load_json(MODULE / 'browser.json')
 
 
+def runtime_user():
+    if host_platform() == 'linux':
+        need(hasattr(os, 'getuid') and hasattr(os, 'getgid'),
+             'Linux Vaultwarden execution requires numeric host ownership')
+        return {'uid': os.getuid(), 'gid': os.getgid(), 'source': 'host-owner'}
+    return {'uid': 0, 'gid': 0, 'source': 'container-root'}
+
+
 def make_plan(root, port, runtime, backup=None):
     root = safe_path(Path(root))
     need(root.parent.is_dir() and '$' not in str(root),
@@ -63,6 +71,7 @@ def make_plan(root, port, runtime, backup=None):
         'kind': 'homelab-vaultwarden-plan',
         'contract': 'vaultwarden-isolated-recovery-v1',
         'platform': host_platform(), 'root': str(root), 'port': port,
+        'runtime_user': runtime_user(),
         'runtime': runtime, 'images': images(), 'recovery': recovery,
         'limits': {'memory_mib': MEMORY_MIB, 'cpus': CPUS, 'pids': PIDS},
         'access': 'loopback', 'network': 'internal-dedicated-bridge',
@@ -79,7 +88,8 @@ def make_plan(root, port, runtime, backup=None):
 
 
 def validate_plan(plan):
-    keys(plan, {'kind', 'contract', 'platform', 'root', 'port', 'runtime', 'images',
+    keys(plan, {'kind', 'contract', 'platform', 'root', 'port', 'runtime_user',
+                'runtime', 'images',
                 'recovery', 'limits', 'access', 'network', 'docker_socket', 'admin',
                 'mail', 'registration', 'recovery_method', 'authoritative_material',
                 'derived_material', 'plan_id'}, 'Vaultwarden plan')
@@ -125,14 +135,17 @@ def compose(plan, owner):
         'ICON_CACHE_NEGTTL': '0', 'LOG_LEVEL': 'warn',
         'EXTENDED_LOGGING': 'false', 'TZ': 'UTC',
     }
+    uid = plan['runtime_user']['uid']
+    gid = plan['runtime_user']['gid']
     service = {
         'image': plan['images']['app'], 'labels': tags(plan, owner),
+        'user': f'{uid}:{gid}',
         'pull_policy': 'never', 'restart': 'unless-stopped', 'read_only': True,
         'cap_drop': ['ALL'], 'security_opt': ['no-new-privileges:true'],
         'pids_limit': PIDS, 'mem_limit': f'{MEMORY_MIB}m',
         'mem_reservation': '32m', 'memswap_limit': '512m', 'cpus': CPUS,
         'environment': environment,
-        'tmpfs': ['/tmp:rw,noexec,nosuid,size=64m'],
+        'tmpfs': [f'/tmp:rw,noexec,nosuid,size=64m,uid={uid},gid={gid},mode=0700'],
         'volumes': [{'type': 'bind', 'source': str(Path(plan['root']) / 'data'),
                      'target': '/data', 'bind': {'create_host_path': False}}],
         'ports': [{'target': 80, 'published': str(plan['port']),
@@ -171,6 +184,9 @@ def inventory(plan, owner):
         need(role == SERVICE and role not in found['containers'],
              'Unexpected or duplicate Vaultwarden service')
         need(row['Config']['Image'] == plan['images']['app'], 'Vaultwarden image drift')
+        need(row['Config'].get('User') ==
+             f'{plan["runtime_user"]["uid"]}:{plan["runtime_user"]["gid"]}',
+             'Vaultwarden runtime-user drift')
         host = row['HostConfig']
         need(host['ReadonlyRootfs'] and not host['Privileged']
              and host.get('CapDrop') == ['ALL'] and not host.get('CapAdd')
@@ -191,7 +207,10 @@ def inventory(plan, owner):
                                       'HostPort': str(plan['port'])}]}
         need((host.get('PortBindings') or {}) == expected_ports,
              'Vaultwarden port binding drift')
-        need(host.get('Tmpfs') == {'/tmp': 'rw,noexec,nosuid,size=64m'},
+        expected_tmpfs = ('rw,noexec,nosuid,size=64m,uid='
+                          + str(plan['runtime_user']['uid']) + ',gid='
+                          + str(plan['runtime_user']['gid']) + ',mode=0700')
+        need(host.get('Tmpfs') == {'/tmp': expected_tmpfs},
              'Vaultwarden temporary-filesystem drift')
         mounts = [item for item in row['Mounts'] if item['Type'] != 'tmpfs']
         need(len(mounts) == 1 and mounts[0]['Type'] == 'bind'

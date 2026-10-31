@@ -9,6 +9,7 @@ Version **0.6.0-alpha.11** adds a separate Restic layer for complete Vaultwarden
 - `key-create` writes one strong value to distinct operational and recovery files in different private directories and never prints it.
 - Plans store key paths and the reviewed tool identity, not key material. Inherited `RESTIC_*` variables are removed.
 - Repository, state, keys and plaintext staging may not overlap.
+- On Linux the Vaultwarden container runs as the numeric owner of its private bind directory; the module does not weaken `0700/0600` host permissions or restore dropped capabilities to make the mount accessible.
 - Raw Restic output is hidden on failure because filenames can be sensitive.
 - Same-machine encryption is not disaster recovery. The repository and recovery key need independently recoverable storage.
 
