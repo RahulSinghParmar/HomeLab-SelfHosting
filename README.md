@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Prerelease 0.6.0-alpha.11 adds encrypted off-host Vaultwarden recovery.** A reviewed Restic layer encrypts the verified SQLite/file recovery set, reads every repository data pack, transfers only ciphertext plus a nonsecret manifest, and reconstructs the exact secure note and attachment in a fresh Web Vault with a separately supplied key. The existing personal deployment remains untouched; durable owner storage, scheduling and production adoption are not included.
+**Prerelease 0.6.0-alpha.12 adds application-aware Karakeep recovery.** A disposable digest-pinned project creates rendered/searchable bookmarks and an exact asset, captures a quiesced SQLite database plus assets, restores them without queue or search-index state, rebuilds Meilisearch, and repeats rendered/search/byte checks after restart. The existing personal deployment remains untouched; the local staging set is unencrypted and production adoption is not included.
 
 ## What this project is building
 
@@ -52,6 +52,8 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [0.6.0-alpha.10 validation](docs/validation/vaultwarden.md) | Browser-rendered decryption, attachment bytes, restart and fresh-project recovery evidence |
 | [Vaultwarden encrypted vault](docs/vaultwarden-vault.md) | Reviewed Restic, separate key custody, portable manifest and retention gates |
 | [0.6.0-alpha.11 recovery gate](docs/validation/vaultwarden-off-host-recovery.md) | Encrypted-only transfer and independent clean-runner browser recovery |
+| [Karakeep recovery module](docs/karakeep-module.md) | Isolated bookmark/asset lifecycle, logical export, quiesced SQLite/assets backup and search-rebuilt restore |
+| [0.6.0-alpha.12 validation](docs/validation/karakeep.md) | Rendered title, full-text search, exact asset bytes, restart and fresh-project recovery evidence |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -86,7 +88,7 @@ Windows also supports `./bootstrap.ps1 catalog`; Linux/macOS supports `sh ./boot
 
 For the opt-in Windows/PowerShell 7 read-only metadata collector, see [evidence and privacy instructions](docs/discovery/evidence.md). Its report belongs outside Git. Windows collector regression tests use mocks and can be run with `./tests/Test-ReferenceCollector.ps1`.
 
-General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault`, `affine`, `affine-vault`, `nextcloud`, `nextcloud-vault`, `firefly`, `firefly-vault` and `vaultwarden` candidates are bounded execution paths; they do not enable the general planner. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
+General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault`, `affine`, `affine-vault`, `nextcloud`, `nextcloud-vault`, `firefly`, `firefly-vault`, `vaultwarden`, `vaultwarden-vault` and `karakeep` candidates are bounded execution paths; they do not enable the general planner. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
 
 ## Service families
 
@@ -107,7 +109,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-alpha.7 release review](docs/releases/v0.6.0-alpha.7.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-alpha.12 release review](docs/releases/v0.6.0-alpha.12.md).
 
 ## License
 

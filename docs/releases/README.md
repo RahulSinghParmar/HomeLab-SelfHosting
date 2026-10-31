@@ -46,3 +46,4 @@ Never reuse a version or move an existing tag. If a published release needs corr
 - [0.6.0-alpha.9](v0.6.0-alpha.9.md) — Firefly III encrypted off-host clean-runner recovery candidate
 - [0.6.0-alpha.10](v0.6.0-alpha.10.md) — Vaultwarden browser-verified local recovery candidate
 - [0.6.0-alpha.11](v0.6.0-alpha.11.md) — Vaultwarden encrypted off-host clean-runner recovery candidate
+- [0.6.0-alpha.12](v0.6.0-alpha.12.md) — Karakeep application-aware local recovery candidate

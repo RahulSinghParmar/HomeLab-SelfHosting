@@ -1,6 +1,6 @@
 # karakeep
 
-Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope; deployment and restore certification remain planned.
+Phase 1 production reference plus the separately isolated 0.6.0-alpha.12 recovery candidate. Production adoption remains planned.
 
 ## Evidence and ownership
 
@@ -18,13 +18,13 @@ App and browser use release tags; Meilisearch 1.11.1; port 3030. db.db and queue
 
 ## Installation and dependencies
 
-There is no installer/template for this module in this release. Reproduce the observed component set only in a separately approved disposable project, using compatible pinned releases and the [platform matrix](../platform-support.md). Existing state must not be implicitly adopted.
+The experimental [Karakeep recovery module](../karakeep-module.md) deploys only a separately approved disposable project with pinned images. Existing state is never implicitly adopted.
 
 ## Configuration mapping
 
 - Reusable after review: Independent browser/search services and configurable AI endpoint contract.
 - Private installation values: Bookmarks/assets, account identity, provider keys and data-root mapping.
-- Manual/platform-specific work: Determine authoritative SQLite/assets versus rebuildable search/queue data before implementing restore.
+- Manual/platform-specific work: Production data/key adoption, durable encrypted backup storage and scheduling remain owner decisions.
 
 ## Storage and secrets
 
@@ -42,7 +42,7 @@ No start, stop, restart, migration, backup or restore was executed for Phase 1. 
 
 ## Backup and recovery
 
-No dedicated scheduled backup identified. Preserve consistent app database/assets and declared search recovery policy.
+The recovery candidate treats `db.db`, assets and required secrets as authoritative. It excludes `queue.db` and Meilisearch data, then rebuilds search after restore. The built-in logical export is supplementary, not a binary-asset backup.
 
 Follow the [recovery contract](../recovery.md); reported task success and old verification metadata are not a new restore rehearsal.
 
@@ -52,7 +52,7 @@ Capture a consistent backup and required secrets, resolve the exact image/build 
 
 ## Acceptance checks
 
-Create synthetic bookmark with attachment, restore, then verify browsing and search.
+Create a synthetic text bookmark and exact asset, verify rendered browsing and full-text search, restore database/assets into an unrelated project with an empty index, reindex, then repeat the same checks after restart.
 
 ## Limitations and follow-up
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0-alpha.12 — 2026-10-31
+
+- Added a digest-pinned, loopback-only Karakeep 0.34.1 recovery adapter with separate Chrome and Meilisearch services on a private bridge.
+- Added rendered synthetic signup/API-key creation, searchable text bookmark and exact PNG asset validation without exposing generated credentials in public evidence.
+- Added built-in logical export inspection plus quiesced SQLite/assets backup with `PRAGMA quick_check`, sanitized metadata and complete checksums.
+- Added fresh-project restore that excludes queue/index state, triggers authenticated Meilisearch reindexing and repeats rendered title, full-text search and byte-exact asset checks after restart.
+- Added focused planning, hardening, ownership, secret, semantic, integrity and tamper tests plus expanded Phase 5 release validation.
+- Preserved no-go boundaries for production adoption, personal data, encrypted off-host recovery, scheduling, retention, external AI, public access and stable 0.6.0.
+
 ## 0.6.0-alpha.11 — 2026-10-30
 
 - Added a Vaultwarden Restic 0.19.1 vault with exact Windows/Linux amd64 checksums, distinct operational/recovery key custody, complete repository data checks and portable recovery manifests.

@@ -33,8 +33,9 @@ The combined decision and remaining gates are in [Phase 4 integrated validation]
 | Nextcloud | [Application-aware recovery module](nextcloud-module.md) and [encrypted vault](nextcloud-vault.md) | [Local recovery evidence](validation/nextcloud.md) and [off-host recovery gate](validation/nextcloud-off-host-recovery.md) |
 | Firefly III | [Application-aware recovery module](firefly-iii-module.md) and [encrypted vault](firefly-vault.md) | [Local recovery evidence](validation/firefly-iii.md) and [off-host recovery gate](validation/firefly-off-host-recovery.md) |
 | Vaultwarden | [Application-aware recovery module](vaultwarden-module.md) and [encrypted vault](vaultwarden-vault.md) | [Local browser recovery](validation/vaultwarden.md) and [off-host recovery gate](validation/vaultwarden-off-host-recovery.md) |
+| Karakeep | [Application-aware recovery module](karakeep-module.md) | [Local browser/search/asset recovery](validation/karakeep.md) |
 
-Phase 5 proceeds one personal-data application at a time. Paperless, AFFiNE, Nextcloud, Firefly III and Vaultwarden have experimental application-aware and encrypted synthetic off-host recovery paths. Production backup adoption, durable owner-operated storage and Karakeep remain planned.
+Phase 5 proceeds one personal-data application at a time. Paperless, AFFiNE, Nextcloud, Firefly III and Vaultwarden have experimental application-aware and encrypted synthetic off-host recovery paths. Karakeep has an application-aware local recovery candidate; its encrypted off-host gate remains planned. Production backup adoption and durable owner-operated storage remain planned.
 
 ## Operations and recovery
 

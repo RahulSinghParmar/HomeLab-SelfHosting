@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = '0.6.0-alpha.11'
+RELEASE = '0.6.0-alpha.12'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'
@@ -114,6 +114,16 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'docs/releases/v0.6.0-alpha.10.md',
                      'docs/releases/v0.6.0-alpha.11.md'):
         require((root / relative).is_file(), f'missing Vaultwarden release file {relative}')
+    for relative in ('homelab/karakeep.py',
+                     'modules/karakeep/images.json',
+                     'modules/karakeep/browser.json',
+                     'modules/karakeep/browser/Dockerfile',
+                     'modules/karakeep/browser/validate.mjs',
+                     'tests/test_karakeep.py',
+                     'docs/karakeep-module.md',
+                     'docs/validation/karakeep.md',
+                     'docs/releases/v0.6.0-alpha.12.md'):
+        require((root / relative).is_file(), f'missing Karakeep release file {relative}')
     require("add_parser('paperless'" in cli, 'missing Paperless CLI command')
     require("'paperless-vault'" in cli, 'missing Paperless encrypted-vault CLI command')
     require("add_parser('affine'" in cli, 'missing AFFiNE CLI command')
@@ -129,6 +139,8 @@ def validate_phase5(root: Path = ROOT) -> str:
             'missing Vaultwarden CLI command')
     require("'vaultwarden-vault'" in cli,
             'missing Vaultwarden encrypted-vault CLI command')
+    require("add_parser(\n        'karakeep'" in cli,
+            'missing Karakeep CLI command')
     for command in ('portable-manifest', 'recovery-plan', 'recover-off-host'):
         require(f"add_parser('{command}')" in cli,
                 f'missing Paperless off-host CLI command {command}')
@@ -379,10 +391,42 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'restart_persistence_verified', 'production_data_used'):
         require(contract in vaultwarden_trial,
                 f'Vaultwarden clean-runner proof missing {contract}')
-    return ('PASS: Phase 5 0.6.0-alpha.11 validates Paperless off-host recovery, '
+    karakeep = load_json(root / 'modules/karakeep/images.json')
+    require(set(karakeep) == {'app', 'chrome', 'search'},
+            'Karakeep image manifest fields changed')
+    for name, image in karakeep.items():
+        require(DIGEST.fullmatch(image) is not None,
+                f'Karakeep {name} exact sha256 image digest required')
+    karakeep_browser = load_json(root / 'modules/karakeep/browser.json')
+    require(set(karakeep_browser) == {'image', 'playwright', 'browser', 'upstream_tag'},
+            'Karakeep browser manifest fields changed')
+    require(DIGEST.fullmatch(karakeep_browser['image']) is not None
+            and karakeep_browser['playwright'] == '1.64.0'
+            and karakeep_browser['browser'] == 'chromium'
+            and karakeep_browser['upstream_tag'] == 'v1.64.0-noble',
+            'Karakeep browser runtime differs from the reviewed pinned release')
+    karakeep_code = (root / 'homelab/karakeep.py').read_text(encoding='utf-8')
+    for contract in ('karakeep-isolated-recovery-v1',
+                     'sqlite-quiesced-assets-reindex-restore',
+                     'karakeep-consistent-backup-v1',
+                     'phase5-karakeep-asset.png', 'application-logical-export',
+                     'meilisearch-index', 'search_reindexed', 'runtime_user',
+                     'windows_acl'):
+        require(contract in karakeep_code,
+                f'Karakeep recovery contract missing {contract}')
+    karakeep_driver = (root / 'modules/karakeep/browser/validate.mjs').read_text(
+        encoding='utf-8')
+    for contract in ('karakeep-browser-bookmarks-v1', 'full_text_search',
+                     'asset_downloaded', 'search_reindexed',
+                     'phase5-karakeep-asset.png', '/api/v1/admin/jobs/trigger/reindex',
+                     "baseUrl + '/signin'"):
+        require(contract in karakeep_driver,
+                f'Karakeep browser validation contract missing {contract}')
+    return ('PASS: Phase 5 0.6.0-alpha.12 validates Paperless off-host recovery, '
             'AFFiNE sync and off-host recovery, digest-pinned Nextcloud WebDAV '
             'off-host recovery, Firefly III encrypted off-host recovery, and '
-            'Vaultwarden encrypted browser-verified off-host recovery')
+            'Vaultwarden encrypted browser-verified off-host recovery, plus '
+            'Karakeep application-aware SQLite/assets recovery with search rebuild')
 
 
 def main() -> int:
