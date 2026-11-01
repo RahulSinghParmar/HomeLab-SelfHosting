@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Prerelease 0.6.0-alpha.13 adds encrypted off-host Karakeep recovery.** A separately injected recovery key opens an encrypted Restic repository on a clean runner, reads every data pack, restores the exact SQLite/assets recovery set into a fresh digest-pinned project, rebuilds Meilisearch, and repeats rendered/search/byte checks after restart. The existing personal deployment remains untouched; durable owner storage and production adoption are not included.
+**Release candidate 0.6.0-rc.1 integrates all six Phase 5 recovery modules.** One manual exact-commit gate invokes the Paperless-ngx, AFFiNE, Nextcloud, Firefly III, Vaultwarden and Karakeep encrypted recovery workflows with distinct secrets and independent clean-runner restores. Existing personal deployments remain untouched; durable owner storage, scheduling, real offline-key custody and production adoption are not included.
 
 ## What this project is building
 
@@ -56,6 +56,8 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [0.6.0-alpha.12 validation](docs/validation/karakeep.md) | Rendered title, full-text search, exact asset bytes, restart and fresh-project recovery evidence |
 | [Karakeep encrypted vault](docs/karakeep-vault.md) | Reviewed Restic encryption, independent key custody, portable recovery manifest and restore-gated retention |
 | [0.6.0-alpha.13 off-host validation](docs/validation/karakeep-off-host-recovery.md) | Two clean runners, encrypted-only transfer, exact asset/search/browser recovery and restart persistence |
+| [Phase 5 integrated validation](docs/validation/phase5-integrated.md) | Six reusable encrypted-recovery workflows, shared assurance contract and stable-release blockers |
+| [0.6.0-rc.1 release review](docs/releases/v0.6.0-rc.1.md) | Exact integrated scope, release gates and production-adoption boundaries |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -111,7 +113,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-alpha.13 release review](docs/releases/v0.6.0-alpha.13.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-rc.1 release review](docs/releases/v0.6.0-rc.1.md).
 
 ## License
 

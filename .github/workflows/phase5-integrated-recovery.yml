@@ -1,0 +1,44 @@
+name: Phase 5 integrated recovery review
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  paperless:
+    name: Paperless-ngx encrypted recovery
+    uses: ./.github/workflows/paperless-disaster-recovery.yml
+    secrets:
+      PAPERLESS_DR_TEST_PASSWORD: ${{ secrets.PAPERLESS_DR_TEST_PASSWORD }}
+
+  affine:
+    name: AFFiNE encrypted recovery
+    uses: ./.github/workflows/affine-disaster-recovery.yml
+    secrets:
+      AFFINE_DR_TEST_PASSWORD: ${{ secrets.AFFINE_DR_TEST_PASSWORD }}
+
+  nextcloud:
+    name: Nextcloud encrypted recovery
+    uses: ./.github/workflows/nextcloud-disaster-recovery.yml
+    secrets:
+      NEXTCLOUD_DR_TEST_PASSWORD: ${{ secrets.NEXTCLOUD_DR_TEST_PASSWORD }}
+
+  firefly:
+    name: Firefly III encrypted recovery
+    uses: ./.github/workflows/firefly-disaster-recovery.yml
+    secrets:
+      FIREFLY_DR_TEST_PASSWORD: ${{ secrets.FIREFLY_DR_TEST_PASSWORD }}
+
+  vaultwarden:
+    name: Vaultwarden encrypted recovery
+    uses: ./.github/workflows/vaultwarden-disaster-recovery.yml
+    secrets:
+      VAULTWARDEN_DR_TEST_PASSWORD: ${{ secrets.VAULTWARDEN_DR_TEST_PASSWORD }}
+
+  karakeep:
+    name: Karakeep encrypted recovery
+    uses: ./.github/workflows/karakeep-disaster-recovery.yml
+    secrets:
+      KARAKEEP_DR_TEST_PASSWORD: ${{ secrets.KARAKEEP_DR_TEST_PASSWORD }}

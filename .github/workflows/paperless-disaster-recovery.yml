@@ -2,6 +2,10 @@ name: Paperless off-host recovery rehearsal
 
 on:
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      PAPERLESS_DR_TEST_PASSWORD:
+        required: true
 
 permissions:
   contents: read

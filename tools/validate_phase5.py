@@ -1,6 +1,7 @@
 """Validate the bounded personal-data Phase 5 prerelease without Docker."""
 from __future__ import annotations
 
+import ast
 import json
 import re
 import sys
@@ -8,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = '0.6.0-alpha.13'
+RELEASE = '0.6.0-rc.1'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'
@@ -24,6 +25,69 @@ RESTIC_HASHES = {
         'executable': '20d4142678d0d95ec11a4759def1b73fd9190abc9ca19e4b62d067c0b387e639',
     },
 }
+INTEGRATED_CONTRACT = 'phase5-integrated-recovery-v1'
+EXPECTED_INTEGRATED_MODULES = (
+    {
+        'id': 'paperless-ngx', 'command': 'paperless-vault',
+        'workflow': 'paperless-disaster-recovery.yml',
+        'secret': 'PAPERLESS_DR_TEST_PASSWORD',
+        'vault': 'homelab/paperless_vault.py',
+        'restic': 'modules/paperless-ngx/restic.json',
+        'trial': 'tools/paperless_dr_trial.py',
+        'application_validation': 'docs/validation/paperless-ngx.md',
+        'off_host_validation': 'docs/validation/paperless-off-host-recovery.md',
+    },
+    {
+        'id': 'affine', 'command': 'affine-vault',
+        'workflow': 'affine-disaster-recovery.yml',
+        'secret': 'AFFINE_DR_TEST_PASSWORD',
+        'vault': 'homelab/affine_vault.py',
+        'restic': 'modules/affine/restic.json',
+        'trial': 'tools/affine_dr_trial.py',
+        'application_validation': 'docs/validation/affine.md',
+        'off_host_validation': 'docs/validation/affine-off-host-recovery.md',
+    },
+    {
+        'id': 'nextcloud', 'command': 'nextcloud-vault',
+        'workflow': 'nextcloud-disaster-recovery.yml',
+        'secret': 'NEXTCLOUD_DR_TEST_PASSWORD',
+        'vault': 'homelab/nextcloud_vault.py',
+        'restic': 'modules/nextcloud/restic.json',
+        'trial': 'tools/nextcloud_dr_trial.py',
+        'application_validation': 'docs/validation/nextcloud.md',
+        'off_host_validation': 'docs/validation/nextcloud-off-host-recovery.md',
+    },
+    {
+        'id': 'firefly-iii', 'command': 'firefly-vault',
+        'workflow': 'firefly-disaster-recovery.yml',
+        'secret': 'FIREFLY_DR_TEST_PASSWORD',
+        'vault': 'homelab/firefly_vault.py',
+        'restic': 'modules/firefly-iii/restic.json',
+        'trial': 'tools/firefly_dr_trial.py',
+        'application_validation': 'docs/validation/firefly-iii.md',
+        'off_host_validation': 'docs/validation/firefly-off-host-recovery.md',
+    },
+    {
+        'id': 'vaultwarden', 'command': 'vaultwarden-vault',
+        'workflow': 'vaultwarden-disaster-recovery.yml',
+        'secret': 'VAULTWARDEN_DR_TEST_PASSWORD',
+        'vault': 'homelab/vaultwarden_vault.py',
+        'restic': 'modules/vaultwarden/restic.json',
+        'trial': 'tools/vaultwarden_dr_trial.py',
+        'application_validation': 'docs/validation/vaultwarden.md',
+        'off_host_validation': 'docs/validation/vaultwarden-off-host-recovery.md',
+    },
+    {
+        'id': 'karakeep', 'command': 'karakeep-vault',
+        'workflow': 'karakeep-disaster-recovery.yml',
+        'secret': 'KARAKEEP_DR_TEST_PASSWORD',
+        'vault': 'homelab/karakeep_vault.py',
+        'restic': 'modules/karakeep/restic.json',
+        'trial': 'tools/karakeep_dr_trial.py',
+        'application_validation': 'docs/validation/karakeep.md',
+        'off_host_validation': 'docs/validation/karakeep-off-host-recovery.md',
+    },
+)
 
 
 def require(condition: bool, message: str) -> None:
@@ -39,6 +103,110 @@ def load_json(path: Path) -> dict:
             result[key] = value
         return result
     return json.loads(path.read_text(encoding='utf-8'), object_pairs_hook=unique)
+
+
+def validate_reusable_workflow(text: str, module: dict) -> None:
+    secret = module['secret']
+    prefix = module['workflow'].removesuffix('-disaster-recovery.yml')
+    normalized = text.replace('\r\n', '\n')
+    require(re.search(r'^  workflow_dispatch:\s*$', normalized, re.MULTILINE)
+            and re.search(r'^  workflow_call:\s*$', normalized, re.MULTILINE),
+            f'{module["id"]}: recovery workflow must remain manual and reusable')
+    secret_declaration = re.compile(
+        rf'^  workflow_call:\s+^    secrets:\s+^      {re.escape(secret)}:'
+        rf'\s+^        required:\s+true$',
+        re.MULTILINE)
+    require(secret_declaration.search(text) is not None,
+            f'{module["id"]}: reusable workflow secret declaration changed')
+    require('permissions:\n  contents: read' in normalized,
+            f'{module["id"]}: workflow permissions must remain read-only')
+    require('\n  push:' not in text and '\n  pull_request:' not in text,
+            f'{module["id"]}: recovery workflow must not run automatically')
+    require(text.count('Prepare encrypted off-host artifact') == 1
+            and text.count('Recover on independent clean runner') == 1,
+            f'{module["id"]}: two-runner recovery boundary changed')
+    require(f'test "${{#{secret}}}" -ge 48' in text,
+            f'{module["id"]}: minimum recovery-secret check changed')
+    require('actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09' in text
+            and 'actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1' in text,
+            f'{module["id"]}: reviewed source/runtime action revisions changed')
+    require('actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9' in text
+            and 'actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333' in text,
+            f'{module["id"]}: reviewed artifact action revisions changed')
+    require(f'name: {prefix}-encrypted-repository-${{{{ github.run_id }}}}' in text
+            and f'name: {prefix}-recovery-proof-${{{{ github.run_id }}}}' in text,
+            f'{module["id"]}: artifact names must remain run-scoped and isolated')
+    require('retention-days: 7' in text and 'retention-days: 30' in text,
+            f'{module["id"]}: encrypted/proof artifact retention changed')
+
+
+def validate_integrated_contract(root: Path = ROOT) -> str:
+    manifest = load_json(root / 'modules/phase5/recovery.json')
+    require(set(manifest) == {'contract', 'release', 'restic_version',
+                              'retention', 'modules'},
+            'integrated Phase 5 manifest fields changed')
+    require(manifest['contract'] == INTEGRATED_CONTRACT,
+            'integrated Phase 5 contract identifier changed')
+    require(manifest['release'] == RELEASE,
+            'integrated Phase 5 release mismatch')
+    require(manifest['restic_version'] == RESTIC_VERSION,
+            'integrated Phase 5 Restic version changed')
+    require(manifest['retention'] == {'daily': 7, 'weekly': 4, 'monthly': 3},
+            'integrated Phase 5 retention policy changed')
+    require(manifest['modules'] == list(EXPECTED_INTEGRATED_MODULES),
+            'integrated Phase 5 module inventory changed')
+    require(len({item['secret'] for item in manifest['modules']}) == 6,
+            'each Phase 5 module requires a distinct workflow secret')
+    require(len({item['workflow'] for item in manifest['modules']}) == 6,
+            'each Phase 5 module requires a distinct reusable workflow')
+
+    reference_restic = None
+    reference_shape = None
+    for module in manifest['modules']:
+        for field in ('vault', 'restic', 'trial', 'application_validation',
+                      'off_host_validation'):
+            require((root / module[field]).is_file(),
+                    f'{module["id"]}: missing integrated evidence {module[field]}')
+        restic = load_json(root / module['restic'])
+        if reference_restic is None:
+            reference_restic = restic
+        require(restic == reference_restic,
+                f'{module["id"]}: reviewed Restic identity differs across Phase 5')
+        tree = ast.parse((root / module['vault']).read_text(encoding='utf-8'))
+        shape = (
+            tuple(node.name for node in tree.body
+                  if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))),
+            tuple(node.targets[0].id for node in tree.body
+                  if isinstance(node, ast.Assign) and len(node.targets) == 1
+                  and isinstance(node.targets[0], ast.Name)),
+        )
+        if reference_shape is None:
+            reference_shape = shape
+        require(shape == reference_shape,
+                f'{module["id"]}: encrypted-vault API shape differs across Phase 5')
+        workflow = (root / '.github/workflows' / module['workflow']).read_text(
+            encoding='utf-8')
+        validate_reusable_workflow(workflow, module)
+
+    integrated = (root / '.github/workflows/phase5-integrated-recovery.yml').read_text(
+        encoding='utf-8')
+    normalized = integrated.replace('\r\n', '\n')
+    require('workflow_dispatch:' in integrated
+            and 'permissions:\n  contents: read' in normalized,
+            'integrated recovery review must be manual and read-only')
+    require('runs-on:' not in integrated and '\n    steps:' not in integrated,
+            'integrated recovery review must only call reviewed workflows')
+    for module in manifest['modules']:
+        require(f'uses: ./.github/workflows/{module["workflow"]}' in integrated,
+                f'{module["id"]}: missing integrated reusable-workflow call')
+        mapping = f'{module["secret"]}: ${{{{ secrets.{module["secret"]} }}}}'
+        require(mapping in integrated,
+                f'{module["id"]}: integrated secret mapping changed')
+    require(integrated.count('uses: ./.github/workflows/') == 6,
+            'integrated review must call exactly six recovery workflows')
+    return ('PASS: Phase 5 integrated contract aligns six reusable encrypted '
+            'recovery workflows, distinct secrets, one Restic identity, one '
+            'vault API shape and restore-gated 7/4/3 retention')
 
 
 def validate_phase5(root: Path = ROOT) -> str:
@@ -132,6 +300,13 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'docs/releases/v0.6.0-alpha.12.md',
                      'docs/releases/v0.6.0-alpha.13.md'):
         require((root / relative).is_file(), f'missing Karakeep release file {relative}')
+    for relative in ('modules/phase5/recovery.json',
+                     '.github/workflows/phase5-integrated-recovery.yml',
+                     'tests/test_phase5_integrated.py',
+                     'docs/validation/phase5-integrated.md',
+                     'docs/releases/v0.6.0-rc.1.md'):
+        require((root / relative).is_file(),
+                f'missing integrated Phase 5 release file {relative}')
     require("add_parser('paperless'" in cli, 'missing Paperless CLI command')
     require("'paperless-vault'" in cli, 'missing Paperless encrypted-vault CLI command')
     require("add_parser('affine'" in cli, 'missing AFFiNE CLI command')
@@ -476,11 +651,10 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'restart_persistence_verified', 'production_data_used'):
         require(contract in karakeep_trial,
                 f'Karakeep clean-runner proof missing {contract}')
-    return ('PASS: Phase 5 0.6.0-alpha.13 validates Paperless off-host recovery, '
-            'AFFiNE sync and off-host recovery, digest-pinned Nextcloud WebDAV '
-            'off-host recovery, Firefly III encrypted off-host recovery, and '
-            'Vaultwarden encrypted browser-verified off-host recovery, plus '
-            'Karakeep encrypted off-host SQLite/assets recovery with search rebuild')
+    validate_integrated_contract(root)
+    return ('PASS: Phase 5 0.6.0-rc.1 validates six application-aware encrypted '
+            'off-host recovery modules and one integrated reusable-workflow gate; '
+            'stable release and production adoption remain separate decisions')
 
 
 def main() -> int:

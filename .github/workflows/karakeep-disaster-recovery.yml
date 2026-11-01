@@ -2,6 +2,10 @@ name: Karakeep off-host recovery rehearsal
 
 on:
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      KARAKEEP_DR_TEST_PASSWORD:
+        required: true
 
 permissions:
   contents: read

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0-rc.1 — 2026-11-01
+
+- Integrated all six Phase 5 application-aware encrypted recovery modules behind one manual exact-commit release gate.
+- Made each off-host workflow reusable while preserving manual dispatch, read-only permissions, separate module secrets, immutable actions and two-runner artifact/recovery isolation.
+- Added a machine-readable assurance matrix enforcing one reviewed Restic identity, vault API parity, distinct workflow secrets, evidence coverage and restore-gated 7/4/3 retention.
+- Added focused integrated-contract regression tests plus combined architecture, recovery, platform, validation and release documentation.
+- Retained a no-go for stable 0.6.0 and production adoption until durable owner storage, real offline-key custody, scheduling, alerts and representative production-data restore drills are approved and verified.
+
 ## 0.6.0-alpha.13 — 2026-11-01
 
 - Added a checksum-pinned Restic vault for verified Karakeep SQLite/assets recovery sets with distinct operational and recovery-key custody.

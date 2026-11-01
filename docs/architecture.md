@@ -47,6 +47,8 @@ The `0.6.0-alpha.12` Karakeep adapter owns a separate app/Chrome/Meilisearch pro
 
 The `0.6.0-alpha.13` Karakeep vault wraps only a verified application backup in a checksum-pinned Restic repository. Operational and recovery keys use distinct private paths, inherited Restic variables are removed, raw error output is hidden, every repository data pack is checked, and a portable manifest binds the repository, snapshot, backup, bookmark, asset and logical-export fingerprints. Recovery on a separate clean runner rebuilds derived search state and repeats browser checks before retention can prune anything.
 
+The `0.6.0-rc.1` integrated gate does not merge application lifecycles or data stores. It makes the six recovery workflows reusable and calls them concurrently from one manual review workflow, mapping one explicitly named secret per module. A machine-readable matrix enforces the shared Restic identity, vault API shape, retention policy, evidence paths and workflow controls. Each application still prepares and recovers its own encrypted artifact on separate runners.
+
 Coolify-managed proxy, sentinel, and generated applications must remain under their actual lifecycle owner. A single top-level command can coordinate them without relabeling or fighting the upstream control plane.
 
 ## Planned user workflow

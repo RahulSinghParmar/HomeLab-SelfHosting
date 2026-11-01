@@ -2,6 +2,10 @@ name: Vaultwarden off-host recovery rehearsal
 
 on:
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      VAULTWARDEN_DR_TEST_PASSWORD:
+        required: true
 
 permissions:
   contents: read

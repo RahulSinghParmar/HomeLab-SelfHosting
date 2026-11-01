@@ -23,6 +23,12 @@ Retention target: 7 daily, 4 weekly, and 3 monthly recovery points. Define wheth
 
 Keep encrypted off-host copies, periodically test reading them, and rehearse recovery without the original machine. Backup destinations and keys are private installation configuration.
 
+## Integrated Phase 5 release gate
+
+The `0.6.0-rc.1` repository candidate keeps each personal-data application independent while applying one shared assurance contract. `modules/phase5/recovery.json` lists exactly six vault commands, Restic manifests, reusable workflows, separately named Actions secrets, clean-runner trials and evidence records. The manual integrated workflow calls those reviewed workflows directly; it does not reimplement their recovery commands or receive a combined master secret.
+
+Passing this gate proves synthetic application recovery on one exact commit. It does not prove that production backups exist, that a real key survives loss of the host, or that an owner-selected off-host destination meets capacity and availability requirements. Those remain explicit stable-release and production-adoption gates.
+
 ## Mandatory application details
 
 | Application | Required recovery material |

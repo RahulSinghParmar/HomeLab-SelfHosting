@@ -1,0 +1,78 @@
+{
+  "contract": "phase5-integrated-recovery-v1",
+  "release": "0.6.0-rc.1",
+  "restic_version": "0.19.1",
+  "retention": {
+    "daily": 7,
+    "weekly": 4,
+    "monthly": 3
+  },
+  "modules": [
+    {
+      "id": "paperless-ngx",
+      "command": "paperless-vault",
+      "workflow": "paperless-disaster-recovery.yml",
+      "secret": "PAPERLESS_DR_TEST_PASSWORD",
+      "vault": "homelab/paperless_vault.py",
+      "restic": "modules/paperless-ngx/restic.json",
+      "trial": "tools/paperless_dr_trial.py",
+      "application_validation": "docs/validation/paperless-ngx.md",
+      "off_host_validation": "docs/validation/paperless-off-host-recovery.md"
+    },
+    {
+      "id": "affine",
+      "command": "affine-vault",
+      "workflow": "affine-disaster-recovery.yml",
+      "secret": "AFFINE_DR_TEST_PASSWORD",
+      "vault": "homelab/affine_vault.py",
+      "restic": "modules/affine/restic.json",
+      "trial": "tools/affine_dr_trial.py",
+      "application_validation": "docs/validation/affine.md",
+      "off_host_validation": "docs/validation/affine-off-host-recovery.md"
+    },
+    {
+      "id": "nextcloud",
+      "command": "nextcloud-vault",
+      "workflow": "nextcloud-disaster-recovery.yml",
+      "secret": "NEXTCLOUD_DR_TEST_PASSWORD",
+      "vault": "homelab/nextcloud_vault.py",
+      "restic": "modules/nextcloud/restic.json",
+      "trial": "tools/nextcloud_dr_trial.py",
+      "application_validation": "docs/validation/nextcloud.md",
+      "off_host_validation": "docs/validation/nextcloud-off-host-recovery.md"
+    },
+    {
+      "id": "firefly-iii",
+      "command": "firefly-vault",
+      "workflow": "firefly-disaster-recovery.yml",
+      "secret": "FIREFLY_DR_TEST_PASSWORD",
+      "vault": "homelab/firefly_vault.py",
+      "restic": "modules/firefly-iii/restic.json",
+      "trial": "tools/firefly_dr_trial.py",
+      "application_validation": "docs/validation/firefly-iii.md",
+      "off_host_validation": "docs/validation/firefly-off-host-recovery.md"
+    },
+    {
+      "id": "vaultwarden",
+      "command": "vaultwarden-vault",
+      "workflow": "vaultwarden-disaster-recovery.yml",
+      "secret": "VAULTWARDEN_DR_TEST_PASSWORD",
+      "vault": "homelab/vaultwarden_vault.py",
+      "restic": "modules/vaultwarden/restic.json",
+      "trial": "tools/vaultwarden_dr_trial.py",
+      "application_validation": "docs/validation/vaultwarden.md",
+      "off_host_validation": "docs/validation/vaultwarden-off-host-recovery.md"
+    },
+    {
+      "id": "karakeep",
+      "command": "karakeep-vault",
+      "workflow": "karakeep-disaster-recovery.yml",
+      "secret": "KARAKEEP_DR_TEST_PASSWORD",
+      "vault": "homelab/karakeep_vault.py",
+      "restic": "modules/karakeep/restic.json",
+      "trial": "tools/karakeep_dr_trial.py",
+      "application_validation": "docs/validation/karakeep.md",
+      "off_host_validation": "docs/validation/karakeep-off-host-recovery.md"
+    }
+  ]
+}

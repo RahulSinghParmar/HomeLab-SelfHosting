@@ -48,3 +48,4 @@ Never reuse a version or move an existing tag. If a published release needs corr
 - [0.6.0-alpha.11](v0.6.0-alpha.11.md) — Vaultwarden encrypted off-host clean-runner recovery candidate
 - [0.6.0-alpha.12](v0.6.0-alpha.12.md) — Karakeep application-aware local recovery candidate
 - [0.6.0-alpha.13](v0.6.0-alpha.13.md) — Karakeep encrypted off-host recovery candidate
+- [0.6.0-rc.1](v0.6.0-rc.1.md) — Phase 5 integrated encrypted-recovery candidate

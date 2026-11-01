@@ -35,7 +35,7 @@ The combined decision and remaining gates are in [Phase 4 integrated validation]
 | Vaultwarden | [Application-aware recovery module](vaultwarden-module.md) and [encrypted vault](vaultwarden-vault.md) | [Local browser recovery](validation/vaultwarden.md) and [off-host recovery gate](validation/vaultwarden-off-host-recovery.md) |
 | Karakeep | [Application-aware module](karakeep-module.md) · [encrypted vault](karakeep-vault.md) | [Local recovery](validation/karakeep.md) · [off-host recovery](validation/karakeep-off-host-recovery.md) |
 
-Phase 5 proceeds one personal-data application at a time. Paperless, AFFiNE, Nextcloud, Firefly III, Vaultwarden and Karakeep now have experimental application-aware and encrypted synthetic off-host recovery paths. Integrated disaster-recovery review, production backup adoption and durable owner-operated storage remain planned.
+Paperless, AFFiNE, Nextcloud, Firefly III, Vaultwarden and Karakeep now have experimental application-aware and encrypted synthetic off-host recovery paths. The [Phase 5 integrated review](validation/phase5-integrated.md) combines their exact-commit workflow gate and records the remaining no-go boundaries for stable release, production backup adoption and durable owner-operated storage.
 
 ## Operations and recovery
 

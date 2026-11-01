@@ -2,6 +2,10 @@ name: Nextcloud off-host recovery rehearsal
 
 on:
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      NEXTCLOUD_DR_TEST_PASSWORD:
+        required: true
 
 permissions:
   contents: read
