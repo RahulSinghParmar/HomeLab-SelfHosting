@@ -1,6 +1,6 @@
 # karakeep
 
-Phase 1 production reference plus the separately isolated 0.6.0-alpha.12 recovery candidate. Production adoption remains planned.
+Phase 1 production reference plus the separately isolated 0.6.0-alpha.12 application recovery and 0.6.0-alpha.13 encrypted off-host recovery candidates. Production adoption remains planned.
 
 ## Evidence and ownership
 
@@ -18,7 +18,7 @@ App and browser use release tags; Meilisearch 1.11.1; port 3030. db.db and queue
 
 ## Installation and dependencies
 
-The experimental [Karakeep recovery module](../karakeep-module.md) deploys only a separately approved disposable project with pinned images. Existing state is never implicitly adopted.
+The experimental [Karakeep recovery module](../karakeep-module.md) deploys only a separately approved disposable project with pinned images. The [encrypted recovery vault](../karakeep-vault.md) accepts only a complete verified staging backup. Existing state is never implicitly adopted.
 
 ## Configuration mapping
 

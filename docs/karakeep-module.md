@@ -62,4 +62,4 @@ The set is plaintext-sensitive and local. Keep it outside Git and synchronized f
 
 Personal bookmarks, multi-user sharing, lists/tags beyond the exported fixture, link crawling, browser archives, PDFs, OCR, external AI, webhooks, native/mobile clients, SMTP, public reverse proxies, load, upgrade migration and rollback are untested. The first runtime rehearsal targets Windows Docker Desktop Linux/amd64; Linux, macOS and ARM64 behavior is not certified.
 
-See [validation evidence](validation/karakeep.md), the [production inventory runbook](runbooks/karakeep.md), and Karakeep's [configuration reference](https://github.com/karakeep-app/karakeep/blob/main/docs/docs/03-configuration/01-environment-variables.md).
+See [validation evidence](validation/karakeep.md), the [encrypted recovery vault](karakeep-vault.md), the [off-host recovery gate](validation/karakeep-off-host-recovery.md), the [production inventory runbook](runbooks/karakeep.md), and Karakeep's [configuration reference](https://github.com/karakeep-app/karakeep/blob/main/docs/docs/03-configuration/01-environment-variables.md).

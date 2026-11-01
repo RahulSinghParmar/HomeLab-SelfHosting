@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = '0.6.0-alpha.12'
+RELEASE = '0.6.0-alpha.13'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'
@@ -115,14 +115,22 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'docs/releases/v0.6.0-alpha.11.md'):
         require((root / relative).is_file(), f'missing Vaultwarden release file {relative}')
     for relative in ('homelab/karakeep.py',
+                     'homelab/karakeep_vault.py',
                      'modules/karakeep/images.json',
                      'modules/karakeep/browser.json',
+                     'modules/karakeep/restic.json',
                      'modules/karakeep/browser/Dockerfile',
                      'modules/karakeep/browser/validate.mjs',
                      'tests/test_karakeep.py',
+                     'tests/test_karakeep_vault.py',
+                     'tools/karakeep_dr_trial.py',
+                     '.github/workflows/karakeep-disaster-recovery.yml',
                      'docs/karakeep-module.md',
+                     'docs/karakeep-vault.md',
                      'docs/validation/karakeep.md',
-                     'docs/releases/v0.6.0-alpha.12.md'):
+                     'docs/validation/karakeep-off-host-recovery.md',
+                     'docs/releases/v0.6.0-alpha.12.md',
+                     'docs/releases/v0.6.0-alpha.13.md'):
         require((root / relative).is_file(), f'missing Karakeep release file {relative}')
     require("add_parser('paperless'" in cli, 'missing Paperless CLI command')
     require("'paperless-vault'" in cli, 'missing Paperless encrypted-vault CLI command')
@@ -141,6 +149,8 @@ def validate_phase5(root: Path = ROOT) -> str:
             'missing Vaultwarden encrypted-vault CLI command')
     require("add_parser(\n        'karakeep'" in cli,
             'missing Karakeep CLI command')
+    require("'karakeep-vault'" in cli,
+            'missing Karakeep encrypted-vault CLI command')
     for command in ('portable-manifest', 'recovery-plan', 'recover-off-host'):
         require(f"add_parser('{command}')" in cli,
                 f'missing Paperless off-host CLI command {command}')
@@ -422,11 +432,55 @@ def validate_phase5(root: Path = ROOT) -> str:
                      "baseUrl + '/signin'"):
         require(contract in karakeep_driver,
                 f'Karakeep browser validation contract missing {contract}')
-    return ('PASS: Phase 5 0.6.0-alpha.12 validates Paperless off-host recovery, '
+    karakeep_restic = load_json(root / 'modules/karakeep/restic.json')
+    require(set(karakeep_restic) == {'version', *RESTIC_HASHES},
+            'Karakeep restic manifest fields changed')
+    require(karakeep_restic['version'] == RESTIC_VERSION,
+            'Karakeep restic reviewed version changed')
+    for target, expected in RESTIC_HASHES.items():
+        item = karakeep_restic[target]
+        require(set(item) == {'archive_url', 'archive_sha256', 'executable_sha256'},
+                f'Karakeep restic {target} manifest fields changed')
+        require(item['archive_url'] ==
+                f'https://github.com/restic/restic/releases/download/v{RESTIC_VERSION}/restic_{RESTIC_VERSION}_{target}.{expected["extension"]}',
+                f'Karakeep restic {target} archive URL changed')
+        require(item['archive_sha256'] == expected['archive']
+                and item['executable_sha256'] == expected['executable'],
+                f'Karakeep restic {target} reviewed checksums changed')
+    karakeep_workflow = (
+        root / '.github/workflows/karakeep-disaster-recovery.yml').read_text(
+            encoding='utf-8')
+    require('workflow_dispatch:' in karakeep_workflow
+            and 'KARAKEEP_DR_TEST_PASSWORD' in karakeep_workflow,
+            'Karakeep off-host workflow must be manual and use separate secret custody')
+    require('Prepare encrypted off-host artifact' in karakeep_workflow
+            and 'Recover on independent clean runner' in karakeep_workflow,
+            'Karakeep off-host workflow must separate preparation and recovery jobs')
+    require('actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9' in karakeep_workflow
+            and 'actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333' in karakeep_workflow,
+            'Karakeep off-host artifact actions must use immutable reviewed revisions')
+    karakeep_vault = (root / 'homelab/karakeep_vault.py').read_text(
+        encoding='utf-8')
+    for contract in ('karakeep-restic-vault-v1',
+                     'karakeep-portable-recovery-v1',
+                     'karakeep-off-host-restore-v1',
+                     'CREATE-KARAKEEP-RECOVERY-KEY', 'check', '--read-data',
+                     'recovery-verified', 'asset_sha256',
+                     'application_export_bytes'):
+        require(contract in karakeep_vault,
+                f'Karakeep encrypted recovery contract missing {contract}')
+    karakeep_trial = (root / 'tools/karakeep_dr_trial.py').read_text(
+        encoding='utf-8')
+    for contract in ('browser_rendered', 'full_text_search_verified',
+                     'asset_download_verified', 'search_rebuild_verified',
+                     'restart_persistence_verified', 'production_data_used'):
+        require(contract in karakeep_trial,
+                f'Karakeep clean-runner proof missing {contract}')
+    return ('PASS: Phase 5 0.6.0-alpha.13 validates Paperless off-host recovery, '
             'AFFiNE sync and off-host recovery, digest-pinned Nextcloud WebDAV '
             'off-host recovery, Firefly III encrypted off-host recovery, and '
             'Vaultwarden encrypted browser-verified off-host recovery, plus '
-            'Karakeep application-aware SQLite/assets recovery with search rebuild')
+            'Karakeep encrypted off-host SQLite/assets recovery with search rebuild')
 
 
 def main() -> int:

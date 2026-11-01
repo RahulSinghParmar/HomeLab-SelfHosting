@@ -457,6 +457,53 @@ def main(arguments=None) -> int:
         if verb == 'restore':
             action.add_argument('--snapshot-id', required=True)
             action.add_argument('--target', type=Path, required=True)
+    karakeep_vault = sub.add_parser(
+        'karakeep-vault',
+        help='Encrypted restic repository for verified Karakeep recovery sets')
+    karakeep_vault_actions = karakeep_vault.add_subparsers(
+        dest='action', required=True)
+    karakeep_vault_keys = karakeep_vault_actions.add_parser('key-create')
+    karakeep_vault_keys.add_argument('--password-file', type=Path, required=True)
+    karakeep_vault_keys.add_argument('--recovery-key-file', type=Path, required=True)
+    karakeep_vault_keys.add_argument('--confirm', required=True)
+    karakeep_vault_plan = karakeep_vault_actions.add_parser('plan')
+    karakeep_vault_plan.add_argument('--state-root', type=Path, required=True)
+    karakeep_vault_plan.add_argument('--repository', type=Path, required=True)
+    karakeep_vault_plan.add_argument('--password-file', type=Path, required=True)
+    karakeep_vault_plan.add_argument('--recovery-key-file', type=Path, required=True)
+    karakeep_vault_plan.add_argument('--restic', type=Path, required=True)
+    karakeep_vault_plan.add_argument('--output', type=Path, required=True)
+    karakeep_snapshot_plan = karakeep_vault_actions.add_parser('snapshot-plan')
+    karakeep_snapshot_plan.add_argument('--plan', type=Path, required=True)
+    karakeep_snapshot_plan.add_argument('--source', type=Path, required=True)
+    karakeep_snapshot_plan.add_argument('--output', type=Path, required=True)
+    karakeep_portable_manifest = karakeep_vault_actions.add_parser(
+        'portable-manifest')
+    karakeep_portable_manifest.add_argument('--plan', type=Path, required=True)
+    karakeep_portable_manifest.add_argument('--snapshot-plan', type=Path, required=True)
+    karakeep_portable_manifest.add_argument('--snapshot-id', required=True)
+    karakeep_portable_manifest.add_argument('--output', type=Path, required=True)
+    karakeep_recovery_plan = karakeep_vault_actions.add_parser('recovery-plan')
+    karakeep_recovery_plan.add_argument('--repository', type=Path, required=True)
+    karakeep_recovery_plan.add_argument('--recovery-key-file', type=Path, required=True)
+    karakeep_recovery_plan.add_argument('--restic', type=Path, required=True)
+    karakeep_recovery_plan.add_argument('--manifest', type=Path, required=True)
+    karakeep_recovery_plan.add_argument('--output', type=Path, required=True)
+    karakeep_off_host = karakeep_vault_actions.add_parser('recover-off-host')
+    karakeep_off_host.add_argument('--plan', type=Path, required=True)
+    karakeep_off_host.add_argument('--target', type=Path, required=True)
+    karakeep_off_host.add_argument('--confirm', required=True)
+    for verb in ('init', 'status', 'store', 'check', 'restore',
+                 'retention-preview', 'retention-apply'):
+        action = karakeep_vault_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        if verb not in ('status', 'retention-preview'):
+            action.add_argument('--confirm', required=True)
+        if verb in ('store', 'restore'):
+            action.add_argument('--snapshot-plan', type=Path, required=True)
+        if verb == 'restore':
+            action.add_argument('--snapshot-id', required=True)
+            action.add_argument('--target', type=Path, required=True)
     beszel = sub.add_parser('beszel', help='Experimental upstream Beszel hub and restricted agent; no native-host adoption')
     beszel_actions = beszel.add_subparsers(dest='action', required=True)
     beszel_plan = beszel_actions.add_parser('plan')
@@ -704,7 +751,7 @@ def main(arguments=None) -> int:
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command in ('paperless-vault', 'affine-vault', 'nextcloud-vault',
-                            'firefly-vault', 'vaultwarden-vault'):
+                            'firefly-vault', 'vaultwarden-vault', 'karakeep-vault'):
             if args.command == 'paperless-vault':
                 from . import paperless_vault as module
                 backup_label = '<verified-paperless-backup>'
@@ -717,9 +764,12 @@ def main(arguments=None) -> int:
             elif args.command == 'firefly-vault':
                 from . import firefly_vault as module
                 backup_label = '<verified-firefly-backup>'
-            else:
+            elif args.command == 'vaultwarden-vault':
                 from . import vaultwarden_vault as module
                 backup_label = '<verified-vaultwarden-backup>'
+            else:
+                from . import karakeep_vault as module
+                backup_label = '<verified-karakeep-backup>'
             if args.action == 'key-create':
                 result = module.create_keys(args.password_file, args.recovery_key_file, args.confirm)
                 result = {**result, 'password_file': '<operational-key-file>',

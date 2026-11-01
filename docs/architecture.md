@@ -45,6 +45,8 @@ The `0.6.0-alpha.11` Vaultwarden adapter owns one separate app project and one e
 
 The `0.6.0-alpha.12` Karakeep adapter owns a separate app/Chrome/Meilisearch project and an ephemeral digest-pinned browser helper. It publishes only a loopback app port, creates a rendered searchable text bookmark and exact asset, and treats the quiesced SQLite database, asset tree and required secrets as authoritative. Queue state and the search index are excluded; a fresh restore starts empty derived state, triggers an authenticated reindex, then repeats rendered title, full-text search and byte-exact asset checks after restart. The built-in logical export is retained as supplementary evidence rather than represented as a full binary recovery source.
 
+The `0.6.0-alpha.13` Karakeep vault wraps only a verified application backup in a checksum-pinned Restic repository. Operational and recovery keys use distinct private paths, inherited Restic variables are removed, raw error output is hidden, every repository data pack is checked, and a portable manifest binds the repository, snapshot, backup, bookmark, asset and logical-export fingerprints. Recovery on a separate clean runner rebuilds derived search state and repeats browser checks before retention can prune anything.
+
 Coolify-managed proxy, sentinel, and generated applications must remain under their actual lifecycle owner. A single top-level command can coordinate them without relabeling or fighting the upstream control plane.
 
 ## Planned user workflow

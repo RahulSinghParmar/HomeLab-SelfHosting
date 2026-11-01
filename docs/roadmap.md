@@ -111,6 +111,8 @@ Eleventh bounded milestone: **0.6.0-alpha.11**, the [Vaultwarden encrypted off-h
 
 Twelfth bounded milestone: **0.6.0-alpha.12**, an isolated [Karakeep application-aware recovery candidate](karakeep-module.md). It creates a rendered searchable text bookmark and exact PNG asset, verifies the text-only built-in logical export as supplementary evidence, captures a quiesced SQLite database plus assets, excludes queue and Meilisearch state, restores into an unrelated project, rebuilds search and repeats rendered/search/asset checks after restart. The staging set remains plaintext-sensitive. Link crawling, OCR, external AI, public access, upgrades, encrypted off-host recovery and production migration are not delivered.
 
+Thirteenth bounded milestone: **0.6.0-alpha.13**, the [Karakeep encrypted off-host recovery gate](validation/karakeep-off-host-recovery.md). It adds a reviewed Restic vault, distinct operational/recovery key paths, full-data checks, a bookmark/asset evidence portable manifest, encrypted-only artifact transfer, independent clean-runner recovery with Meilisearch rebuild, and restore-gated 7/4/3 retention. Durable owner storage, real offline-key custody, scheduling, integrated Phase 5 review and production migration remain undelivered.
+
 Implement application-consistent backup/restore before considering a module complete. Build a portable encrypted recovery kit and retention policy. Test with nonempty synthetic data. Choose a maintained encryption/backup tool after validating its current platform support; do not invent cryptography.
 
 Exit: upload/open/edit/restart/backup/restore checks and a verified recovery-secret workflow for every implemented module. No real financial records or password vaults in test fixtures.

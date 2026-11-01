@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0-alpha.13 — 2026-11-01
+
+- Added a checksum-pinned Restic vault for verified Karakeep SQLite/assets recovery sets with distinct operational and recovery-key custody.
+- Added encrypted storage, full repository data checks, exact snapshot restore, portable off-host manifests and restore-gated 7-daily/4-weekly/3-monthly retention.
+- Added a manual two-runner clean-room workflow that transports only the encrypted synthetic repository and nonsecret manifest while injecting its recovery key separately.
+- Added clean-runner Karakeep restoration with Meilisearch rebuild, rendered bookmark verification, full-text search, exact asset download and restart persistence.
+- Added eighteen focused encrypted-vault tests, expanded Phase 5 validation and retained no-go boundaries for personal-data adoption, durable owner storage, scheduling and stable 0.6.0.
+
 ## 0.6.0-alpha.12 — 2026-10-31
 
 - Added a digest-pinned, loopback-only Karakeep 0.34.1 recovery adapter with separate Chrome and Meilisearch services on a private bridge.
