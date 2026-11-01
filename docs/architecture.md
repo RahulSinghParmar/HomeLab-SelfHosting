@@ -49,6 +49,8 @@ The `0.6.0-alpha.13` Karakeep vault wraps only a verified application backup in 
 
 The `0.6.0-rc.1` integrated gate does not merge application lifecycles or data stores. It makes the six recovery workflows reusable and calls them concurrently from one manual review workflow, mapping one explicitly named secret per module. A machine-readable matrix enforces the shared Restic identity, vault API shape, retention policy, evidence paths and workflow controls. Each application still prepares and recovers its own encrypted artifact on separate runners.
 
+The `0.6.0-rc.2` owner layer remains a disabled policy and deterministic plan, not a backup daemon. It validates two declared off-host filesystem repositories, two separately custodied offline key devices, conservative capacity, staggered scheduling requirements and adoption blockers without initializing storage or registering tasks.
+
 Coolify-managed proxy, sentinel, and generated applications must remain under their actual lifecycle owner. A single top-level command can coordinate them without relabeling or fighting the upstream control plane.
 
 ## Planned user workflow

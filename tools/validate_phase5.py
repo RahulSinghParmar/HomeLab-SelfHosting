@@ -9,7 +9,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = '0.6.0-rc.1'
+sys.path.insert(0, str(ROOT))
+RELEASE = '0.6.0-rc.2'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'
@@ -301,6 +302,12 @@ def validate_phase5(root: Path = ROOT) -> str:
                      'docs/releases/v0.6.0-alpha.13.md'):
         require((root / relative).is_file(), f'missing Karakeep release file {relative}')
     for relative in ('modules/phase5/recovery.json',
+                     'modules/phase5/owner-backup-policy.example.json',
+                     'homelab/owner_backup.py',
+                     'tests/test_owner_backup.py',
+                     'docs/owner-operated-backups.md',
+                     'docs/validation/phase5-owner-backup-design.md',
+                     'docs/releases/v0.6.0-rc.2.md',
                      '.github/workflows/phase5-integrated-recovery.yml',
                      'tests/test_phase5_integrated.py',
                      'docs/validation/phase5-integrated.md',
@@ -326,6 +333,10 @@ def validate_phase5(root: Path = ROOT) -> str:
             'missing Karakeep CLI command')
     require("'karakeep-vault'" in cli,
             'missing Karakeep encrypted-vault CLI command')
+    require("add_parser(\n        'owner-backup'" in cli,
+            'missing owner backup policy CLI command')
+    require("args.command == 'owner-backup'" in cli,
+            'missing owner backup policy CLI dispatch')
     for command in ('portable-manifest', 'recovery-plan', 'recover-off-host'):
         require(f"add_parser('{command}')" in cli,
                 f'missing Paperless off-host CLI command {command}')
@@ -652,9 +663,17 @@ def validate_phase5(root: Path = ROOT) -> str:
         require(contract in karakeep_trial,
                 f'Karakeep clean-runner proof missing {contract}')
     validate_integrated_contract(root)
-    return ('PASS: Phase 5 0.6.0-rc.1 validates six application-aware encrypted '
-            'off-host recovery modules and one integrated reusable-workflow gate; '
-            'stable release and production adoption remain separate decisions')
+    owner_policy = load_json(root / 'modules/phase5/owner-backup-policy.example.json')
+    from homelab.owner_backup import make_plan
+    owner_plan = make_plan(owner_policy)
+    require(owner_plan['execution'] == 'disabled-design-only'
+            and owner_plan['readiness']['status'] == 'blocked'
+            and owner_plan['readiness']['activation_included'] is False,
+            'owner backup example must remain a blocked, non-activating design')
+    return ('PASS: Phase 5 0.6.0-rc.2 validates six application-aware encrypted '
+            'off-host recovery modules, one integrated reusable-workflow gate and '
+            'a disabled owner storage/schedule/key-custody policy; stable release '
+            'and production adoption remain separate decisions')
 
 
 def main() -> int:

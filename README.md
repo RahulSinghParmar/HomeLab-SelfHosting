@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Release candidate 0.6.0-rc.1 integrates all six Phase 5 recovery modules.** One manual exact-commit gate invokes the Paperless-ngx, AFFiNE, Nextcloud, Firefly III, Vaultwarden and Karakeep encrypted recovery workflows with distinct secrets and independent clean-runner restores. Existing personal deployments remain untouched; durable owner storage, scheduling, real offline-key custody and production adoption are not included.
+**Release candidate 0.6.0-rc.2 adds the owner-operated backup design.** The six Phase 5 recovery modules retain their integrated clean-runner gate, while a new disabled policy validates two off-host repositories, two offline recovery-key copies, capacity, staggered scheduling, notifications and restore-drill readiness. It does not install tasks, create keys, initialize repositories or read personal data.
 
 ## What this project is building
 
@@ -58,6 +58,9 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [0.6.0-alpha.13 off-host validation](docs/validation/karakeep-off-host-recovery.md) | Two clean runners, encrypted-only transfer, exact asset/search/browser recovery and restart persistence |
 | [Phase 5 integrated validation](docs/validation/phase5-integrated.md) | Six reusable encrypted-recovery workflows, shared assurance contract and stable-release blockers |
 | [0.6.0-rc.1 release review](docs/releases/v0.6.0-rc.1.md) | Exact integrated scope, release gates and production-adoption boundaries |
+| [Owner-operated backup design](docs/owner-operated-backups.md) | Storage topology, capacity, scheduling, key custody and activation gates |
+| [0.6.0-rc.2 design validation](docs/validation/phase5-owner-backup-design.md) | Offline policy evidence and read-only Windows task reconciliation |
+| [0.6.0-rc.2 release review](docs/releases/v0.6.0-rc.2.md) | Exact non-activating scope and remaining production gates |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -83,6 +86,7 @@ python -m homelab doctor
 python tools/validate_repository.py
 python tools/validate_phase4.py
 python tools/validate_phase5.py
+python homelab_cli.py owner-backup validate --policy modules/phase5/owner-backup-policy.example.json
 python -m unittest discover -s tests -v
 ```
 
@@ -92,7 +96,7 @@ Windows also supports `./bootstrap.ps1 catalog`; Linux/macOS supports `sh ./boot
 
 For the opt-in Windows/PowerShell 7 read-only metadata collector, see [evidence and privacy instructions](docs/discovery/evidence.md). Its report belongs outside Git. Windows collector regression tests use mocks and can be run with `./tests/Test-ReferenceCollector.ps1`.
 
-General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault`, `affine`, `affine-vault`, `nextcloud`, `nextcloud-vault`, `firefly`, `firefly-vault`, `vaultwarden`, `vaultwarden-vault`, `karakeep` and `karakeep-vault` candidates are bounded execution paths; they do not enable the general planner. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
+General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault`, `affine`, `affine-vault`, `nextcloud`, `nextcloud-vault`, `firefly`, `firefly-vault`, `vaultwarden`, `vaultwarden-vault`, `karakeep` and `karakeep-vault` candidates are bounded execution paths; they do not enable the general planner. `owner-backup` only validates and saves a disabled private design. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
 
 ## Service families
 
@@ -113,7 +117,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-rc.1 release review](docs/releases/v0.6.0-rc.1.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-rc.2 release review](docs/releases/v0.6.0-rc.2.md).
 
 ## License
 

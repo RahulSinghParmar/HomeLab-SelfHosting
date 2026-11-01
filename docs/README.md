@@ -35,12 +35,13 @@ The combined decision and remaining gates are in [Phase 4 integrated validation]
 | Vaultwarden | [Application-aware recovery module](vaultwarden-module.md) and [encrypted vault](vaultwarden-vault.md) | [Local browser recovery](validation/vaultwarden.md) and [off-host recovery gate](validation/vaultwarden-off-host-recovery.md) |
 | Karakeep | [Application-aware module](karakeep-module.md) · [encrypted vault](karakeep-vault.md) | [Local recovery](validation/karakeep.md) · [off-host recovery](validation/karakeep-off-host-recovery.md) |
 
-Paperless, AFFiNE, Nextcloud, Firefly III, Vaultwarden and Karakeep now have experimental application-aware and encrypted synthetic off-host recovery paths. The [Phase 5 integrated review](validation/phase5-integrated.md) combines their exact-commit workflow gate and records the remaining no-go boundaries for stable release, production backup adoption and durable owner-operated storage.
+Paperless, AFFiNE, Nextcloud, Firefly III, Vaultwarden and Karakeep now have experimental application-aware and encrypted synthetic off-host recovery paths. The [Phase 5 integrated review](validation/phase5-integrated.md) combines their exact-commit workflow gate. The [owner-operated backup design](owner-operated-backups.md) adds disabled storage, schedule and key-custody planning; its [validation record](validation/phase5-owner-backup-design.md) preserves the no-go boundary for activation and production adoption.
 
 ## Operations and recovery
 
 - [Service requirements](services.md)
 - [Backup and recovery design](recovery.md)
+- [Owner-operated Phase 5 backup design](owner-operated-backups.md)
 - [Public-access boundary](public-access.md)
 - [Security policy](../SECURITY.md)
 - [Per-service runbooks](runbooks/)

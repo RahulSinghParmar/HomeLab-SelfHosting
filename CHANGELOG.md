@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0-rc.2 — 2026-11-01
+
+- Added a strict owner-operated Phase 5 policy for two off-host encrypted repositories, two independently custodied offline recovery-key copies, capacity reserves, RPO/RTO inputs and all six application schedules.
+- Added deterministic disabled planning with terminal path/device redaction, secret-value rejection, storage separation checks, restore-gated 7/4/3 retention and explicit production-readiness blockers.
+- Documented hidden/non-overlapping Windows task requirements and reconciled existing task patterns read-only without installing, changing or replacing any task.
+- Retained no-go boundaries for stable 0.6.0 and production adoption until owner media, real keys, replica transport, notification delivery, reboot-tested scheduling and representative production-data recovery pass.
+
 ## 0.6.0-rc.1 — 2026-11-01
 
 - Integrated all six Phase 5 application-aware encrypted recovery modules behind one manual exact-commit release gate.

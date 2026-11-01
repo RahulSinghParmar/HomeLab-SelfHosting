@@ -1,6 +1,6 @@
 {
   "contract": "phase5-integrated-recovery-v1",
-  "release": "0.6.0-rc.1",
+  "release": "0.6.0-rc.2",
   "restic_version": "0.19.1",
   "retention": {
     "daily": 7,

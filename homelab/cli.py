@@ -504,6 +504,14 @@ def main(arguments=None) -> int:
         if verb == 'restore':
             action.add_argument('--snapshot-id', required=True)
             action.add_argument('--target', type=Path, required=True)
+    owner_backup = sub.add_parser(
+        'owner-backup', help='Validate or plan disabled owner-operated Phase 5 backup policy')
+    owner_backup_actions = owner_backup.add_subparsers(dest='action', required=True)
+    owner_backup_validate = owner_backup_actions.add_parser('validate')
+    owner_backup_validate.add_argument('--policy', type=Path, required=True)
+    owner_backup_plan = owner_backup_actions.add_parser('plan')
+    owner_backup_plan.add_argument('--policy', type=Path, required=True)
+    owner_backup_plan.add_argument('--output', type=Path, required=True)
     beszel = sub.add_parser('beszel', help='Experimental upstream Beszel hub and restricted agent; no native-host adoption')
     beszel_actions = beszel.add_subparsers(dest='action', required=True)
     beszel_plan = beszel_actions.add_parser('plan')
@@ -534,6 +542,23 @@ def main(arguments=None) -> int:
             action.add_argument('--confirm', required=True)
     args = parser.parse_args(arguments)
     try:
+        if args.command == 'owner-backup':
+            from . import owner_backup as module
+            policy = module.validate_policy(load_json(args.policy))
+            if args.action == 'validate':
+                result = {
+                    'kind': 'homelab-phase5-owner-backup-policy-validation',
+                    'contract': module.CONTRACT,
+                    'valid': True,
+                    'execution': 'disabled-design-only',
+                    'module_count': len(module.MODULES),
+                }
+            else:
+                plan = module.make_plan(policy)
+                write_private(args.output, plan)
+                result = module.public_plan(plan)
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
         if args.command == "glance-layout":
             from . import glance_layouts as module
             if args.action == "list":

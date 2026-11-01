@@ -1,0 +1,104 @@
+{
+  "contract": "phase5-owner-backup-policy-v1",
+  "timezone": "Asia/Kolkata",
+  "host_device_id": "homelab-host",
+  "storage": {
+    "staging": {
+      "path": "C:\\HomeLabBackup\\staging",
+      "device_id": "homelab-host"
+    },
+    "repositories": [
+      {
+        "id": "primary-off-host",
+        "role": "primary",
+        "kind": "mounted-filesystem",
+        "path": "X:\\HomeLabBackup\\repositories",
+        "device_id": "backup-appliance-one",
+        "off_host": true,
+        "capacity_gib": 2048,
+        "owner_confirmed": false
+      },
+      {
+        "id": "secondary-offline",
+        "role": "replica",
+        "kind": "mounted-filesystem",
+        "path": "Y:\\HomeLabBackup\\repositories",
+        "device_id": "offline-backup-drive",
+        "off_host": true,
+        "capacity_gib": 2048,
+        "owner_confirmed": false
+      }
+    ],
+    "key_custody": {
+      "operational": {
+        "path": "C:\\HomeLabBackup\\keys\\operational",
+        "device_id": "homelab-host"
+      },
+      "recovery_copies": [
+        {
+          "id": "offline-key-one",
+          "path": "Z:\\HomeLabRecoveryKeys\\copy-one",
+          "device_id": "offline-key-device-one",
+          "offline": true,
+          "owner_confirmed": false
+        },
+        {
+          "id": "offsite-key-two",
+          "path": "W:\\HomeLabRecoveryKeys\\copy-two",
+          "device_id": "offsite-key-device-two",
+          "offline": true,
+          "owner_confirmed": false
+        }
+      ]
+    }
+  },
+  "capacity": {
+    "minimum_free_gib": 100,
+    "modules": [
+      {"id": "paperless-ngx", "estimated_current_gib": 25, "retention_reserve_gib": 25, "rpo_hours": 24, "rto_hours": 8},
+      {"id": "affine", "estimated_current_gib": 10, "retention_reserve_gib": 10, "rpo_hours": 24, "rto_hours": 8},
+      {"id": "nextcloud", "estimated_current_gib": 250, "retention_reserve_gib": 150, "rpo_hours": 24, "rto_hours": 12},
+      {"id": "firefly-iii", "estimated_current_gib": 5, "retention_reserve_gib": 5, "rpo_hours": 24, "rto_hours": 4},
+      {"id": "vaultwarden", "estimated_current_gib": 5, "retention_reserve_gib": 5, "rpo_hours": 24, "rto_hours": 4},
+      {"id": "karakeep", "estimated_current_gib": 25, "retention_reserve_gib": 25, "rpo_hours": 24, "rto_hours": 8}
+    ]
+  },
+  "schedule": {
+    "activation": "disabled",
+    "backup_slots": [
+      {"module": "paperless-ngx", "local_time": "01:30"},
+      {"module": "affine", "local_time": "02:00"},
+      {"module": "nextcloud", "local_time": "02:30"},
+      {"module": "firefly-iii", "local_time": "03:00"},
+      {"module": "vaultwarden", "local_time": "03:30"},
+      {"module": "karakeep", "local_time": "04:00"}
+    ],
+    "full_check": {"weekday": "Sunday", "local_time": "05:00"},
+    "retention": {
+      "daily": 7,
+      "weekly": 4,
+      "monthly": 3,
+      "preview_weekday": "Sunday",
+      "preview_local_time": "07:00",
+      "apply_requires_restore_verified": true
+    },
+    "restore_rehearsal": "quarterly-manual",
+    "task_settings": {
+      "hidden": true,
+      "multiple_instances": "ignore-new",
+      "start_when_available": true,
+      "execution_limit_minutes": 180
+    }
+  },
+  "notifications": {
+    "required": true,
+    "configured": false,
+    "channel_reference": "owner-private-notification-profile",
+    "notify_on": ["backup-failure", "missed-window", "full-check-failure", "replica-failure"]
+  },
+  "recovery_drill": {
+    "production_data_completed": false,
+    "last_completed_utc": null,
+    "evidence_reference": null
+  }
+}

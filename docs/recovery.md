@@ -29,6 +29,12 @@ The `0.6.0-rc.1` repository candidate keeps each personal-data application indep
 
 Passing this gate proves synthetic application recovery on one exact commit. It does not prove that production backups exist, that a real key survives loss of the host, or that an owner-selected off-host destination meets capacity and availability requirements. Those remain explicit stable-release and production-adoption gates.
 
+## Owner-operated storage and custody policy
+
+Version `0.6.0-rc.2` adds an offline, disabled policy layer over the six recovery modules. It requires one primary and one replica mounted-filesystem repository on different declared off-host devices, plus two offline recovery-key copies on devices distinct from the host and both repositories. It also records conservative capacity reserves, RPO/RTO, staggered slots, hidden non-overlapping task behavior, notifications and a representative restore-drill gate.
+
+The policy never contains key values or notification credentials. It does not create repositories, generate keys or install schedules. See [owner-operated Phase 5 backup design](owner-operated-backups.md).
+
 ## Mandatory application details
 
 | Application | Required recovery material |

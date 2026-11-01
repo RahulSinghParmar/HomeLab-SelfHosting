@@ -115,6 +115,8 @@ Thirteenth bounded milestone: **0.6.0-alpha.13**, the [Karakeep encrypted off-ho
 
 Integrated release review: **0.6.0-rc.1** combines the six bounded recovery pairs behind one [machine-readable assurance contract and manual exact-commit workflow](validation/phase5-integrated.md). Each existing workflow remains independently dispatchable and becomes reusable with an explicit module-specific secret; the integrated caller contains no duplicate recovery implementation. The release-candidate decision remains a **no-go for stable 0.6.0 and production adoption** until durable owner-controlled storage, real offline-key custody, scheduling/alerts and representative production-data restore drills pass.
 
+Owner design candidate: **0.6.0-rc.2** adds a strict [owner-operated backup policy](owner-operated-backups.md) for two off-host repositories, two offline recovery-key devices, capacity, RPO/RTO, staggered hidden scheduling, notifications and restore-drill readiness. Planning remains disabled and non-activating. Task installation, real keys, replica transport and production-data recovery remain required before stable release or adoption.
+
 Implement application-consistent backup/restore before considering a module complete. Build a portable encrypted recovery kit and retention policy. Test with nonempty synthetic data. Choose a maintained encryption/backup tool after validating its current platform support; do not invent cryptography.
 
 Exit: upload/open/edit/restart/backup/restore checks and a verified recovery-secret workflow for every implemented module. No real financial records or password vaults in test fixtures.
