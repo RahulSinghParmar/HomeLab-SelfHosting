@@ -1,0 +1,70 @@
+{
+  "contract": "phase5-recovery-closure-v1",
+  "release": "0.6.0",
+  "scope": "synthetic-application-recovery-toolkit",
+  "production_adoption": false,
+  "production_data_used": false,
+  "encryption": {
+    "tool": "restic",
+    "version": "0.19.1",
+    "full_data_check_required": true,
+    "recovery_key_separate_from_repository": true
+  },
+  "retention": {
+    "daily": 7,
+    "weekly": 4,
+    "monthly": 3,
+    "apply_requires_restore_verified": true
+  },
+  "kit_components": [
+    "tagged-source-and-runbooks",
+    "encrypted-repository-per-module",
+    "portable-recovery-manifest-per-module",
+    "separately-custodied-recovery-key-per-module",
+    "sanitized-clean-runner-recovery-proof-per-module"
+  ],
+  "modules": [
+    {
+      "id": "paperless-ngx",
+      "consistency_method": "document-exporter-importer",
+      "fixture_marker": "Phase 5 Recovery Fixture",
+      "authoritative_material": ["document-export", "postgres-custom-dump", "data", "media", "export"],
+      "semantic_proof_fields": ["documents", "application_import_verified", "restart_persistence_verified"]
+    },
+    {
+      "id": "affine",
+      "consistency_method": "postgres-config-storage",
+      "fixture_marker": "HomeLab AFFiNE Phase 5 recovery marker v1",
+      "authoritative_material": ["postgres-custom-dump", "config", "storage"],
+      "semantic_proof_fields": ["documents", "application_restore_verified", "browser_rendered_title_verified", "browser_rendered_body_verified", "browser_reload_verified", "browser_independent_session_verified", "restart_persistence_verified"]
+    },
+    {
+      "id": "nextcloud",
+      "consistency_method": "postgres-filesystem-restore",
+      "fixture_marker": "phase5-nextcloud-recovery.txt",
+      "authoritative_material": ["postgres-custom-dump", "application-role", "config", "data", "custom-apps", "themes"],
+      "semantic_proof_fields": ["fixture_sha256", "application_restore_verified", "webdav_content_verified", "restart_persistence_verified"]
+    },
+    {
+      "id": "firefly-iii",
+      "consistency_method": "mariadb-filesystem-restore",
+      "fixture_marker": "HomeLab Firefly III Phase 5 recovery marker v1",
+      "authoritative_material": ["mariadb-logical-dump", "upload", "export", "application-secrets"],
+      "semantic_proof_fields": ["attachment_bytes", "attachment_sha256", "application_restore_verified", "finance_content_verified", "restart_persistence_verified"]
+    },
+    {
+      "id": "vaultwarden",
+      "consistency_method": "sqlite-vacuum-filesystem-restore",
+      "fixture_marker": "HomeLab Vaultwarden Phase 5 recovery marker v1",
+      "authoritative_material": ["sqlite-vacuum-snapshot", "rsa-keys", "attachments", "sends", "optional-config"],
+      "semantic_proof_fields": ["attachment_bytes", "attachment_sha256", "application_restore_verified", "browser_rendered", "decrypted_note_verified", "attachment_download_verified", "independent_sessions_verified", "browser_content_verified", "restart_persistence_verified"]
+    },
+    {
+      "id": "karakeep",
+      "consistency_method": "sqlite-quiesced-assets-reindex-restore",
+      "fixture_marker": "HomeLab Karakeep Phase 5 recovery marker v1",
+      "authoritative_material": ["sqlite-database", "asset-tree", "application-logical-export"],
+      "semantic_proof_fields": ["application_export_bytes", "application_restore_verified", "browser_rendered", "full_text_search_verified", "asset_download_verified", "search_rebuild_verified", "browser_content_verified", "restart_persistence_verified"]
+    }
+  ]
+}

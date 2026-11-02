@@ -1,3 +1,3 @@
 """Local-first planning and isolated synthetic execution primitives."""
 
-__version__ = "0.6.0-rc.2"
+__version__ = "0.6.0"

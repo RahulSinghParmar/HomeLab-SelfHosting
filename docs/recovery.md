@@ -35,6 +35,10 @@ Version `0.6.0-rc.2` adds an offline, disabled policy layer over the six recover
 
 The policy never contains key values or notification credentials. It does not create repositories, generate keys or install schedules. See [owner-operated Phase 5 backup design](owner-operated-backups.md).
 
+## Phase 5 closure
+
+Version `0.6.0` closes the reusable encrypted recovery-kit milestone. `modules/phase5/closure.json` binds each application-consistency method and authoritative recovery set to a nonempty synthetic fixture and application-level clean-runner proof. The final integrated workflow must restore all six applications on independent runners and verify real content plus restart persistence. See [Phase 5 encrypted recovery kit](phase5-recovery-kit.md).
+
 ## Mandatory application details
 
 | Application | Required recovery material |

@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Release candidate 0.6.0-rc.2 adds the owner-operated backup design.** The six Phase 5 recovery modules retain their integrated clean-runner gate, while a new disabled policy validates two off-host repositories, two offline recovery-key copies, capacity, staggered scheduling, notifications and restore-drill readiness. It does not install tasks, create keys, initialize repositories or read personal data.
+**Version 0.6.0 completes the Phase 5 encrypted recovery kit.** Paperless-ngx, AFFiNE, Nextcloud, Firefly III, Vaultwarden and Karakeep each have an application-consistent backup, separately keyed encrypted repository, full-data check, restore-gated retention and an independent clean-runner restore of actual nonempty synthetic content. Owner production adoption remains private and separately approved.
 
 ## What this project is building
 
@@ -61,6 +61,9 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [Owner-operated backup design](docs/owner-operated-backups.md) | Storage topology, capacity, scheduling, key custody and activation gates |
 | [0.6.0-rc.2 design validation](docs/validation/phase5-owner-backup-design.md) | Offline policy evidence and read-only Windows task reconciliation |
 | [0.6.0-rc.2 release review](docs/releases/v0.6.0-rc.2.md) | Exact non-activating scope and remaining production gates |
+| [Phase 5 encrypted recovery kit](docs/phase5-recovery-kit.md) | Runtime kit layout, semantic content checks, encryption and retention contract |
+| [Phase 5 closure validation](docs/validation/phase5-closure.md) | Final six-module consistency and clean-runner restore gate |
+| [0.6.0 release review](docs/releases/v0.6.0.md) | Completed Phase 5 scope and production-adoption boundary |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -86,6 +89,7 @@ python -m homelab doctor
 python tools/validate_repository.py
 python tools/validate_phase4.py
 python tools/validate_phase5.py
+python tools/validate_phase5_closure.py
 python homelab_cli.py owner-backup validate --policy modules/phase5/owner-backup-policy.example.json
 python -m unittest discover -s tests -v
 ```
@@ -117,7 +121,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0-rc.2 release review](docs/releases/v0.6.0-rc.2.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.6.0 release review](docs/releases/v0.6.0.md).
 
 ## License
 

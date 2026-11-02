@@ -33,6 +33,8 @@ jobs:
         run: python tools/validate_phase4.py
       - name: Validate Phase 5 release contract
         run: python tools/validate_phase5.py
+      - name: Validate Phase 5 recovery closure
+        run: python tools/validate_phase5_closure.py
       - name: Check tracked publication content
         run: python tools/check_publication.py
       - name: Run regression tests

@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-RELEASE = '0.6.0-rc.2'
+RELEASE = '0.6.0'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'
@@ -303,10 +303,14 @@ def validate_phase5(root: Path = ROOT) -> str:
         require((root / relative).is_file(), f'missing Karakeep release file {relative}')
     for relative in ('modules/phase5/recovery.json',
                      'modules/phase5/owner-backup-policy.example.json',
+                     'modules/phase5/closure.json',
                      'homelab/owner_backup.py',
                      'tests/test_owner_backup.py',
                      'docs/owner-operated-backups.md',
                      'docs/validation/phase5-owner-backup-design.md',
+                     'docs/phase5-recovery-kit.md',
+                     'docs/validation/phase5-closure.md',
+                     'docs/releases/v0.6.0.md',
                      'docs/releases/v0.6.0-rc.2.md',
                      '.github/workflows/phase5-integrated-recovery.yml',
                      'tests/test_phase5_integrated.py',
@@ -670,10 +674,10 @@ def validate_phase5(root: Path = ROOT) -> str:
             and owner_plan['readiness']['status'] == 'blocked'
             and owner_plan['readiness']['activation_included'] is False,
             'owner backup example must remain a blocked, non-activating design')
-    return ('PASS: Phase 5 0.6.0-rc.2 validates six application-aware encrypted '
+    return ('PASS: Phase 5 0.6.0 validates six application-aware encrypted '
             'off-host recovery modules, one integrated reusable-workflow gate and '
-            'a disabled owner storage/schedule/key-custody policy; stable release '
-            'and production adoption remain separate decisions')
+            'a disabled owner storage/schedule/key-custody policy; production '
+            'adoption remains a separate owner decision')
 
 
 def main() -> int:

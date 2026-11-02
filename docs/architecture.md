@@ -51,6 +51,8 @@ The `0.6.0-rc.1` integrated gate does not merge application lifecycles or data s
 
 The `0.6.0-rc.2` owner layer remains a disabled policy and deterministic plan, not a backup daemon. It validates two declared off-host filesystem repositories, two separately custodied offline key devices, conservative capacity, staggered scheduling requirements and adoption blockers without initializing storage or registering tasks.
 
+Version `0.6.0` closes the Phase 5 public recovery-toolkit contract without combining application lifecycles. A separate closure matrix binds each application-consistency method and nonempty fixture to its clean-runner semantic proof. Production data, destinations, schedules and keys remain outside the repository and outside automatic adoption.
+
 Coolify-managed proxy, sentinel, and generated applications must remain under their actual lifecycle owner. A single top-level command can coordinate them without relabeling or fighting the upstream control plane.
 
 ## Planned user workflow

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0 — 2026-11-02
+
+- Closed Phase 5 with one machine-readable recovery-kit contract covering six application-consistent backups and their authoritative recovery material.
+- Bound every module to nonempty synthetic fixture content and application-level clean-runner restore proof, including restart persistence rather than backup-file existence alone.
+- Added a final closure validator for separate-key Restic encryption, complete repository data checks, portable manifests and restore-gated 7/4/3 retention.
+- Preserved production boundaries: no owner repository, recovery key, scheduled task, notification credential or personal data was created or adopted by the public release.
+
 ## 0.6.0-rc.2 — 2026-11-01
 
 - Added a strict owner-operated Phase 5 policy for two off-host encrypted repositories, two independently custodied offline recovery-key copies, capacity reserves, RPO/RTO inputs and all six application schedules.

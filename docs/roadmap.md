@@ -117,6 +117,8 @@ Integrated release review: **0.6.0-rc.1** combines the six bounded recovery pair
 
 Owner design candidate: **0.6.0-rc.2** adds a strict [owner-operated backup policy](owner-operated-backups.md) for two off-host repositories, two offline recovery-key devices, capacity, RPO/RTO, staggered hidden scheduling, notifications and restore-drill readiness. Planning remains disabled and non-activating. Task installation, real keys, replica transport and production-data recovery remain required before stable release or adoption.
 
+Phase closure: **0.6.0** adds the final [encrypted recovery-kit contract](phase5-recovery-kit.md) and [closure validator](validation/phase5-closure.md). All six modules bind an application-specific consistency method and authoritative material to nonempty synthetic fixture content, full-data-checked separate-key encryption, independent clean-runner semantic restoration and restart persistence. Phase 5 is complete for the public reusable toolkit; owner production adoption remains separate private operational work.
+
 Implement application-consistent backup/restore before considering a module complete. Build a portable encrypted recovery kit and retention policy. Test with nonempty synthetic data. Choose a maintained encryption/backup tool after validating its current platform support; do not invent cryptography.
 
 Exit: upload/open/edit/restart/backup/restore checks and a verified recovery-secret workflow for every implemented module. No real financial records or password vaults in test fixtures.
