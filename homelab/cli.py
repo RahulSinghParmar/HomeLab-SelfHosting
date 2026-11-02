@@ -520,6 +520,21 @@ def main(arguments=None) -> int:
     media_plan = media_actions.add_parser('plan')
     media_plan.add_argument('--policy', type=Path, required=True)
     media_plan.add_argument('--output', type=Path, required=True)
+    immich = sub.add_parser(
+        'immich', help='Experimental isolated Immich with protected-original recovery')
+    immich_actions = immich.add_subparsers(dest='action', required=True)
+    immich_plan = immich_actions.add_parser('plan')
+    immich_plan.add_argument('--root', type=Path, required=True)
+    immich_plan.add_argument('--port', type=int, default=18060)
+    immich_plan.add_argument('--output', type=Path, required=True)
+    immich_plan.add_argument('--restore-backup', type=Path)
+    for verb in ('up', 'status', 'stop', 'remove', 'exercise', 'backup'):
+        action = immich_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        if verb != 'status':
+            action.add_argument('--confirm', required=True)
+        if verb == 'backup':
+            action.add_argument('--output', type=Path, required=True)
     beszel = sub.add_parser('beszel', help='Experimental upstream Beszel hub and restricted agent; no native-host adoption')
     beszel_actions = beszel.add_subparsers(dest='action', required=True)
     beszel_plan = beszel_actions.add_parser('plan')
@@ -561,6 +576,26 @@ def main(arguments=None) -> int:
                 result = module.make_plan(module.validate_policy(load_json(args.policy)),
                                           capability)
                 write_private(args.output, result)
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'immich':
+            from . import immich as module
+            if args.action == 'plan':
+                result = module.make_plan(args.root, args.port, module.local_runtime(),
+                                          args.restore_backup)
+                if args.output.resolve().is_relative_to(Path(result['root'])):
+                    raise ConfigError('Plan output must be outside installation storage')
+                write_private(args.output, result)
+                result = {**result, 'root': '<installation-root>',
+                          'runtime': '<local-engine-reference>',
+                          'recovery': '<private-backup-reference>' if result['recovery'] else None}
+            elif args.action == 'backup':
+                result = module.backup(load_json(args.plan), args.output, args.confirm)
+            elif args.action == 'exercise':
+                result = module.exercise(load_json(args.plan), args.confirm)
+            else:
+                result = module.operate(load_json(args.plan), args.action,
+                                        getattr(args, 'confirm', None))
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command == 'owner-backup':

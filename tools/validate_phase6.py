@@ -1,9 +1,10 @@
-"""Validate the non-activating Phase 6 media and acceleration foundation."""
+"""Validate the Phase 6 media foundation and isolated Immich recovery module."""
 from __future__ import annotations
 
 import json
 import re
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -11,9 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from homelab.media_acceleration import CONTRACT, load_policy, make_plan
+from homelab import immich
 
 
-RELEASE = "0.7.0-alpha.1"
+RELEASE = "0.7.0-alpha.2"
 DIGEST = re.compile(r"^[^@\s]+@sha256:[0-9a-f]{64}$")
 
 
@@ -76,17 +78,58 @@ def validate_phase6(root: Path = ROOT) -> str:
     cli = (root / "homelab/cli.py").read_text(encoding="utf-8")
     require("'media'" in cli and "media_acceleration" in cli,
             "Media audit/plan CLI is not wired")
+    require("'immich'" in cli and "from . import immich as module" in cli,
+            "Immich lifecycle CLI is not wired")
+    runtime = {"context": "phase6-test", "endpoint": "unix:///phase6-test.sock",
+               "engine_id": "phase6-test"}
+    with tempfile.TemporaryDirectory(prefix="phase6-validator-") as directory:
+        candidate = immich.make_plan(Path(directory) / "install", 18060, runtime)
+        spec = immich.compose(candidate, "a" * 32,
+                              {"database_password": "b" * 64,
+                               "admin_password": "c" * 64})
+    require(candidate["authoritative_material"] == [
+        "postgres-custom-dump", "library", "upload", "profile"],
+        "Immich authoritative recovery set changed")
+    require(candidate["derived_material"] == ["thumbs", "encoded-video", "backups"]
+            and candidate["cache_material"] == ["redis-data", "model-cache"],
+            "Immich derived/cache exclusion changed")
+    require(candidate["machine_learning"] == {
+        "backend": "cpu", "environment": immich.ML_ENVIRONMENT,
+        "device_access": False, "independently_stoppable": True},
+        "Immich ML policy changed")
+    ml = spec["services"]["immich-machine-learning"]
+    require(ml["mem_limit"] == "1536m" and ml["cpus"] == 1.0
+            and ml["pids_limit"] == 256 and "ports" not in ml,
+            "Immich ML is not separately bounded/internal")
+    server = spec["services"]["immich-server"]
+    require(server["ports"] == [{"target": 2283, "published": "18060",
+                                  "host_ip": "127.0.0.1", "protocol": "tcp"}]
+            and spec["networks"]["backend"]["internal"] is True,
+            "Immich access isolation changed")
+    require("docker.sock" not in json.dumps(spec)
+            and not any("device" in key.casefold()
+                        for key in ml if key not in ("environment",)),
+            "Immich gained Docker/device control")
+    module_code = (root / "homelab/immich.py").read_text(encoding="utf-8")
+    for marker in ("quiesced-postgres-protected-originals", "pg_dump",
+                   "pg_restore", "protected_originals_complete",
+                   "system_markers", "machine_learning_independent"):
+        require(marker in module_code, f"Immich recovery contract missing {marker}")
     workflow = (root / ".github/workflows/validate.yml").read_text(encoding="utf-8")
     require("python tools/validate_phase6.py" in workflow,
             "Phase 6 validator is absent from CI")
     for path in ("docs/phase6-media-foundation.md",
                  "docs/validation/phase6-media-foundation.md",
                  "docs/releases/v0.7.0-alpha.1.md",
-                 "tests/test_media_acceleration.py"):
+                 "docs/immich-module.md",
+                 "docs/validation/immich.md",
+                 "docs/releases/v0.7.0-alpha.2.md",
+                 "tests/test_media_acceleration.py",
+                 "tests/test_immich.py"):
         require((root / path).is_file(), f"Missing Phase 6 artifact: {path}")
-    return ("PASS: Phase 6 0.7.0-alpha.1 pins the Immich v3.3.5 release set, "
-            "preserves authoritative media classes, keeps heavy jobs manual and "
-            "fails closed to CPU after a read-only capability audit")
+    return ("PASS: Phase 6 0.7.0-alpha.2 preserves the media safety foundation "
+            "and adds isolated Immich v3.3.5 protected-original recovery with "
+            "separately bounded CPU machine learning")
 
 
 def main() -> int:

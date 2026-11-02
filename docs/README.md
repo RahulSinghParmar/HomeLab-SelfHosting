@@ -39,7 +39,7 @@ Paperless, AFFiNE, Nextcloud, Firefly III, Vaultwarden and Karakeep now have app
 
 ## Phase 6 media
 
-The [media and acceleration foundation](phase6-media-foundation.md) defines authoritative originals, rebuildable derivatives, cache exclusions, manual heavy jobs and CPU-fallback acceleration gates. Its [validation record](validation/phase6-media-foundation.md) documents the read-only reference-host capability result. Immich deployment and recovery, optional media-management selection and the Jellyfin adapter remain subsequent milestones.
+The [media and acceleration foundation](phase6-media-foundation.md) defines authoritative originals, rebuildable derivatives, cache exclusions, manual heavy jobs and CPU-fallback acceleration gates. Its [validation record](validation/phase6-media-foundation.md) documents the read-only reference-host capability result. The [Immich recovery module](immich-module.md) now proves exact original download, ML isolation, a quiesced PostgreSQL/protected-file backup and independent application restoration; see its [Windows Docker evidence](validation/immich.md). Encrypted off-host Immich recovery, optional media-management selection and the Jellyfin adapter remain subsequent milestones.
 
 ## Operations and recovery
 

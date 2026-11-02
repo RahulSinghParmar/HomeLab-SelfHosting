@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0-alpha.2 — 2026-11-02
+
+- Added a loopback-only Immich 3.3.5 lifecycle with private database secret injection, exact image digests, internal backend networking and ownership/drift checks.
+- Protected PostgreSQL plus `library`, `upload` and `profile` in a quiesced, hash-bound recovery set while excluding derived media, Valkey state and ML model cache.
+- Preserved only required derived-directory `.immich` integrity markers so a minimal recovery set passes application startup without retaining thumbnails or encoded video.
+- Proved exact synthetic original upload/download, continued browsing with ML stopped, independent fresh-project restore and recovered stop/start persistence on Windows Docker Desktop.
+- Limited CPU machine learning independently to 1 CPU, 1536 MiB, 256 PIDs, one worker/thread lane, one-item face/OCR batches and a 60-second idle model TTL.
+
 ## 0.7.0-alpha.1 — 2026-11-02
 
 - Started Phase 6 with a strict authoritative/derived/cache media policy that protects originals and keeps destructive cleanup confirmation-gated.

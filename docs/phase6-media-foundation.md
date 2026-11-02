@@ -2,6 +2,8 @@
 
 Version 0.7.0-alpha.1 establishes the safety contract used by later Immich, optional media-management and Jellyfin adapters. It performs no deployment, does not read media, and cannot enable a GPU.
 
+The follow-up [0.7.0-alpha.2 Immich module](immich-module.md) now implements the first isolated application-aware recovery candidate under this contract. This page retains the original foundation scope.
+
 ## Storage contract
 
 Media state is classified before any lifecycle operation:
@@ -57,7 +59,7 @@ Upstream references:
 - [Hardware transcoding](https://docs.immich.app/features/hardware-transcoding/)
 - [NVIDIA legacy compute capability table](https://developer.nvidia.com/cuda/gpus/legacy)
 
-## Not yet delivered
+## Not delivered by the foundation release
 
 - No Immich Compose adapter, user, upload, album, browser or restore trial.
 - No media-management application is selected.
@@ -65,4 +67,4 @@ Upstream references:
 - No GPU container or hardware transcode test.
 - No production path adoption, media scan, thumbnail generation, cleanup or migration.
 
-The next milestone is the isolated Immich application-aware recovery module.
+Immich recovery was delivered separately in 0.7.0-alpha.2; the other boundaries above remain applicable to the foundation itself.
