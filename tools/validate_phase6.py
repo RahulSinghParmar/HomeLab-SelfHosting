@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 import re
 import sys
-import tempfile
 from pathlib import Path
 
 
@@ -82,11 +81,14 @@ def validate_phase6(root: Path = ROOT) -> str:
             "Immich lifecycle CLI is not wired")
     runtime = {"context": "phase6-test", "endpoint": "unix:///phase6-test.sock",
                "engine_id": "phase6-test"}
-    with tempfile.TemporaryDirectory(prefix="phase6-validator-") as directory:
-        candidate = immich.make_plan(Path(directory) / "install", 18060, runtime)
-        spec = immich.compose(candidate, "a" * 32,
-                              {"database_password": "b" * 64,
-                               "admin_password": "c" * 64})
+    # macOS exposes its temporary directory through /var -> /private/var. The
+    # execution safety layer correctly rejects symlinked ancestors, so use an
+    # absent sibling of the checkout for this no-write plan/Compose check.
+    candidate_root = root.parent / "homelab-phase6-validator-install"
+    candidate = immich.make_plan(candidate_root, 18060, runtime)
+    spec = immich.compose(candidate, "a" * 32,
+                          {"database_password": "b" * 64,
+                           "admin_password": "c" * 64})
     require(candidate["authoritative_material"] == [
         "postgres-custom-dump", "library", "upload", "profile"],
         "Immich authoritative recovery set changed")
