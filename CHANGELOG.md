@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0-alpha.1 — 2026-11-02
+
+- Started Phase 6 with a strict authoritative/derived/cache media policy that protects originals and keeps destructive cleanup confirmation-gated.
+- Pinned the compatible Immich 3.3.5 server, machine-learning, Valkey and PostgreSQL release set to immutable image digests without pulling or starting it.
+- Added privacy-bounded read-only Docker/NVIDIA capability auditing and deterministic disabled planning with CPU fallback.
+- Kept thumbnail, OCR, recognition, indexing, scanning and transcoding work manual and bounded the proposed four-component stack to 6 GiB.
+- Recorded the reference GT 730/391.35 result as unsupported for current Immich CUDA requirements; no GPU workload or production-media operation was attempted.
+
 ## 0.6.0 — 2026-11-02
 
 - Closed Phase 5 with one machine-readable recovery-kit contract covering six application-consistent backups and their authoritative recovery material.

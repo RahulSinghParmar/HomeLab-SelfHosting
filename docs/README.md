@@ -37,6 +37,10 @@ The combined decision and remaining gates are in [Phase 4 integrated validation]
 
 Paperless, AFFiNE, Nextcloud, Firefly III, Vaultwarden and Karakeep now have application-aware and encrypted synthetic off-host recovery paths. The [Phase 5 encrypted recovery kit](phase5-recovery-kit.md) and [closure record](validation/phase5-closure.md) bind their consistency methods, nonempty fixtures, clean-runner semantic restores and restore-gated retention. The [owner-operated backup design](owner-operated-backups.md) remains disabled until private storage and key-custody choices are approved.
 
+## Phase 6 media
+
+The [media and acceleration foundation](phase6-media-foundation.md) defines authoritative originals, rebuildable derivatives, cache exclusions, manual heavy jobs and CPU-fallback acceleration gates. Its [validation record](validation/phase6-media-foundation.md) documents the read-only reference-host capability result. Immich deployment and recovery, optional media-management selection and the Jellyfin adapter remain subsequent milestones.
+
 ## Operations and recovery
 
 - [Service requirements](services.md)
@@ -61,6 +65,8 @@ Paperless, AFFiNE, Nextcloud, Firefly III, Vaultwarden and Karakeep now have app
 python tools/validate_repository.py
 python tools/validate_phase4.py
 python tools/validate_phase5.py
+python tools/validate_phase5_closure.py
+python tools/validate_phase6.py
 python tools/check_publication.py --history
 python -m unittest discover -s tests -v
 ```

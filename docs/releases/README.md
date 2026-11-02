@@ -51,3 +51,4 @@ Never reuse a version or move an existing tag. If a published release needs corr
 - [0.6.0-rc.1](v0.6.0-rc.1.md) — Phase 5 integrated encrypted-recovery candidate
 - [0.6.0-rc.2](v0.6.0-rc.2.md) — owner-operated backup design candidate
 - [0.6.0](v0.6.0.md) — completed Phase 5 encrypted recovery kit
+- [0.7.0-alpha.1](v0.7.0-alpha.1.md) — Phase 6 media safety and acceleration foundation

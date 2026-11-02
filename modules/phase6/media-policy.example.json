@@ -1,0 +1,73 @@
+{
+  "kind": "homelab-phase6-media-policy",
+  "contract": "phase6-media-acceleration-v1",
+  "execution": "disabled-review-only",
+  "storage": {
+    "classes": {
+      "authoritative": [
+        "configuration",
+        "database",
+        "originals",
+        "profile"
+      ],
+      "derived": [
+        "encoded-video",
+        "thumbnails"
+      ],
+      "cache": [
+        "machine-learning-models",
+        "search-index",
+        "transcode-cache"
+      ]
+    },
+    "rules": {
+      "originals_backed_up": true,
+      "derived_rebuildable": true,
+      "cache_excluded": true,
+      "destructive_cleanup": "explicit-confirmation-required"
+    }
+  },
+  "jobs": {
+    "facial-recognition": "manual",
+    "library-scan": "manual",
+    "ocr": "manual",
+    "smart-search": "manual",
+    "thumbnail-generation": "manual",
+    "video-transcoding": "manual"
+  },
+  "acceleration": {
+    "default": "cpu",
+    "enablement": "capability-and-synthetic-test-required",
+    "fallback": "cpu",
+    "backends": [
+      "cuda",
+      "nvenc",
+      "openvino",
+      "quicksync",
+      "rocm",
+      "vaapi"
+    ]
+  },
+  "resources": {
+    "cache": {
+      "memory_mib": 256,
+      "cpus": 0.25,
+      "pids": 64
+    },
+    "database": {
+      "memory_mib": 1024,
+      "cpus": 1.0,
+      "pids": 256
+    },
+    "machine-learning": {
+      "memory_mib": 2048,
+      "cpus": 2.0,
+      "pids": 512
+    },
+    "server": {
+      "memory_mib": 2048,
+      "cpus": 2.0,
+      "pids": 512
+    }
+  }
+}

@@ -512,6 +512,14 @@ def main(arguments=None) -> int:
     owner_backup_plan = owner_backup_actions.add_parser('plan')
     owner_backup_plan.add_argument('--policy', type=Path, required=True)
     owner_backup_plan.add_argument('--output', type=Path, required=True)
+    media = sub.add_parser(
+        'media', help='Phase 6 read-only media policy and acceleration capability review')
+    media_actions = media.add_subparsers(dest='action', required=True)
+    media_audit = media_actions.add_parser('audit')
+    media_audit.add_argument('--output', type=Path)
+    media_plan = media_actions.add_parser('plan')
+    media_plan.add_argument('--policy', type=Path, required=True)
+    media_plan.add_argument('--output', type=Path, required=True)
     beszel = sub.add_parser('beszel', help='Experimental upstream Beszel hub and restricted agent; no native-host adoption')
     beszel_actions = beszel.add_subparsers(dest='action', required=True)
     beszel_plan = beszel_actions.add_parser('plan')
@@ -542,6 +550,19 @@ def main(arguments=None) -> int:
             action.add_argument('--confirm', required=True)
     args = parser.parse_args(arguments)
     try:
+        if args.command == 'media':
+            from . import media_acceleration as module
+            capability = module.audit()
+            if args.action == 'audit':
+                result = capability
+                if args.output:
+                    write_private(args.output, result)
+            else:
+                result = module.make_plan(module.validate_policy(load_json(args.policy)),
+                                          capability)
+                write_private(args.output, result)
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
         if args.command == 'owner-backup':
             from . import owner_backup as module
             policy = module.validate_policy(load_json(args.policy))
