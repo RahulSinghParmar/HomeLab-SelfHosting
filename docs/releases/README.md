@@ -53,3 +53,4 @@ Never reuse a version or move an existing tag. If a published release needs corr
 - [0.6.0](v0.6.0.md) — completed Phase 5 encrypted recovery kit
 - [0.7.0-alpha.1](v0.7.0-alpha.1.md) — Phase 6 media safety and acceleration foundation
 - [0.7.0-alpha.2](v0.7.0-alpha.2.md) — Immich protected-original recovery candidate
+- [0.7.0-alpha.3](v0.7.0-alpha.3.md) — Immich encrypted off-host recovery candidate

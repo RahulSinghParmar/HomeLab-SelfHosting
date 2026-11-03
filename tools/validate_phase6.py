@@ -11,10 +11,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from homelab.media_acceleration import CONTRACT, load_policy, make_plan
-from homelab import immich
+from homelab import immich, immich_vault
 
 
-RELEASE = "0.7.0-alpha.2"
+RELEASE = "0.7.0-alpha.3"
 DIGEST = re.compile(r"^[^@\s]+@sha256:[0-9a-f]{64}$")
 
 
@@ -79,6 +79,8 @@ def validate_phase6(root: Path = ROOT) -> str:
             "Media audit/plan CLI is not wired")
     require("'immich'" in cli and "from . import immich as module" in cli,
             "Immich lifecycle CLI is not wired")
+    require("'immich-vault'" in cli and "from . import immich_vault as module" in cli,
+            "Immich encrypted-vault CLI is not wired")
     runtime = {"context": "phase6-test", "endpoint": "unix:///phase6-test.sock",
                "engine_id": "phase6-test"}
     # macOS exposes its temporary directory through /var -> /private/var. The
@@ -117,6 +119,31 @@ def validate_phase6(root: Path = ROOT) -> str:
                    "pg_restore", "protected_originals_complete",
                    "system_markers", "machine_learning_independent"):
         require(marker in module_code, f"Immich recovery contract missing {marker}")
+    restic = load(root / "modules/immich/restic.json")
+    require(restic == {
+        "version": "0.19.1",
+        "windows_amd64": {
+            "archive_url": "https://github.com/restic/restic/releases/download/v0.19.1/restic_0.19.1_windows_amd64.zip",
+            "archive_sha256": "da948ad707ed690426473aaba2046cd61f8f90f6f0e7dab6be0d5796531de67d",
+            "executable_sha256": "b0dd1fd21eea5d8fe1325f55f7118213c21f36de8a261e04c0624a5ab9fd7830",
+        },
+        "linux_amd64": {
+            "archive_url": "https://github.com/restic/restic/releases/download/v0.19.1/restic_0.19.1_linux_amd64.bz2",
+            "archive_sha256": "f415415624dcc452f2a02b8c33641791a8c6d3b65bbb3543fcf9a25151585c",
+            "executable_sha256": "20d4142678d0d95ec11a4759def1b73fd9190abc9ca19e4b62d067c0b387e639",
+        },
+    }, "Reviewed Immich Restic release identity changed")
+    vault_code = (root / "homelab/immich_vault.py").read_text(encoding="utf-8")
+    for marker in ("immich-restic-vault-v1", "check\", \"--read-data",
+                   "recovery-verified", "source_machine_state_required",
+                   "derived_included", "ml_cache_included"):
+        require(marker in vault_code, f"Immich encrypted recovery contract missing {marker}")
+    dr_workflow = (root / ".github/workflows/immich-disaster-recovery.yml").read_text(
+        encoding="utf-8")
+    for marker in ("IMMICH_DR_TEST_PASSWORD", "prepare-encrypted-repository",
+                   "recover-on-clean-runner", "compression-level: 0",
+                   "tools.immich_dr_trial recover", "check --strict"):
+        require(marker in dr_workflow, f"Immich off-host workflow missing {marker}")
     workflow = (root / ".github/workflows/validate.yml").read_text(encoding="utf-8")
     require("python tools/validate_phase6.py" in workflow,
             "Phase 6 validator is absent from CI")
@@ -126,12 +153,18 @@ def validate_phase6(root: Path = ROOT) -> str:
                  "docs/immich-module.md",
                  "docs/validation/immich.md",
                  "docs/releases/v0.7.0-alpha.2.md",
+                 "docs/immich-vault.md",
+                 "docs/validation/immich-off-host-recovery.md",
+                 "docs/releases/v0.7.0-alpha.3.md",
                  "tests/test_media_acceleration.py",
-                 "tests/test_immich.py"):
+                 "tests/test_immich.py",
+                 "tests/test_immich_vault.py",
+                 "tools/immich_dr_trial.py",
+                 "tools/immich_vault_local_trial.py"):
         require((root / path).is_file(), f"Missing Phase 6 artifact: {path}")
-    return ("PASS: Phase 6 0.7.0-alpha.2 preserves the media safety foundation "
-            "and adds isolated Immich v3.3.5 protected-original recovery with "
-            "separately bounded CPU machine learning")
+    return ("PASS: Phase 6 0.7.0-alpha.3 preserves isolated Immich v3.3.5 "
+            "protected-original recovery and adds encrypted off-host full-data "
+            "validation with independent clean-runner restoration")
 
 
 def main() -> int:

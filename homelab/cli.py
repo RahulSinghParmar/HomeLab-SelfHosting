@@ -535,6 +535,50 @@ def main(arguments=None) -> int:
             action.add_argument('--confirm', required=True)
         if verb == 'backup':
             action.add_argument('--output', type=Path, required=True)
+    immich_vault = sub.add_parser(
+        'immich-vault', help='Encrypted Restic repository for verified Immich recovery sets')
+    immich_vault_actions = immich_vault.add_subparsers(dest='action', required=True)
+    immich_vault_keys = immich_vault_actions.add_parser('key-create')
+    immich_vault_keys.add_argument('--password-file', type=Path, required=True)
+    immich_vault_keys.add_argument('--recovery-key-file', type=Path, required=True)
+    immich_vault_keys.add_argument('--confirm', required=True)
+    immich_vault_plan = immich_vault_actions.add_parser('plan')
+    immich_vault_plan.add_argument('--state-root', type=Path, required=True)
+    immich_vault_plan.add_argument('--repository', type=Path, required=True)
+    immich_vault_plan.add_argument('--password-file', type=Path, required=True)
+    immich_vault_plan.add_argument('--recovery-key-file', type=Path, required=True)
+    immich_vault_plan.add_argument('--restic', type=Path, required=True)
+    immich_vault_plan.add_argument('--output', type=Path, required=True)
+    immich_snapshot_plan = immich_vault_actions.add_parser('snapshot-plan')
+    immich_snapshot_plan.add_argument('--plan', type=Path, required=True)
+    immich_snapshot_plan.add_argument('--source', type=Path, required=True)
+    immich_snapshot_plan.add_argument('--output', type=Path, required=True)
+    immich_portable_manifest = immich_vault_actions.add_parser('portable-manifest')
+    immich_portable_manifest.add_argument('--plan', type=Path, required=True)
+    immich_portable_manifest.add_argument('--snapshot-plan', type=Path, required=True)
+    immich_portable_manifest.add_argument('--snapshot-id', required=True)
+    immich_portable_manifest.add_argument('--output', type=Path, required=True)
+    immich_recovery_plan = immich_vault_actions.add_parser('recovery-plan')
+    immich_recovery_plan.add_argument('--repository', type=Path, required=True)
+    immich_recovery_plan.add_argument('--recovery-key-file', type=Path, required=True)
+    immich_recovery_plan.add_argument('--restic', type=Path, required=True)
+    immich_recovery_plan.add_argument('--manifest', type=Path, required=True)
+    immich_recovery_plan.add_argument('--output', type=Path, required=True)
+    immich_off_host = immich_vault_actions.add_parser('recover-off-host')
+    immich_off_host.add_argument('--plan', type=Path, required=True)
+    immich_off_host.add_argument('--target', type=Path, required=True)
+    immich_off_host.add_argument('--confirm', required=True)
+    for verb in ('init', 'status', 'store', 'check', 'restore',
+                 'retention-preview', 'retention-apply'):
+        action = immich_vault_actions.add_parser(verb)
+        action.add_argument('--plan', type=Path, required=True)
+        if verb not in ('status', 'retention-preview'):
+            action.add_argument('--confirm', required=True)
+        if verb in ('store', 'restore'):
+            action.add_argument('--snapshot-plan', type=Path, required=True)
+        if verb == 'restore':
+            action.add_argument('--snapshot-id', required=True)
+            action.add_argument('--target', type=Path, required=True)
     beszel = sub.add_parser('beszel', help='Experimental upstream Beszel hub and restricted agent; no native-host adoption')
     beszel_actions = beszel.add_subparsers(dest='action', required=True)
     beszel_plan = beszel_actions.add_parser('plan')
@@ -832,7 +876,8 @@ def main(arguments=None) -> int:
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command in ('paperless-vault', 'affine-vault', 'nextcloud-vault',
-                            'firefly-vault', 'vaultwarden-vault', 'karakeep-vault'):
+                            'firefly-vault', 'vaultwarden-vault', 'karakeep-vault',
+                            'immich-vault'):
             if args.command == 'paperless-vault':
                 from . import paperless_vault as module
                 backup_label = '<verified-paperless-backup>'
@@ -848,9 +893,12 @@ def main(arguments=None) -> int:
             elif args.command == 'vaultwarden-vault':
                 from . import vaultwarden_vault as module
                 backup_label = '<verified-vaultwarden-backup>'
-            else:
+            elif args.command == 'karakeep-vault':
                 from . import karakeep_vault as module
                 backup_label = '<verified-karakeep-backup>'
+            else:
+                from . import immich_vault as module
+                backup_label = '<verified-immich-protected-original-backup>'
             if args.action == 'key-create':
                 result = module.create_keys(args.password_file, args.recovery_key_file, args.confirm)
                 result = {**result, 'password_file': '<operational-key-file>',

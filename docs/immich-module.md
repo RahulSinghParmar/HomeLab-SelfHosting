@@ -2,6 +2,8 @@
 
 Version 0.7.0-alpha.2 adds an isolated Immich 3.3.5 recovery candidate. It is a synthetic validation path, not an adopter or updater for an existing Immich deployment.
 
+Version 0.7.0-alpha.3 layers the optional [encrypted recovery vault](immich-vault.md) over this verified application backup. The lifecycle and protected-original contract on this page remain unchanged.
+
 ## Recovery boundary
 
 Immich needs PostgreSQL and original files from the same application-consistent point. The module stops the server and machine-learning services, creates and validates a custom PostgreSQL archive, then copies these protected locations:

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0-alpha.3 — 2026-11-03
+
+- Added a checksum-pinned Restic vault for verified Immich PostgreSQL and protected-original recovery sets with separate operational and recovery-key references.
+- Added encrypted snapshots, complete repository-data reads, exact manifest/original validation, portable recovery manifests and restore-gated 7-daily/4-weekly/3-monthly retention.
+- Added a two-runner clean-room workflow that transports only the encrypted synthetic repository and nonsecret manifest while injecting the recovery key independently.
+- Proved local encryption, decryption, exact original recovery and stop/start persistence without reading or changing production media; the rehearsal now removes its source stack before recovered startup to reduce peak Docker Desktop memory.
+
 ## 0.7.0-alpha.2 — 2026-11-02
 
 - Added a loopback-only Immich 3.3.5 lifecycle with private database secret injection, exact image digests, internal backend networking and ownership/drift checks.

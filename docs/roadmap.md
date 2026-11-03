@@ -129,6 +129,8 @@ First bounded milestone: **0.7.0-alpha.1** adds a non-activating [media and acce
 
 Second bounded milestone: **0.7.0-alpha.2** adds an isolated [Immich application-aware recovery candidate](immich-module.md). It proves byte-exact upload/download with machine learning independently stopped, captures a quiesced PostgreSQL archive with protected `library`, `upload` and `profile` content, excludes derived media/model caches while retaining required integrity markers, and restores through the application in a fresh project with stop/start persistence. Encrypted off-host recovery, production adoption, external libraries, large-media/mobile evidence and scheduling remain pending.
 
+Third bounded milestone: **0.7.0-alpha.3** adds an [Immich encrypted recovery vault](immich-vault.md). It stores only a verified application-consistent recovery set, uses a checksum-pinned Restic binary and separately referenced recovery key, reads the complete encrypted repository, transports no plaintext backup or key, then restores exact original bytes through Immich on an independent clean runner with restart persistence. Owner storage, real offline key custody, scheduling, representative production-media drills and production adoption remain pending.
+
 Implement compatible Immich releases, separately limited ML, and correct storage mappings. Add media-management modules only as selected. Rebuildable thumbnails are distinct from originals; no automatic mass regeneration, deletion, or transcoding.
 
 Jellyfin native versus container deployment must be an explicit platform choice. GPU enablement requires a capability probe and real synthetic workload test; unsupported systems use CPU mode. Media integrations must respect lawful ownership and user-provided credentials.
