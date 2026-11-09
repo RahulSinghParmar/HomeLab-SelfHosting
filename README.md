@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Version 0.7.0-alpha.3 adds encrypted off-host recovery for the isolated Immich 3.3.5 candidate.** A checksum-pinned Restic vault accepts only verified PostgreSQL/protected-original recovery sets, checks every encrypted repository byte, carries a portable nonsecret manifest and proves exact application restoration on an independent runner. Phase 5's encrypted recovery kit and the Phase 6 safety foundation remain intact.
+**Version 0.7.0-alpha.4 adds explicit Jellyfin native/container deployment selection.** The read-only audit detects existing ownership without reading media or credentials, Windows/macOS fail closed to native, Linux requires an explicit choice, and the optional Linux Compose renderer uses an immutable Jellyfin 12.4 image with loopback/read-only/bounded defaults. Nothing is deployed or migrated by this prerelease.
 
 ## What this project is building
 
@@ -73,6 +73,9 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [Immich encrypted vault](docs/immich-vault.md) | Restic key custody, full-data checks, portable manifests and restore-gated retention |
 | [0.7.0-alpha.3 off-host validation](docs/validation/immich-off-host-recovery.md) | Encrypted-only transfer and independent clean-runner exact-original recovery |
 | [0.7.0-alpha.3 release review](docs/releases/v0.7.0-alpha.3.md) | Encrypted Immich recovery scope and remaining owner-adoption gates |
+| [Jellyfin deployment-selection module](docs/jellyfin-module.md) | Native/container platform rules, read-only adoption audit and Linux Compose renderer |
+| [0.7.0-alpha.4 validation](docs/validation/jellyfin.md) | Live native Windows detection, immutable image review and CPU fallback evidence |
+| [0.7.0-alpha.4 release review](docs/releases/v0.7.0-alpha.4.md) | Exact Jellyfin selection scope and remaining playback/recovery gates |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -102,6 +105,7 @@ python tools/validate_phase5_closure.py
 python tools/validate_phase6.py
 python homelab_cli.py owner-backup validate --policy modules/phase5/owner-backup-policy.example.json
 python -m homelab media audit
+python -m homelab jellyfin audit
 python -m unittest discover -s tests -v
 ```
 
@@ -111,13 +115,13 @@ Windows also supports `./bootstrap.ps1 catalog`; Linux/macOS supports `sh ./boot
 
 For the opt-in Windows/PowerShell 7 read-only metadata collector, see [evidence and privacy instructions](docs/discovery/evidence.md). Its report belongs outside Git. Windows collector regression tests use mocks and can be run with `./tests/Test-ReferenceCollector.ps1`.
 
-General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault`, `affine`, `affine-vault`, `nextcloud`, `nextcloud-vault`, `firefly`, `firefly-vault`, `vaultwarden`, `vaultwarden-vault`, `karakeep`, `karakeep-vault`, `immich` and `immich-vault` candidates are bounded execution paths; they do not enable the general planner. `owner-backup` and `media` only validate or save disabled private designs. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
+General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault`, `affine`, `affine-vault`, `nextcloud`, `nextcloud-vault`, `firefly`, `firefly-vault`, `vaultwarden`, `vaultwarden-vault`, `karakeep`, `karakeep-vault`, `immich` and `immich-vault` candidates are bounded execution paths; they do not enable the general planner. `owner-backup`, `media` and `jellyfin` only audit, validate or save disabled private designs. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
 
 ## Service families
 
 - Visibility: Glance, Uptime Kuma, Beszel, native Glances.
 - Personal data: Nextcloud, AFFiNE, Paperless-ngx, Firefly III, Vaultwarden, Karakeep.
-- Media: Immich, native Jellyfin, and an optional media-management stack.
+- Media: Immich, explicitly selected native/Linux-container Jellyfin, and an optional media-management stack.
 - Development and communication: code-server, Coolify, Matrix/Element.
 - Utilities and infrastructure: Stirling-PDF, Portainer, Cloudflare Tunnel, Tailscale.
 
@@ -132,7 +136,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.7.0-alpha.3 release review](docs/releases/v0.7.0-alpha.3.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.7.0-alpha.4 release review](docs/releases/v0.7.0-alpha.4.md).
 
 ## License
 

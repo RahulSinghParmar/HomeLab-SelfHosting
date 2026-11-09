@@ -4,13 +4,12 @@ from tools.validate_phase6 import ROOT, validate_phase6
 
 
 class Phase6ReleaseTests(unittest.TestCase):
-    def test_media_and_immich_contract_passes(self):
+    def test_media_immich_and_jellyfin_contract_passes(self):
         result = validate_phase6(ROOT)
-        self.assertIn("0.7.0-alpha.3", result)
-        self.assertIn("Immich v3.3.5", result)
-        self.assertIn("protected-original recovery", result)
-        self.assertIn("encrypted off-host full-data", result)
-        self.assertIn("clean-runner restoration", result)
+        self.assertIn("0.7.0-alpha.4", result)
+        self.assertIn("Immich protected-original", result)
+        self.assertIn("Jellyfin native/container", result)
+        self.assertIn("restricted Linux rendering", result)
 
 
 if __name__ == "__main__":

@@ -11,10 +11,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from homelab.media_acceleration import CONTRACT, load_policy, make_plan
-from homelab import immich, immich_vault
+from homelab import immich, immich_vault, jellyfin
 
 
-RELEASE = "0.7.0-alpha.3"
+RELEASE = "0.7.0-alpha.4"
 DIGEST = re.compile(r"^[^@\s]+@sha256:[0-9a-f]{64}$")
 
 
@@ -81,6 +81,9 @@ def validate_phase6(root: Path = ROOT) -> str:
             "Immich lifecycle CLI is not wired")
     require("'immich-vault'" in cli and "from . import immich_vault as module" in cli,
             "Immich encrypted-vault CLI is not wired")
+    require("'jellyfin'" in cli and "from . import jellyfin as module" in cli
+            and "render-compose" in cli,
+            "Jellyfin deployment-selection CLI is not wired")
     runtime = {"context": "phase6-test", "endpoint": "unix:///phase6-test.sock",
                "engine_id": "phase6-test"}
     # macOS exposes its temporary directory through /var -> /private/var. The
@@ -138,6 +141,63 @@ def validate_phase6(root: Path = ROOT) -> str:
                    "recovery-verified", "source_machine_state_required",
                    "derived_included", "ml_cache_included"):
         require(marker in vault_code, f"Immich encrypted recovery contract missing {marker}")
+    jellyfin_images = load(root / "modules/jellyfin/image.json")
+    require(jellyfin_images == {
+        "server": "docker.io/jellyfin/jellyfin:12.4@sha256:fea863d0cd9ec445985d9c75fc6ed64e38a1d2766cf0c250a33d553f4fc1b771"
+    }, "Reviewed Jellyfin 12.4 image identity changed")
+    require(jellyfin.validate_media(load(root / "modules/jellyfin/media.example.json")) == [{
+        "source": "/srv/media/video", "target": "/media/video", "read_only": True}],
+        "Jellyfin example media map changed")
+    native_audit = {
+        "kind": "homelab-jellyfin-audit", "contract": jellyfin.CONTRACT,
+        "host_platform": "windows",
+        "native": {"present": True, "running": True, "autostart": True,
+                   "manager": "windows-service", "service": "JellyfinServer"},
+        "container": {"present": False, "running": False,
+                      "engine_available": True, "engine_os": "linux",
+                      "matching_containers": 0},
+        "public_api": {"reachable": True, "version": "12.4.0",
+                       "startup_complete": True},
+        "detected_deployment": "native", "mutations_performed": False,
+        "production_media_read": False, "credentials_read": False,
+    }
+    native_plan = jellyfin.make_plan("native", native_audit, 8096)
+    require(native_plan["selected_deployment"] == "native"
+            and native_plan["adoption"] == "existing"
+            and native_plan["container_image"] is None
+            and native_plan["acceleration"]["selected"] == "cpu"
+            and native_plan["deployment_performed"] is False,
+            "Jellyfin native adoption boundary changed")
+    container_audit = json.loads(json.dumps(native_audit))
+    container_audit["host_platform"] = "linux"
+    container_audit["native"] = {
+        "present": False, "running": False, "autostart": False,
+        "manager": "systemd", "service": None}
+    container_audit["public_api"] = {
+        "reachable": False, "version": None, "startup_complete": None}
+    container_audit["detected_deployment"] = "none"
+    container_plan = jellyfin.make_plan("container", container_audit, 18096)
+    media = {"kind": "homelab-jellyfin-media-map",
+             "contract": jellyfin.CONTRACT,
+             "mounts": [{"source": "/srv/media/fixture",
+                          "target": "/media/fixture", "read_only": True}]}
+    jellyfin_spec = jellyfin.compose(
+        container_plan, "/srv/homelab/jellyfin", media, 1000, 1000)
+    jellyfin_service = jellyfin_spec["services"]["jellyfin"]
+    require(jellyfin_service["ports"] == [{
+        "target": 8096, "published": "18096", "host_ip": "127.0.0.1",
+        "protocol": "tcp"}]
+        and jellyfin_service["read_only"] is True
+        and jellyfin_service["cap_drop"] == ["ALL"]
+        and jellyfin_service["mem_limit"] == "2048m"
+        and "docker.sock" not in json.dumps(jellyfin_spec)
+        and "device" not in json.dumps(jellyfin_spec).casefold(),
+        "Jellyfin Linux container restrictions changed")
+    jellyfin_code = (root / "homelab/jellyfin.py").read_text(encoding="utf-8")
+    for marker in ("jellyfin-explicit-deployment-v1", "disabled-review-only",
+                   "Choose Jellyfin deployment explicitly", "same_version_restore_required",
+                   "codec-capability-and-synthetic-transcode-required"):
+        require(marker in jellyfin_code, f"Jellyfin selection contract missing {marker}")
     dr_workflow = (root / ".github/workflows/immich-disaster-recovery.yml").read_text(
         encoding="utf-8")
     for marker in ("IMMICH_DR_TEST_PASSWORD", "prepare-encrypted-repository",
@@ -156,15 +216,20 @@ def validate_phase6(root: Path = ROOT) -> str:
                  "docs/immich-vault.md",
                  "docs/validation/immich-off-host-recovery.md",
                  "docs/releases/v0.7.0-alpha.3.md",
+                 "docs/jellyfin-module.md",
+                 "docs/validation/jellyfin.md",
+                 "docs/releases/v0.7.0-alpha.4.md",
+                 "modules/jellyfin/media.example.json",
                  "tests/test_media_acceleration.py",
                  "tests/test_immich.py",
                  "tests/test_immich_vault.py",
+                 "tests/test_jellyfin.py",
                  "tools/immich_dr_trial.py",
                  "tools/immich_vault_local_trial.py"):
         require((root / path).is_file(), f"Missing Phase 6 artifact: {path}")
-    return ("PASS: Phase 6 0.7.0-alpha.3 preserves isolated Immich v3.3.5 "
-            "protected-original recovery and adds encrypted off-host full-data "
-            "validation with independent clean-runner restoration")
+    return ("PASS: Phase 6 0.7.0-alpha.4 preserves Immich protected-original "
+            "recovery and adds explicit fail-closed Jellyfin native/container "
+            "selection with restricted Linux rendering")
 
 
 def main() -> int:

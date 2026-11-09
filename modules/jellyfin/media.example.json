@@ -1,0 +1,11 @@
+{
+  "kind": "homelab-jellyfin-media-map",
+  "contract": "jellyfin-explicit-deployment-v1",
+  "mounts": [
+    {
+      "source": "/srv/media/video",
+      "target": "/media/video",
+      "read_only": true
+    }
+  ]
+}

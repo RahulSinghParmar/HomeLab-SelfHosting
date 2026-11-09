@@ -520,6 +520,23 @@ def main(arguments=None) -> int:
     media_plan = media_actions.add_parser('plan')
     media_plan.add_argument('--policy', type=Path, required=True)
     media_plan.add_argument('--output', type=Path, required=True)
+    jellyfin = sub.add_parser(
+        'jellyfin', help='Review Jellyfin and explicitly select native or container deployment')
+    jellyfin_actions = jellyfin.add_subparsers(dest='action', required=True)
+    jellyfin_audit = jellyfin_actions.add_parser('audit')
+    jellyfin_audit.add_argument('--port', type=int, default=8096)
+    jellyfin_audit.add_argument('--output', type=Path)
+    jellyfin_plan = jellyfin_actions.add_parser('plan')
+    jellyfin_plan.add_argument('--deployment', choices=('native', 'container'), required=True)
+    jellyfin_plan.add_argument('--port', type=int, default=18096)
+    jellyfin_plan.add_argument('--output', type=Path, required=True)
+    jellyfin_compose = jellyfin_actions.add_parser('render-compose')
+    jellyfin_compose.add_argument('--plan', type=Path, required=True)
+    jellyfin_compose.add_argument('--root', type=Path, required=True)
+    jellyfin_compose.add_argument('--media', type=Path, required=True)
+    jellyfin_compose.add_argument('--uid', type=int, required=True)
+    jellyfin_compose.add_argument('--gid', type=int, required=True)
+    jellyfin_compose.add_argument('--output', type=Path, required=True)
     immich = sub.add_parser(
         'immich', help='Experimental isolated Immich with protected-original recovery')
     immich_actions = immich.add_subparsers(dest='action', required=True)
@@ -620,6 +637,31 @@ def main(arguments=None) -> int:
                 result = module.make_plan(module.validate_policy(load_json(args.policy)),
                                           capability)
                 write_private(args.output, result)
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'jellyfin':
+            from . import jellyfin as module
+            if args.action == 'audit':
+                result = module.audit(port=args.port)
+                if args.output:
+                    write_private(args.output, result)
+            elif args.action == 'plan':
+                result = module.make_plan(
+                    args.deployment, module.audit(port=8096), args.port)
+                write_private(args.output, result)
+            else:
+                plan = load_json(args.plan)
+                result = module.compose(plan, args.root, load_json(args.media),
+                                        args.uid, args.gid)
+                write_private(args.output, result)
+                result = {
+                    'kind': 'homelab-jellyfin-compose-render',
+                    'contract': module.CONTRACT,
+                    'plan_id': plan.get('plan_id'),
+                    'output': '<private-compose-file>',
+                    'media_sources': '<private-read-only-media-paths>',
+                    'deployment_performed': False,
+                }
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command == 'immich':

@@ -30,7 +30,7 @@ These are requirements for subsequent implementation, not complete installation 
 
 **Media management:** implement individually selectable components rather than an inseparable eight-service package. Keep download and library paths consistent; validate hardlink and atomic-move support on the actual filesystem. Preserve configuration and app databases; obtain all external credentials from the owner. Do not bundle indexer accounts or initiate downloads automatically.
 
-**Jellyfin:** preserve database/configuration, metadata and media path mappings. A container is an option, not an automatic replacement for a native installation. Verify clients and a synthetic playback/transcode job; hardware acceleration must be proven on the target machine.
+**Jellyfin:** preserve database/configuration, metadata and media path mappings. Deployment must be selected explicitly: native on Windows/macOS, or native/container on Linux. A container is not an automatic replacement for a native installation. Verify clients and a synthetic playback/transcode job; hardware acceleration must be proven on the target machine.
 
 ## Development and communication
 

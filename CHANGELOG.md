@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0-alpha.4 — 2026-11-09
+
+- Added a privacy-bounded Jellyfin audit that distinguishes native, container, absent and conflicting ownership without reading media or credentials.
+- Required an explicit native/container choice, blocked unsupported Windows/macOS containers and refused implicit deployment-type migration.
+- Pinned the official Jellyfin 12.4 image by immutable digest and added a Linux-only loopback/read-only/non-root/bounded Compose renderer with no host control or device access.
+- Recorded the running native Windows 12.4.0 reference result and retained CPU fallback for the GT 730/391.35 pending a separately approved codec-level synthetic transcode.
+- Defined the built-in archive and same-version restore boundary without creating a production backup or changing the live service.
+
 ## 0.7.0-alpha.3 — 2026-11-03
 
 - Added a checksum-pinned Restic vault for verified Immich PostgreSQL and protected-original recovery sets with separate operational and recovery-key references.
