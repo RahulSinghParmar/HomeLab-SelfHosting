@@ -1,6 +1,6 @@
 # Jellyfin explicit deployment-selection module
 
-Version 0.7.0-alpha.4 adds a privacy-bounded Jellyfin audit and requires the deployment owner to select `native` or `container`. It never silently replaces an existing installation and performs no deployment, migration, scan, playback or configuration change.
+Version 0.7.0-alpha.4 added a privacy-bounded Jellyfin audit and requires the deployment owner to select `native` or `container`. Version 0.7.0-alpha.5 adds a separate disposable recovery rehearsal. Neither path silently replaces an existing installation or changes production state.
 
 ## Platform decision
 
@@ -79,11 +79,11 @@ The renderer uses the official Jellyfin 12.4 image by immutable multi-platform d
 
 ## Recovery and upgrade boundary
 
-Jellyfin 10.11 and later provide a built-in online backup. The application database is always included and metadata, subtitles and trickplay can be selected. This is the preferred future recovery source for both deployment choices. Media originals remain separately owner-managed; a Jellyfin archive is not a media backup.
+Jellyfin 10.11 and later provide a built-in online backup. The application database is always included and metadata, subtitles and trickplay can be selected. This is the application recovery source for both deployment choices. Media originals remain separately owner-managed; a Jellyfin archive is not a media backup.
 
-Jellyfin applies database migrations and does not provide a downgrade path without restoring a compatible backup. A future lifecycle adapter must therefore create and validate an application backup before any upgrade, retain the exact server version with the manifest and restore into the same version before attempting an upgrade.
+Jellyfin applies database migrations and does not provide a downgrade path without restoring a compatible backup. The recovery trial therefore retains the exact server version with the manifest and initializes a matching-version target before import.
 
-This milestone does not create a backup or restore production data. The previous exact playlist repair evidence remains an operational result, not a substitute for complete application recovery testing.
+The [recovery trial](jellyfin-recovery.md) now proves built-in backup, source-state deletion, unrelated same-version restore, exact direct play and recovered restart persistence with synthetic data. It does not create a production backup or restore production data. The previous exact playlist repair evidence remains an operational result, not a substitute for complete application recovery testing.
 
 ## Acceleration boundary
 
@@ -102,8 +102,8 @@ The reference Windows host has a GeForce GT 730 with driver 391.35. Jellyfin's c
 - No native installation, update, tray/service conversion or service restart.
 - No production configuration, library, plugin, user, playlist or media mutation.
 - No container pull/start or Windows/macOS container support.
-- No synthetic playback/transcode, client compatibility or concurrency evidence.
-- No built-in backup creation, independent restore, encryption or off-host recovery.
+- Synthetic static direct play and same-version application recovery are proven; transcoding, client compatibility and concurrency are not.
+- No production backup/restore, encryption or off-host Jellyfin/media recovery.
 - No production-adoption or stable Phase 6 claim.
 
 Upstream references:

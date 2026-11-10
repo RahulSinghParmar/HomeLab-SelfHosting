@@ -521,7 +521,7 @@ def main(arguments=None) -> int:
     media_plan.add_argument('--policy', type=Path, required=True)
     media_plan.add_argument('--output', type=Path, required=True)
     jellyfin = sub.add_parser(
-        'jellyfin', help='Review Jellyfin and explicitly select native or container deployment')
+        'jellyfin', help='Review Jellyfin, select deployment or validate recovery evidence')
     jellyfin_actions = jellyfin.add_subparsers(dest='action', required=True)
     jellyfin_audit = jellyfin_actions.add_parser('audit')
     jellyfin_audit.add_argument('--port', type=int, default=8096)
@@ -537,6 +537,8 @@ def main(arguments=None) -> int:
     jellyfin_compose.add_argument('--uid', type=int, required=True)
     jellyfin_compose.add_argument('--gid', type=int, required=True)
     jellyfin_compose.add_argument('--output', type=Path, required=True)
+    jellyfin_recovery = jellyfin_actions.add_parser('validate-recovery')
+    jellyfin_recovery.add_argument('--evidence', type=Path, required=True)
     immich = sub.add_parser(
         'immich', help='Experimental isolated Immich with protected-original recovery')
     immich_actions = immich.add_subparsers(dest='action', required=True)
@@ -649,7 +651,7 @@ def main(arguments=None) -> int:
                 result = module.make_plan(
                     args.deployment, module.audit(port=8096), args.port)
                 write_private(args.output, result)
-            else:
+            elif args.action == 'render-compose':
                 plan = load_json(args.plan)
                 result = module.compose(plan, args.root, load_json(args.media),
                                         args.uid, args.gid)
@@ -662,6 +664,9 @@ def main(arguments=None) -> int:
                     'media_sources': '<private-read-only-media-paths>',
                     'deployment_performed': False,
                 }
+            else:
+                result = module.validate_recovery_evidence(
+                    load_json(args.evidence))
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command == 'immich':

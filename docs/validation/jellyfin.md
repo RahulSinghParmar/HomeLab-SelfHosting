@@ -30,8 +30,7 @@ No native service, container, database, configuration, plugin, account, playlist
 
 ## Remaining gates
 
-- Prove a nonempty built-in backup and same-version independent restore.
-- Verify actual library browsing, a non-personal direct-play fixture and restart persistence.
+- The nonempty built-in backup, same-version independent restore, synthetic direct play and restart-persistence gates subsequently passed in [0.7.0-alpha.5 validation](jellyfin-recovery.md).
 - Run one bounded synthetic transcode and measure CPU/memory; enable a GPU only on eligible hardware after codec-level proof.
 - Test representative clients and concurrent streams.
 - Add encrypted off-host recovery and owner scheduling before production-adoption claims.

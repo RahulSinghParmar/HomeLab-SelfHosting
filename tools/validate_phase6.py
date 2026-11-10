@@ -14,7 +14,7 @@ from homelab.media_acceleration import CONTRACT, load_policy, make_plan
 from homelab import immich, immich_vault, jellyfin
 
 
-RELEASE = "0.7.0-alpha.4"
+RELEASE = "0.7.0-alpha.5"
 DIGEST = re.compile(r"^[^@\s]+@sha256:[0-9a-f]{64}$")
 
 
@@ -82,7 +82,7 @@ def validate_phase6(root: Path = ROOT) -> str:
     require("'immich-vault'" in cli and "from . import immich_vault as module" in cli,
             "Immich encrypted-vault CLI is not wired")
     require("'jellyfin'" in cli and "from . import jellyfin as module" in cli
-            and "render-compose" in cli,
+            and "render-compose" in cli and "validate-recovery" in cli,
             "Jellyfin deployment-selection CLI is not wired")
     runtime = {"context": "phase6-test", "endpoint": "unix:///phase6-test.sock",
                "engine_id": "phase6-test"}
@@ -196,8 +196,16 @@ def validate_phase6(root: Path = ROOT) -> str:
     jellyfin_code = (root / "homelab/jellyfin.py").read_text(encoding="utf-8")
     for marker in ("jellyfin-explicit-deployment-v1", "disabled-review-only",
                    "Choose Jellyfin deployment explicitly", "same_version_restore_required",
-                   "codec-capability-and-synthetic-transcode-required"):
+                   "codec-capability-and-synthetic-transcode-required",
+                   "jellyfin-native-recovery-trial-v1",
+                   "validate_recovery_evidence"):
         require(marker in jellyfin_code, f"Jellyfin selection contract missing {marker}")
+    trial_code = (root / "tools/jellyfin_native_trial.py").read_text(encoding="utf-8")
+    for marker in ("RUN-ISOLATED-JELLYFIN-TRIAL", "--restore-archive",
+                   "source_state_removed_before_restore",
+                   "restore_target_initialized_same_version",
+                   "wait_library_idle", "direct_play_exact"):
+        require(marker in trial_code, f"Jellyfin recovery trial missing {marker}")
     dr_workflow = (root / ".github/workflows/immich-disaster-recovery.yml").read_text(
         encoding="utf-8")
     for marker in ("IMMICH_DR_TEST_PASSWORD", "prepare-encrypted-repository",
@@ -219,17 +227,21 @@ def validate_phase6(root: Path = ROOT) -> str:
                  "docs/jellyfin-module.md",
                  "docs/validation/jellyfin.md",
                  "docs/releases/v0.7.0-alpha.4.md",
+                 "docs/jellyfin-recovery.md",
+                 "docs/validation/jellyfin-recovery.md",
+                 "docs/releases/v0.7.0-alpha.5.md",
                  "modules/jellyfin/media.example.json",
                  "tests/test_media_acceleration.py",
                  "tests/test_immich.py",
                  "tests/test_immich_vault.py",
                  "tests/test_jellyfin.py",
+                 "tools/jellyfin_native_trial.py",
                  "tools/immich_dr_trial.py",
                  "tools/immich_vault_local_trial.py"):
         require((root / path).is_file(), f"Missing Phase 6 artifact: {path}")
-    return ("PASS: Phase 6 0.7.0-alpha.4 preserves Immich protected-original "
-            "recovery and adds explicit fail-closed Jellyfin native/container "
-            "selection with restricted Linux rendering")
+    return ("PASS: Phase 6 0.7.0-alpha.5 preserves Immich protected-original "
+            "recovery and validates Jellyfin same-version application restore "
+            "with exact synthetic direct play before and after restart")
 
 
 def main() -> int:

@@ -7,13 +7,16 @@ import re
 import subprocess
 import urllib.error
 import urllib.request
+from datetime import datetime
 from pathlib import Path, PurePosixPath
+from uuid import UUID
 
 from .config import ROOT, ConfigError, canonical, keys, load_json, need
 from .sandbox import digest
 
 
 CONTRACT = "jellyfin-explicit-deployment-v1"
+RECOVERY_CONTRACT = "jellyfin-native-recovery-trial-v1"
 MODULE = ROOT / "modules/jellyfin"
 DEPLOYMENTS = ("native", "container")
 LIMITS = {"memory_mib": 2048, "cpus": 2.0, "pids": 512}
@@ -309,6 +312,94 @@ def validate_media(value: object) -> list[dict]:
         targets.add(target)
         result.append({"source": str(source), "target": target, "read_only": True})
     return result
+
+
+def validate_recovery_evidence(value: object) -> dict:
+    """Validate sanitized synthetic native backup/restore evidence."""
+    keys(value, {
+        "kind", "contract", "created_utc", "jellyfin_version", "deployment",
+        "fixture", "source_direct_play", "backup",
+        "source_state_removed_before_restore",
+        "restore_target_initialized_same_version", "restore_same_version",
+        "restored_direct_play", "restart_direct_play",
+        "restart_persistence_verified", "production_service_changed",
+        "production_media_used", "production_credentials_used",
+        "synthetic_credentials_retained", "gpu_used", "transcode_requested",
+        "direct_play_exact", "trial_id",
+    }, "Jellyfin recovery evidence")
+    need(value["kind"] == "homelab-jellyfin-native-recovery-evidence"
+         and value["contract"] == RECOVERY_CONTRACT,
+         "Unsupported Jellyfin recovery evidence")
+    need(value["deployment"] == "native-windows-isolated"
+         and re.fullmatch(r"12\.4(?:\.\d+)?", str(value["jellyfin_version"])),
+         "Jellyfin recovery version or deployment changed")
+    fixture = value["fixture"]
+    keys(fixture, {"name", "bytes", "sha256"}, "Jellyfin recovery fixture")
+    need(fixture["name"] == "phase6-jellyfin-direct-play.mp4"
+         and type(fixture["bytes"]) is int and fixture["bytes"] > 1024
+         and re.fullmatch(r"[0-9a-f]{64}", str(fixture["sha256"])),
+         "Invalid Jellyfin recovery fixture")
+    backup = value["backup"]
+    keys(backup, {"server_version", "backup_engine_version", "date_created",
+                  "options", "bytes", "sha256", "zip_entries",
+                  "zip_integrity", "database_present", "database_format"},
+         "Jellyfin backup evidence")
+    need(re.fullmatch(r"12\.4\.\d+\.\d+", str(backup["server_version"]))
+         and str(backup["server_version"]).startswith(value["jellyfin_version"])
+         and backup["backup_engine_version"] == "0.2.0"
+         and bool(backup["date_created"])
+         and backup["options"] == {"Database": True, "Metadata": True,
+                                    "Subtitles": True, "Trickplay": True}
+         and type(backup["bytes"]) is int and backup["bytes"] > 0
+         and re.fullmatch(r"[0-9a-f]{64}", str(backup["sha256"]))
+         and type(backup["zip_entries"]) is int and backup["zip_entries"] > 0
+         and backup["zip_integrity"] is True
+         and backup["database_present"] is True
+         and backup["database_format"] == "json-table-export",
+         "Invalid Jellyfin backup evidence")
+    source_identity = None
+    for field in ("source_direct_play", "restored_direct_play",
+                  "restart_direct_play"):
+        play = value[field]
+        keys(play, {"item_id", "media_source_id", "status", "content_type",
+                    "bytes", "sha256", "exact"},
+             f"Jellyfin {field}")
+        need(isinstance(play["item_id"], str) and bool(play["item_id"])
+             and isinstance(play["media_source_id"], str)
+             and bool(play["media_source_id"])
+             and play["status"] == 200 and play["content_type"] == "video/mp4"
+             and play["bytes"] == fixture["bytes"]
+             and play["sha256"] == fixture["sha256"]
+             and (source_identity is None
+                  or (play["item_id"], play["media_source_id"]) == source_identity)
+             and play["exact"] is True,
+             f"Invalid Jellyfin {field}")
+        if source_identity is None:
+            source_identity = (play["item_id"], play["media_source_id"])
+    need(value["source_state_removed_before_restore"] is True
+         and value["restore_target_initialized_same_version"] is True
+         and value["restore_same_version"] is True
+         and value["restart_persistence_verified"] is True
+         and value["direct_play_exact"] is True,
+         "Jellyfin recovery lifecycle proof is incomplete")
+    need(value["production_service_changed"] is False
+         and value["production_media_used"] is False
+         and value["production_credentials_used"] is False
+         and value["synthetic_credentials_retained"] is False
+         and value["gpu_used"] is False
+         and value["transcode_requested"] is False,
+         "Jellyfin recovery trial crossed its safety boundary")
+    try:
+        created = datetime.fromisoformat(value["created_utc"].replace("Z", "+00:00"))
+        backup_created = datetime.fromisoformat(
+            backup["date_created"].replace("Z", "+00:00"))
+        trial_id = UUID(value["trial_id"])
+    except (AttributeError, TypeError, ValueError) as error:
+        raise ConfigError("Jellyfin recovery evidence identity is invalid") from error
+    need(created.tzinfo is not None and backup_created.tzinfo is not None
+         and trial_id.version == 4,
+         "Jellyfin recovery evidence identity is invalid")
+    return json.loads(canonical(value))
 
 
 def compose(plan: dict, root: str | Path, media_map: dict, uid: int, gid: int) -> dict:

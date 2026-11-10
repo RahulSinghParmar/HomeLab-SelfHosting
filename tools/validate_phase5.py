@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-RELEASE = '0.7.0-alpha.4'
+RELEASE = '0.7.0-alpha.5'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'

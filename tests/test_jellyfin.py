@@ -34,6 +34,48 @@ def empty_linux_audit():
     return value
 
 
+def recovery_evidence():
+    fixture_hash = "a" * 64
+    play = {
+        "item_id": "fixture-item", "media_source_id": "fixture-source",
+        "status": 200, "content_type": "video/mp4", "bytes": 11323,
+        "sha256": fixture_hash, "exact": True,
+    }
+    return {
+        "kind": "homelab-jellyfin-native-recovery-evidence",
+        "contract": j.RECOVERY_CONTRACT,
+        "created_utc": "2026-11-10T00:57:57+00:00",
+        "jellyfin_version": "12.4.0",
+        "deployment": "native-windows-isolated",
+        "fixture": {"name": "phase6-jellyfin-direct-play.mp4",
+                    "bytes": 11323, "sha256": fixture_hash},
+        "source_direct_play": copy.deepcopy(play),
+        "backup": {
+            "server_version": "12.4.0.0", "backup_engine_version": "0.2.0",
+            "date_created": "2026-11-10T00:57:33+00:00",
+            "options": {"Database": True, "Metadata": True,
+                        "Subtitles": True, "Trickplay": True},
+            "bytes": 30274, "sha256": "b" * 64, "zip_entries": 46,
+            "zip_integrity": True, "database_present": True,
+            "database_format": "json-table-export",
+        },
+        "source_state_removed_before_restore": True,
+        "restore_target_initialized_same_version": True,
+        "restore_same_version": True,
+        "restored_direct_play": copy.deepcopy(play),
+        "restart_direct_play": copy.deepcopy(play),
+        "restart_persistence_verified": True,
+        "production_service_changed": False,
+        "production_media_used": False,
+        "production_credentials_used": False,
+        "synthetic_credentials_retained": False,
+        "gpu_used": False,
+        "transcode_requested": False,
+        "direct_play_exact": True,
+        "trial_id": "e857fbdb-43b2-489b-b618-27cc071da0ac",
+    }
+
+
 class JellyfinTests(unittest.TestCase):
     def test_windows_native_selection_adopts_without_mutation(self):
         plan = j.make_plan("native", native_windows_audit())
@@ -135,6 +177,26 @@ class JellyfinTests(unittest.TestCase):
         self.assertFalse(result["mutations_performed"])
         self.assertFalse(result["production_media_read"])
         self.assertFalse(result["credentials_read"])
+
+    def test_native_recovery_evidence_requires_exact_restore_and_restart_playback(self):
+        evidence = recovery_evidence()
+        self.assertEqual(j.validate_recovery_evidence(evidence), evidence)
+
+    def test_recovery_evidence_rejects_changed_playback_bytes(self):
+        evidence = recovery_evidence()
+        evidence["restored_direct_play"]["sha256"] = "c" * 64
+        with self.assertRaisesRegex(ConfigError, "restored_direct_play"):
+            j.validate_recovery_evidence(evidence)
+
+    def test_recovery_evidence_rejects_production_or_acceleration_claims(self):
+        for field in ("production_service_changed", "production_media_used",
+                      "production_credentials_used", "gpu_used",
+                      "transcode_requested"):
+            with self.subTest(field=field):
+                evidence = recovery_evidence()
+                evidence[field] = True
+                with self.assertRaisesRegex(ConfigError, "safety boundary"):
+                    j.validate_recovery_evidence(evidence)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0-alpha.5 — 2026-11-10
+
+- Added a disposable native-Windows Jellyfin 12.4 application-recovery rehearsal using generated credentials and a synthetic MP4 only.
+- Created and validated Jellyfin's built-in database/configuration/metadata/subtitle/trickplay archive, deleted the source application state and restored into an unrelated initialized same-version target.
+- Proved byte-exact HTTP direct play before backup, after restore and after a full recovered-instance restart.
+- Added strict recovery-evidence validation and documented the independent media-original backup boundary.
+- Kept the production Jellyfin service, media, users, playlists, settings, GPU and transcoding unchanged.
+
 ## 0.7.0-alpha.4 — 2026-11-09
 
 - Added a privacy-bounded Jellyfin audit that distinguishes native, container, absent and conflicting ownership without reading media or credentials.
