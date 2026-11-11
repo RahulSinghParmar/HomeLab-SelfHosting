@@ -32,7 +32,7 @@ CONFIRM = "RUN-ISOLATED-JELLYFIN-TRIAL"
 FIXTURE_NAME = "phase6-jellyfin-direct-play.mp4"
 USERNAME = "phase6-jellyfin-admin"
 DEVICE_ID = "phase6-jellyfin-native-trial"
-CLIENT_VERSION = "0.7.0-alpha.5"
+CLIENT_VERSION = "0.7.0-alpha.6"
 
 
 def sha256(path: Path) -> str:

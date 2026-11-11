@@ -11,10 +11,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from homelab.media_acceleration import CONTRACT, load_policy, make_plan
-from homelab import immich, immich_vault, jellyfin
+from homelab import immich, immich_vault, jellyfin, jellyfin_vault
 
 
-RELEASE = "0.7.0-alpha.5"
+RELEASE = "0.7.0-alpha.6"
 DIGEST = re.compile(r"^[^@\s]+@sha256:[0-9a-f]{64}$")
 
 
@@ -84,6 +84,11 @@ def validate_phase6(root: Path = ROOT) -> str:
     require("'jellyfin'" in cli and "from . import jellyfin as module" in cli
             and "render-compose" in cli and "validate-recovery" in cli,
             "Jellyfin deployment-selection CLI is not wired")
+    require("'jellyfin-vault'" in cli
+            and "from . import jellyfin_vault as module" in cli
+            and "validate-set" in cli and "validate-manifest" in cli
+            and "validate-proof" in cli,
+            "Jellyfin encrypted-recovery validation CLI is not wired")
     runtime = {"context": "phase6-test", "endpoint": "unix:///phase6-test.sock",
                "engine_id": "phase6-test"}
     # macOS exposes its temporary directory through /var -> /private/var. The
@@ -206,6 +211,28 @@ def validate_phase6(root: Path = ROOT) -> str:
                    "restore_target_initialized_same_version",
                    "wait_library_idle", "direct_play_exact"):
         require(marker in trial_code, f"Jellyfin recovery trial missing {marker}")
+    jellyfin_restic = load(root / "modules/jellyfin/restic.json")
+    require(jellyfin_restic == restic,
+            "Reviewed Jellyfin Restic release identity changed")
+    jellyfin_vault_code = (root / "homelab/jellyfin_vault.py").read_text(
+        encoding="utf-8")
+    for marker in ("jellyfin-application-media-recovery-set-v1",
+                   "jellyfin-portable-recovery-v1",
+                   "jellyfin-encrypted-off-host-recovery-v1",
+                   "included_in_application_archive", "recovery-verified",
+                   "transport_contains_recovery_key"):
+        require(marker in jellyfin_vault_code,
+                f"Jellyfin encrypted recovery contract missing {marker}")
+    offhost_trial = (root / "tools/jellyfin_offhost_trial.py").read_text(
+        encoding="utf-8")
+    for marker in ("RUN-ENCRYPTED-OFFHOST-JELLYFIN-TRIAL",
+                   "check", "--read-data", "destroy-source-and-operational-custody",
+                   "recover-from-off-host-material-only", "media_replica_restored",
+                   "restart_direct_play_exact"):
+        require(marker in offhost_trial,
+                f"Jellyfin encrypted recovery trial missing {marker}")
+    require(jellyfin_vault.RETENTION == {"daily": 7, "weekly": 4, "monthly": 3},
+            "Jellyfin recovery retention contract changed")
     dr_workflow = (root / ".github/workflows/immich-disaster-recovery.yml").read_text(
         encoding="utf-8")
     for marker in ("IMMICH_DR_TEST_PASSWORD", "prepare-encrypted-repository",
@@ -230,18 +257,25 @@ def validate_phase6(root: Path = ROOT) -> str:
                  "docs/jellyfin-recovery.md",
                  "docs/validation/jellyfin-recovery.md",
                  "docs/releases/v0.7.0-alpha.5.md",
+                 "docs/jellyfin-vault.md",
+                 "docs/validation/jellyfin-off-host-recovery.md",
+                 "docs/releases/v0.7.0-alpha.6.md",
                  "modules/jellyfin/media.example.json",
+                 "modules/jellyfin/restic.json",
                  "tests/test_media_acceleration.py",
                  "tests/test_immich.py",
                  "tests/test_immich_vault.py",
                  "tests/test_jellyfin.py",
+                 "tests/test_jellyfin_vault.py",
                  "tools/jellyfin_native_trial.py",
+                 "tools/jellyfin_offhost_trial.py",
                  "tools/immich_dr_trial.py",
                  "tools/immich_vault_local_trial.py"):
         require((root / path).is_file(), f"Missing Phase 6 artifact: {path}")
-    return ("PASS: Phase 6 0.7.0-alpha.5 preserves Immich protected-original "
+    return ("PASS: Phase 6 0.7.0-alpha.6 preserves Immich protected-original "
             "recovery and validates Jellyfin same-version application restore "
-            "with exact synthetic direct play before and after restart")
+            "with exact synthetic direct play before and after restart plus "
+            "encrypted application/media recovery")
 
 
 def main() -> int:

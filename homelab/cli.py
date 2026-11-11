@@ -539,6 +539,15 @@ def main(arguments=None) -> int:
     jellyfin_compose.add_argument('--output', type=Path, required=True)
     jellyfin_recovery = jellyfin_actions.add_parser('validate-recovery')
     jellyfin_recovery.add_argument('--evidence', type=Path, required=True)
+    jellyfin_vault = sub.add_parser(
+        'jellyfin-vault', help='Validate encrypted Jellyfin application/media recovery evidence')
+    jellyfin_vault_actions = jellyfin_vault.add_subparsers(dest='action', required=True)
+    jellyfin_vault_set = jellyfin_vault_actions.add_parser('validate-set')
+    jellyfin_vault_set.add_argument('--source', type=Path, required=True)
+    jellyfin_vault_manifest = jellyfin_vault_actions.add_parser('validate-manifest')
+    jellyfin_vault_manifest.add_argument('--manifest', type=Path, required=True)
+    jellyfin_vault_proof = jellyfin_vault_actions.add_parser('validate-proof')
+    jellyfin_vault_proof.add_argument('--proof', type=Path, required=True)
     immich = sub.add_parser(
         'immich', help='Experimental isolated Immich with protected-original recovery')
     immich_actions = immich.add_subparsers(dest='action', required=True)
@@ -667,6 +676,16 @@ def main(arguments=None) -> int:
             else:
                 result = module.validate_recovery_evidence(
                     load_json(args.evidence))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'jellyfin-vault':
+            from . import jellyfin_vault as module
+            if args.action == 'validate-set':
+                result = module.validate_recovery_set(args.source)
+            elif args.action == 'validate-manifest':
+                result = module.validate_portable_manifest(load_json(args.manifest))
+            else:
+                result = module.validate_offhost_proof(load_json(args.proof))
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command == 'immich':

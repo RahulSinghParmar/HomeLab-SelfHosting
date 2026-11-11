@@ -1,6 +1,6 @@
 # Jellyfin explicit deployment-selection module
 
-Version 0.7.0-alpha.4 added a privacy-bounded Jellyfin audit and requires the deployment owner to select `native` or `container`. Version 0.7.0-alpha.5 adds a separate disposable recovery rehearsal. Neither path silently replaces an existing installation or changes production state.
+Version 0.7.0-alpha.4 added a privacy-bounded Jellyfin audit and requires the deployment owner to select `native` or `container`. Version 0.7.0-alpha.5 added a separate disposable application-recovery rehearsal, and 0.7.0-alpha.6 adds separately encrypted application/media recovery validation. None of these paths silently replaces an existing installation or changes production state.
 
 ## Platform decision
 

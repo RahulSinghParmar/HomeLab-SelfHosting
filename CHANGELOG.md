@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0-alpha.6 — 2026-11-11
+
+- Added a strict Jellyfin recovery set containing the built-in application archive and a separately managed synthetic media original, each bound by SHA-256.
+- Added checksum-pinned Restic 0.19.1 encryption, separate operational/recovery-key custody, a tamper-evident portable manifest and complete repository-data checks.
+- Deleted all source application/media state and operational custody before recovering through a clean same-version target from encrypted transport plus the independent recovery key.
+- Proved exact direct play before backup, after recovery and after restart; added reusable validators and focused contract tests.
+- Kept production Jellyfin, media, users, playlists, settings, GPU and transcoding unchanged; physical owner off-host storage and scheduling remain unconfigured.
+
 ## 0.7.0-alpha.5 — 2026-11-10
 
 - Added a disposable native-Windows Jellyfin 12.4 application-recovery rehearsal using generated credentials and a synthetic MP4 only.
