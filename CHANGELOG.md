@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0-alpha.1 — 2026-11-16
+
+- Started Phase 7 with a digest-pinned, architecture-aware code-server 4.145.0 build and verified Node 24.19.0 archives for amd64 and arm64.
+- Added 18 pinned extensions, broad server-side toolchains, copy-once editor persistence defaults and a loopback-only restricted Compose renderer.
+- Passed an isolated Windows Docker Desktop compile, forced recreation, stopped-state backup and independent-root recovery trial without reading or changing production workspaces or credentials.
+- Recorded the live tag/binary mismatch (`4.144.0` tag versus `4.131.0` binary) as a migration blocker instead of replacing the healthy production container.
+
 ## 0.7.0 — 2026-11-15
 
 - Added eight individually selectable, digest-pinned media-management integrations with dependency validation, loopback/internal access, resource limits and no implicit provider or download activity.

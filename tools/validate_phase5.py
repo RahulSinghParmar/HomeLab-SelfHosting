@@ -10,7 +10,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-RELEASE = '0.7.0'
+RELEASE = '0.8.0-alpha.1'
+PHASE5_INTEGRATED_RELEASE = '0.7.0'
 DIGEST = re.compile(r'^[^@\s]+@sha256:[0-9a-f]{64}$')
 SHA256 = re.compile(r'^[0-9a-f]{64}$')
 RESTIC_VERSION = '0.19.1'
@@ -148,7 +149,7 @@ def validate_integrated_contract(root: Path = ROOT) -> str:
             'integrated Phase 5 manifest fields changed')
     require(manifest['contract'] == INTEGRATED_CONTRACT,
             'integrated Phase 5 contract identifier changed')
-    require(manifest['release'] == RELEASE,
+    require(manifest['release'] == PHASE5_INTEGRATED_RELEASE,
             'integrated Phase 5 release mismatch')
     require(manifest['restic_version'] == RESTIC_VERSION,
             'integrated Phase 5 Restic version changed')

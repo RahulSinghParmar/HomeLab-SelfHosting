@@ -546,6 +546,19 @@ def main(arguments=None) -> int:
     jellyfin_acceleration_proof = jellyfin_acceleration_actions.add_parser(
         'validate-proof')
     jellyfin_acceleration_proof.add_argument('--evidence', type=Path, required=True)
+    code_server = sub.add_parser(
+        'code-server',
+        help='Plan an architecture-aware code-server build or validate isolated evidence')
+    code_server_actions = code_server.add_subparsers(dest='action', required=True)
+    code_server_plan = code_server_actions.add_parser('plan')
+    code_server_plan.add_argument('--selection', type=Path, required=True)
+    code_server_plan.add_argument('--output', type=Path, required=True)
+    code_server_compose = code_server_actions.add_parser('render-compose')
+    code_server_compose.add_argument('--plan', type=Path, required=True)
+    code_server_compose.add_argument('--output', type=Path, required=True)
+    code_server_evidence = code_server_actions.add_parser('validate-evidence')
+    code_server_evidence.add_argument('--plan', type=Path, required=True)
+    code_server_evidence.add_argument('--evidence', type=Path, required=True)
     jellyfin = sub.add_parser(
         'jellyfin', help='Review Jellyfin, select deployment or validate recovery evidence')
     jellyfin_actions = jellyfin.add_subparsers(dest='action', required=True)
@@ -706,6 +719,27 @@ def main(arguments=None) -> int:
                     write_private(args.output, result)
             else:
                 result = module.validate_proof(load_json(args.evidence))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'code-server':
+            from . import code_server as module
+            if args.action == 'plan':
+                result = module.make_plan(module.load_selection(args.selection))
+                write_private(args.output, result)
+            elif args.action == 'render-compose':
+                plan = module.validate_plan(load_json(args.plan))
+                rendered = module.compose(plan)
+                write_private(args.output, rendered)
+                result = {
+                    'kind': 'homelab-code-server-compose-render',
+                    'contract': module.CONTRACT,
+                    'plan_id': plan['plan_id'],
+                    'output': '<private-compose-file>',
+                    'deployment_performed': False,
+                }
+            else:
+                result = module.validate_evidence(
+                    load_json(args.evidence), load_json(args.plan))
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command == 'jellyfin':

@@ -1,0 +1,26 @@
+{
+  "kind": "homelab-code-server-selection",
+  "contract": "phase7-code-server-v1",
+  "installation_id": "developer-code",
+  "target_platform": "windows",
+  "architecture": "amd64",
+  "state_root": "C:\\Homelab\\code-server-state",
+  "workspace_root": "D:\\Development",
+  "port": 18443,
+  "timezone": "Asia/Kolkata",
+  "uid": 1000,
+  "gid": 1000,
+  "access": "loopback",
+  "limits": {
+    "cpus": 6.0,
+    "memory_mib": 6144,
+    "memory_reservation_mib": 512,
+    "pids": 2048
+  },
+  "features": {
+    "autosave": true,
+    "session_restore": true,
+    "persistent_terminals": true,
+    "runtime_extension_network": false
+  }
+}

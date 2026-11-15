@@ -39,6 +39,8 @@ jobs:
         run: python tools/validate_phase6.py
       - name: Validate Phase 6 recovery and acceleration closure
         run: python tools/validate_phase6_closure.py
+      - name: Validate Phase 7 code-server foundation
+        run: python tools/validate_phase7.py
       - name: Check tracked publication content
         run: python tools/check_publication.py
       - name: Run regression tests

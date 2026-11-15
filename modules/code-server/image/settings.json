@@ -1,0 +1,14 @@
+{
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "files.hotExit": "onExitAndWindowClose",
+  "telemetry.telemetryLevel": "off",
+  "terminal.integrated.confirmOnExit": "never",
+  "terminal.integrated.enablePersistentSessions": true,
+  "terminal.integrated.persistentSessionReviveProcess": "onExitAndWindowClose",
+  "update.mode": "none",
+  "window.restoreWindows": "all",
+  "workbench.editor.restoreViewState": true,
+  "workbench.localHistory.enabled": true,
+  "workbench.localHistory.maxFileEntries": 100
+}

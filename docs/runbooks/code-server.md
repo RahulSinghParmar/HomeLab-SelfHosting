@@ -1,6 +1,6 @@
 # code-server
 
-Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope; deployment and restore certification remain planned.
+Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope. The separately isolated Phase 7 candidate and recovery evidence are documented in the [code-server module](../code-server-module.md) and [validation record](../validation/code-server.md); the existing production deployment has not been adopted or upgraded.
 
 ## Evidence and ownership
 

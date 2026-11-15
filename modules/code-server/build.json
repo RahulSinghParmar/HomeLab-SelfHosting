@@ -1,0 +1,94 @@
+{
+  "kind": "homelab-code-server-build",
+  "contract": "phase7-code-server-v1",
+  "code_server": {
+    "version": "4.145.0",
+    "image": "ghcr.io/coder/code-server:4.145.0@sha256:992796b850b8b7ec6f7393b8dd2295840a65cf5071981990ff41ef52dd566c43",
+    "platform_digests": {
+      "amd64": "sha256:b1da9efc3f8ca7ec9d772c4a81024b2dfa8a418644ea8db26924c649cc9be96c",
+      "arm64": "sha256:781d3c0ffc304c29228313a99a515cb63b0609e8e41cd875480d306639a13016"
+    }
+  },
+  "node": {
+    "version": "24.19.0",
+    "archives": {
+      "amd64": {
+        "file": "node-v24.19.0-linux-x64.tar.xz",
+        "sha256": "14b342e71204f811bde6153be8e04b62aef63c236fef92b55f9c83154b409647"
+      },
+      "arm64": {
+        "file": "node-v24.19.0-linux-arm64.tar.xz",
+        "sha256": "01443c1e1a29e531ccad5a46fefa6df490d2189c49f7955904aecdbb0fe86fdc"
+      }
+    }
+  },
+  "apt_packages": [
+    "build-essential",
+    "cargo",
+    "clang",
+    "cmake",
+    "composer",
+    "default-jdk-headless",
+    "fd-find",
+    "fzf",
+    "g++",
+    "gcc",
+    "gdb",
+    "gh",
+    "git-lfs",
+    "golang-go",
+    "jq",
+    "lldb",
+    "make",
+    "mariadb-client",
+    "maven",
+    "ninja-build",
+    "php-cli",
+    "pipx",
+    "pkg-config",
+    "postgresql-client",
+    "python-is-python3",
+    "python3",
+    "python3-pip",
+    "python3-venv",
+    "redis-tools",
+    "ripgrep",
+    "ruby-full",
+    "rustc",
+    "shellcheck",
+    "sqlite3",
+    "tmux",
+    "tree",
+    "unzip",
+    "xz-utils",
+    "zip"
+  ],
+  "extensions": [
+    {"id": "dbaeumer.vscode-eslint", "version": "3.0.34"},
+    {"id": "eamodio.gitlens", "version": "19.0.1"},
+    {"id": "editorconfig.editorconfig", "version": "0.18.2"},
+    {"id": "esbenp.prettier-vscode", "version": "12.4.0"},
+    {"id": "github.vscode-github-actions", "version": "0.32.3"},
+    {"id": "golang.go", "version": "0.56.0"},
+    {"id": "llvm-vs-code-extensions.vscode-clangd", "version": "0.6.0"},
+    {"id": "ms-azuretools.vscode-docker", "version": "2.0.0"},
+    {"id": "ms-python.debugpy", "version": "2026.6.0"},
+    {"id": "ms-python.python", "version": "2026.4.0"},
+    {"id": "ms-vscode.makefile-tools", "version": "0.12.17"},
+    {"id": "redhat.java", "version": "1.55.0"},
+    {"id": "redhat.vscode-xml", "version": "0.29.3"},
+    {"id": "redhat.vscode-yaml", "version": "1.24.0"},
+    {"id": "rust-lang.rust-analyzer", "version": "0.3.3016"},
+    {"id": "streetsidesoftware.code-spell-checker", "version": "4.5.6"},
+    {"id": "tamasfe.even-better-toml", "version": "0.21.2"},
+    {"id": "usernamehw.errorlens", "version": "3.28.0"}
+  ],
+  "settings": {
+    "seed_policy": "copy-once-never-overwrite",
+    "required": {
+      "autosave": "afterDelay",
+      "session_restore": "all",
+      "persistent_terminals": true
+    }
+  }
+}

@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Version 0.7.0 completes the bounded Phase 6 media toolkit.** Immich and Jellyfin have protected-original, application-aware and encrypted recovery contracts; eight media-management applications are individually selectable behind digest-pinned, loopback/internal definitions; and native Windows Jellyfin Intel QSV has a measured synthetic two-stream proof with CPU fallback. Production services and personal media remain outside the test boundary.
+**Version 0.8.0-alpha.1 starts Phase 7 with a reproducible code-server candidate.** The build pins code-server and architecture-specific Node inputs, seeds versioned extensions and editor persistence without overwriting user state, renders a restricted loopback deployment, and has passed an isolated compile/recreation/recovery trial. The healthy production editor remains unchanged pending encrypted backup and real-client migration checks.
 
 ## What this project is building
 
@@ -88,6 +88,9 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [Phase 6 media kit](docs/phase6-media-kit.md) | Final Immich, media-management and Jellyfin recovery/acceleration contract |
 | [Phase 6 closure validation](docs/validation/phase6-closure.md) | Integrated evidence, isolation checks and exact release gate |
 | [0.7.0 release review](docs/releases/v0.7.0.md) | Completed public scope and owner-adoption boundaries |
+| [code-server development module](docs/code-server-module.md) | Multiarchitecture build, pinned extensions, persistence and restricted Compose planning |
+| [code-server validation](docs/validation/code-server.md) | Live provenance audit and isolated compile/recreation/recovery evidence |
+| [0.8.0-alpha.1 release review](docs/releases/v0.8.0-alpha.1.md) | First Phase 7 scope, production boundary and remaining gates |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -153,7 +156,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.7.0 release review](docs/releases/v0.7.0.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.8.0-alpha.1 release review](docs/releases/v0.8.0-alpha.1.md).
 
 ## License
 
