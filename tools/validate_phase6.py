@@ -1,4 +1,4 @@
-"""Validate the Phase 6 media foundation and isolated Immich recovery module."""
+"""Validate Phase 6 media recovery, selected integrations and acceleration."""
 from __future__ import annotations
 
 import json
@@ -11,10 +11,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from homelab.media_acceleration import CONTRACT, load_policy, make_plan
-from homelab import immich, immich_vault, jellyfin, jellyfin_vault
+from homelab import (immich, immich_vault, jellyfin, jellyfin_vault,
+                     jellyfin_acceleration, media_management)
 
 
-RELEASE = "0.7.0-alpha.6"
+RELEASE = "0.7.0"
 DIGEST = re.compile(r"^[^@\s]+@sha256:[0-9a-f]{64}$")
 
 
@@ -89,6 +90,14 @@ def validate_phase6(root: Path = ROOT) -> str:
             and "validate-set" in cli and "validate-manifest" in cli
             and "validate-proof" in cli,
             "Jellyfin encrypted-recovery validation CLI is not wired")
+    require("'media-management'" in cli
+            and "from . import media_management as module" in cli
+            and "render-compose" in cli and "validate-recovery" in cli,
+            "Media-management selection/recovery CLI is not wired")
+    require("'jellyfin-acceleration'" in cli
+            and "from . import jellyfin_acceleration as module" in cli
+            and "validate-proof" in cli,
+            "Jellyfin acceleration CLI is not wired")
     runtime = {"context": "phase6-test", "endpoint": "unix:///phase6-test.sock",
                "engine_id": "phase6-test"}
     # macOS exposes its temporary directory through /var -> /private/var. The
@@ -233,6 +242,92 @@ def validate_phase6(root: Path = ROOT) -> str:
                 f"Jellyfin encrypted recovery trial missing {marker}")
     require(jellyfin_vault.RETENTION == {"daily": 7, "weekly": 4, "monthly": 3},
             "Jellyfin recovery retention contract changed")
+
+    media_images = media_management.load_images(
+        root / "modules/media-management/images.json")
+    media_selection = media_management.load_selection(
+        root / "modules/media-management/selection.example.json",
+        require_selected=False)
+    require(media_selection["selected"] == [],
+            "Media-management example must not select applications implicitly")
+    media_selection["selected"] = list(media_management.COMPONENTS)
+    media_plan = media_management.make_plan(media_selection, media_images)
+    media_spec = media_management.compose(media_plan, trial_internal_network=True)
+    require(set(media_spec["services"]) == set(media_management.COMPONENTS)
+            and media_spec["networks"]["media-management"]["internal"] is True,
+            "Media-management component coverage or trial isolation changed")
+    for name, service in media_spec["services"].items():
+        require(DIGEST.fullmatch(service["image"])
+                and service["pull_policy"] == "never"
+                and service["security_opt"] == ["no-new-privileges:true"]
+                and service["pids_limit"] > 0
+                and service["mem_limit"].endswith("m")
+                and service["cpus"] > 0
+                and "healthcheck" in service,
+                f"{name}: media-management restriction changed")
+        for port in service.get("ports", []):
+            require(port["host_ip"] == "127.0.0.1" and port["target"] != 6881,
+                    f"{name}: public or peer port was rendered")
+    require("ports" not in media_spec["services"]["flaresolverr"]
+            and media_spec["services"]["flaresolverr"]["tmpfs"] == [
+                "/tmp:rw,noexec,nosuid,size=512m"]
+            and "docker.sock" not in json.dumps(media_spec)
+            and "password" not in json.dumps(media_spec).casefold(),
+            "Media-management internal-only or credential boundary changed")
+
+    acceleration_audit = {
+        "kind": jellyfin_acceleration.AUDIT_KIND,
+        "contract": jellyfin_acceleration.CONTRACT,
+        "host_platform": "windows",
+        "ffmpeg": {"available": True, "identity": "ffmpeg.exe",
+                   "version": "8.1.3-Jellyfin", "jellyfin_build": True,
+                   "libx264": True, "qsv": True, "nvenc": True},
+        "adapters": [
+            {"vendor": "intel", "name": "Intel UHD Graphics 730",
+             "driver": "32.0.101.7092"},
+            {"vendor": "nvidia", "name": "NVIDIA GeForce GT 730",
+             "driver": "391.35"},
+        ],
+        "mutations_performed": False,
+        "production_media_read": False,
+        "jellyfin_configuration_read": False,
+    }
+    acceleration_audit["decision"] = jellyfin_acceleration.assess_backends(
+        acceleration_audit)
+    acceleration_audit = jellyfin_acceleration.validate_audit(acceleration_audit)
+    require(acceleration_audit["decision"]["qsv"]["status"] ==
+            "eligible-for-synthetic-test"
+            and acceleration_audit["decision"]["nvenc"]["status"] == "blocked"
+            and "nvidia-driver-below-522.25" in
+            acceleration_audit["decision"]["nvenc"]["blocking_reasons"],
+            "Reference Jellyfin acceleration decision changed")
+    fixture = {"synthetic": True, "duration_seconds": 10, "width": 1920,
+               "height": 1080, "fps": 30, "source_codec": "h264"}
+    proof_runs = []
+    for role in ("cpu-baseline", "qsv-single", "qsv-concurrent-a",
+                 "qsv-concurrent-b"):
+        proof_runs.append({
+            "role": role,
+            "backend": "cpu" if role == "cpu-baseline" else "qsv",
+            "codec": "h264", "status": "passed",
+            "concurrency": 2 if role.startswith("qsv-concurrent-") else 1,
+            "elapsed_seconds": 1.0, "speed": 2.0,
+            "metrics": {"user_seconds": 0.1, "system_seconds": 0.1,
+                        "max_rss_kib": 1024},
+            "output": {"duration_seconds": 10.0, "width": 1280,
+                       "height": 720, "frames": 300, "size_bytes": 4096,
+                       "sha256": ("a" if role.endswith("a") else "b") * 64,
+                       "ssim": 0.95},
+        })
+    acceleration_proof = jellyfin_acceleration.make_proof(
+        acceleration_audit, fixture, proof_runs, temporary_outputs_removed=True)
+    require(acceleration_proof["decision"] == {
+        "selected": "qsv", "gpu_enabled": True, "fallback": "cpu",
+        "activation_scope": "jellyfin-native-transcode-only",
+        "nvenc": "blocked-or-not-selected",
+    } and acceleration_proof["production_media_used"] is False
+      and acceleration_proof["jellyfin_configuration_changed"] is False,
+      "Jellyfin synthetic acceleration proof boundary changed")
     dr_workflow = (root / ".github/workflows/immich-disaster-recovery.yml").read_text(
         encoding="utf-8")
     for marker in ("IMMICH_DR_TEST_PASSWORD", "prepare-encrypted-repository",
@@ -269,13 +364,26 @@ def validate_phase6(root: Path = ROOT) -> str:
                  "tests/test_jellyfin_vault.py",
                  "tools/jellyfin_native_trial.py",
                  "tools/jellyfin_offhost_trial.py",
+                 "docs/media-management-module.md",
+                 "docs/validation/media-management.md",
+                 "modules/media-management/images.json",
+                 "modules/media-management/selection.example.json",
+                 "modules/media-management/recovery.json",
+                 "tests/test_media_management.py",
+                 "tools/media_management_trial.py",
+                 "docs/jellyfin-acceleration-module.md",
+                 "docs/validation/jellyfin-acceleration.md",
+                 "modules/jellyfin-acceleration/policy.json",
+                 "tests/test_jellyfin_acceleration.py",
+                 "tools/jellyfin_acceleration_trial.py",
                  "tools/immich_dr_trial.py",
                  "tools/immich_vault_local_trial.py"):
         require((root / path).is_file(), f"Missing Phase 6 artifact: {path}")
-    return ("PASS: Phase 6 0.7.0-alpha.6 preserves Immich protected-original "
+    return ("PASS: Phase 6 0.7.0 preserves Immich protected-original "
             "recovery and validates Jellyfin same-version application restore "
             "with exact synthetic direct play before and after restart plus "
-            "encrypted application/media recovery")
+            "encrypted application/media recovery, selectable media management "
+            "and measured Intel QSV with CPU fallback")
 
 
 def main() -> int:

@@ -1,0 +1,21 @@
+{
+  "kind": "homelab-jellyfin-acceleration-policy",
+  "contract": "jellyfin-acceleration-v1",
+  "activation": "synthetic-proof-required",
+  "fixture": {
+    "source": "generated-test-pattern",
+    "duration_seconds": 10,
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  },
+  "required_runs": [
+    "cpu-baseline",
+    "qsv-single",
+    "qsv-concurrent-a",
+    "qsv-concurrent-b"
+  ],
+  "fallback": "cpu",
+  "production_media": "forbidden",
+  "configuration_mutation": "forbidden"
+}

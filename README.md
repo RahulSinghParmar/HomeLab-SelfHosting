@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Version 0.7.0-alpha.6 proves encrypted Jellyfin application and owner-managed media recovery.** A native-Windows rehearsal stores Jellyfin's built-in archive and a separately managed synthetic media original in a checksum-pinned Restic repository, deletes all source state and the operational key, then recovers through a clean same-version target using only transported encrypted material and an independently held recovery key. Exact direct play passes before backup, after recovery and after restart; production Jellyfin and media remain untouched.
+**Version 0.7.0 completes the bounded Phase 6 media toolkit.** Immich and Jellyfin have protected-original, application-aware and encrypted recovery contracts; eight media-management applications are individually selectable behind digest-pinned, loopback/internal definitions; and native Windows Jellyfin Intel QSV has a measured synthetic two-stream proof with CPU fallback. Production services and personal media remain outside the test boundary.
 
 ## What this project is building
 
@@ -82,6 +82,12 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [Jellyfin encrypted recovery](docs/jellyfin-vault.md) | Separate application/media recovery set, encryption, key custody and validators |
 | [0.7.0-alpha.6 validation](docs/validation/jellyfin-off-host-recovery.md) | Source-loss, full-data-check, exact media and application recovery evidence |
 | [0.7.0-alpha.6 release review](docs/releases/v0.7.0-alpha.6.md) | Verified scope and remaining owner-adoption gates |
+| [Selectable media-management module](docs/media-management-module.md) | Eight opt-in integrations, restricted Compose rendering and stopped-state recovery |
+| [Media-management validation](docs/validation/media-management.md) | All-component coverage, SQLite/shared-path restore and measured resource evidence |
+| [Jellyfin acceleration module](docs/jellyfin-acceleration-module.md) | Native QSV/NVENC decisions, CPU fallback and synthetic proof contract |
+| [Phase 6 media kit](docs/phase6-media-kit.md) | Final Immich, media-management and Jellyfin recovery/acceleration contract |
+| [Phase 6 closure validation](docs/validation/phase6-closure.md) | Integrated evidence, isolation checks and exact release gate |
+| [0.7.0 release review](docs/releases/v0.7.0.md) | Completed public scope and owner-adoption boundaries |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -109,8 +115,11 @@ python tools/validate_phase4.py
 python tools/validate_phase5.py
 python tools/validate_phase5_closure.py
 python tools/validate_phase6.py
+python tools/validate_phase6_closure.py
 python homelab_cli.py owner-backup validate --policy modules/phase5/owner-backup-policy.example.json
 python -m homelab media audit
+python -m homelab media-management plan --selection /private/media-selection.json --output /private/media-plan.json
+python -m homelab jellyfin-acceleration audit --ffmpeg /path/to/jellyfin-ffmpeg
 python -m homelab jellyfin audit
 python -m homelab jellyfin validate-recovery --evidence /private/jellyfin-recovery.json
 python -m homelab jellyfin-vault validate-proof --proof /private/jellyfin-off-host-proof.json
@@ -123,7 +132,7 @@ Windows also supports `./bootstrap.ps1 catalog`; Linux/macOS supports `sh ./boot
 
 For the opt-in Windows/PowerShell 7 read-only metadata collector, see [evidence and privacy instructions](docs/discovery/evidence.md). Its report belongs outside Git. Windows collector regression tests use mocks and can be run with `./tests/Test-ReferenceCollector.ps1`.
 
-General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault`, `affine`, `affine-vault`, `nextcloud`, `nextcloud-vault`, `firefly`, `firefly-vault`, `vaultwarden`, `vaultwarden-vault`, `karakeep`, `karakeep-vault`, `immich` and `immich-vault` candidates are bounded execution paths; they do not enable the general planner. `owner-backup` and `media` only audit, validate or save disabled private designs. `jellyfin` validates application-recovery evidence, while `jellyfin-vault` validates the separate encrypted application/media contracts; their rehearsal tools require explicit confirmation and disposable paths. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
+General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault`, `affine`, `affine-vault`, `nextcloud`, `nextcloud-vault`, `firefly`, `firefly-vault`, `vaultwarden`, `vaultwarden-vault`, `karakeep`, `karakeep-vault`, `immich` and `immich-vault` candidates are bounded execution paths; they do not enable the general planner. `owner-backup` and `media` only audit, validate or save disabled private designs. `media-management` plans/renders an explicit selection and validates synthetic recovery evidence without deploying it. `jellyfin` validates application recovery, `jellyfin-vault` validates encrypted application/media recovery, and `jellyfin-acceleration` audits or validates a synthetic transcode proof; execution tools require exact confirmation and disposable paths. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
 
 ## Service families
 
@@ -144,7 +153,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.7.0-alpha.6 release review](docs/releases/v0.7.0-alpha.6.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.7.0 release review](docs/releases/v0.7.0.md).
 
 ## License
 

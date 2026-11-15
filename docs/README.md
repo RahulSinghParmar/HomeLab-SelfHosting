@@ -39,7 +39,7 @@ Paperless, AFFiNE, Nextcloud, Firefly III, Vaultwarden and Karakeep now have app
 
 ## Phase 6 media
 
-The [media and acceleration foundation](phase6-media-foundation.md) defines authoritative originals, rebuildable derivatives, cache exclusions, manual heavy jobs and CPU-fallback acceleration gates. Its [validation record](validation/phase6-media-foundation.md) documents the read-only reference-host capability result. The [Immich recovery module](immich-module.md) proves exact original download, ML isolation and a quiesced PostgreSQL/protected-file backup. The [Immich encrypted vault](immich-vault.md) adds full-data-checked Restic storage and independent clean-runner recovery; see the [local evidence](validation/immich.md) and [off-host recovery record](validation/immich-off-host-recovery.md). The [Jellyfin module](jellyfin-module.md) adds explicit native/container selection, supported-platform enforcement and a non-activating Linux Compose renderer. The [Jellyfin recovery trial](jellyfin-recovery.md) proves built-in same-version application restore and exact direct play. The [Jellyfin encrypted recovery module](jellyfin-vault.md) now adds separate owner-managed media recovery, full-data-checked encryption, independent key custody and source-loss validation; see the [off-host recovery record](validation/jellyfin-off-host-recovery.md). Owner production storage adoption, client/concurrency testing and optional media-management selection remain subsequent milestones.
+The [media and acceleration foundation](phase6-media-foundation.md) defines authoritative originals, rebuildable derivatives, cache exclusions, manual heavy jobs and CPU-fallback acceleration gates. Its [validation record](validation/phase6-media-foundation.md) documents the read-only reference-host capability result. The [Immich recovery module](immich-module.md) proves exact original download, ML isolation and a quiesced PostgreSQL/protected-file backup. The [Immich encrypted vault](immich-vault.md) adds full-data-checked Restic storage and independent clean-runner recovery; see the [local evidence](validation/immich.md) and [off-host recovery record](validation/immich-off-host-recovery.md). The [selectable media-management module](media-management-module.md) adds eight explicit, digest-pinned integrations plus stopped-state synthetic recovery; see its [validation record](validation/media-management.md). The [Jellyfin module](jellyfin-module.md) adds explicit native/container selection, the [recovery trial](jellyfin-recovery.md) proves same-version restore/direct play, and the [encrypted recovery module](jellyfin-vault.md) protects application and owner-managed media separately. The [Jellyfin acceleration module](jellyfin-acceleration-module.md) adds measured Intel QSV with CPU fallback. The [Phase 6 media kit](phase6-media-kit.md) and [closure record](validation/phase6-closure.md) bind the final 0.7.0 contract and owner-adoption boundary.
 
 ## Operations and recovery
 
@@ -67,6 +67,7 @@ python tools/validate_phase4.py
 python tools/validate_phase5.py
 python tools/validate_phase5_closure.py
 python tools/validate_phase6.py
+python tools/validate_phase6_closure.py
 python tools/check_publication.py --history
 python -m unittest discover -s tests -v
 ```

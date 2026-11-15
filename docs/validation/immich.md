@@ -55,4 +55,4 @@ Both failed disposable projects and their volumes were removed before the succes
 
 Both disposable projects, six test volumes, private plans, synthetic media and the sensitive staging backup were removed after validation. The pinned Valkey image remains in the normal Docker image cache. No existing Immich container, production media path, database, account, public route or Docker setting was read or changed.
 
-This evidence supports the bounded local recovery candidate only. Production adoption still requires encrypted off-host recovery, owner storage/key custody, representative-data restore and operational scheduling.
+This evidence supports the bounded local recovery candidate only. The later [encrypted off-host validation](immich-off-host-recovery.md) completes the public synthetic recovery contract. Production adoption still requires owner storage/key custody, representative-data restore and operational scheduling.

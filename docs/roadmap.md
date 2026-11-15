@@ -137,11 +137,13 @@ Fifth bounded milestone: **0.7.0-alpha.5** adds the [Jellyfin application-recove
 
 Sixth bounded milestone: **0.7.0-alpha.6** adds [encrypted Jellyfin application and media recovery](jellyfin-vault.md). It binds the built-in archive and a separately owner-managed synthetic original, encrypts both with checksum-pinned Restic, performs complete repository-data reads, deletes source state/media/operational custody and recovers through a clean same-version target using transported encrypted material plus an independent recovery key. The [reference validation](validation/jellyfin-off-host-recovery.md) proves exact playback after recovery and restart while production remains healthy. Physical owner off-host storage, scheduling, retention execution, representative-library capacity, clients/concurrency and transcoding/GPU work remain pending.
 
+Final milestone: **0.7.0** adds the [selectable media-management module](media-management-module.md), stopped-state recovery for all eight integrations, and the [native Jellyfin acceleration contract](jellyfin-acceleration-module.md). Two low-memory rehearsals cover every media component with independent restore, 24 SQLite checks, shared `/data` semantics and measured idle resources. A synthetic 1080p workload proves one- and two-stream Intel QSV above real time with decoded-output validation and CPU fallback; the legacy NVIDIA path remains blocked. The [Phase 6 kit](phase6-media-kit.md) and [closure record](validation/phase6-closure.md) bind the stable public contract without adopting production media or services.
+
 Implement compatible Immich releases, separately limited ML, and correct storage mappings. Add media-management modules only as selected. Rebuildable thumbnails are distinct from originals; no automatic mass regeneration, deletion, or transcoding.
 
 Jellyfin native versus container deployment must be an explicit platform choice. GPU enablement requires a capability probe and real synthetic workload test; unsupported systems use CPU mode. Media integrations must respect lawful ownership and user-provided credentials.
 
-Exit: verified original-file integrity, content browsing and restoration, measured concurrency, and explicit GPU support results.
+Exit achieved for the synthetic public toolkit: verified original-file integrity, content browsing and restoration, measured bounded concurrency, and explicit backend-specific GPU results. Owner production adoption, physical off-host storage, schedules, representative-library capacity and client tests remain installation-specific work rather than public-release blockers.
 
 ## Phase 7 — Development, chat and native lifecycle
 

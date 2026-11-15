@@ -1,6 +1,6 @@
 # Security policy
 
-This repository is currently a pre-release blueprint, not a production installer.
+This repository is a versioned blueprint, not a production installer.
 
 The experimental Glance command operates a new loopback-bound container on a dedicated bridge network. Outbound connectivity is allowed; this is not an egress firewall. It does not mount the Docker socket or modify existing applications. The upstream image defaults to root inside the container, constrained by a read-only filesystem, dropped capabilities, no-new-privileges and resource limits. The digest is reproducible, not a claim of current vulnerability clearance. Read the [Glance boundaries](docs/glance-module.md) before use. Localhost access is not user authentication; other local processes/users can reach the dashboard.
 
@@ -11,6 +11,8 @@ The experimental [Kuma module](docs/kuma-module.md) uses the same loopback/dedic
 The Phase 4 release candidate adds Beszel, Stirling-PDF and opt-in Portainer under separate boundaries. Beszel and Stirling-PDF publish only loopback trial ports and do not receive the host Docker socket. Portainer requires the exact `isolated-engine-only` grant and controls a disposable nested daemon; it must not be presented as host-engine administration. Module-owned backup directories and named volumes can contain credentials, databases or documents and remain private even after disposable containers are removed. Read each module's validation record before use.
 
 The experimental [Paperless vault](docs/paperless-vault.md) encrypts a previously verified application backup with a checksum-locked Restic binary. Key files are owner-restricted and never printed, but an administrator or malware running as the same account can still read an online operational key or delete an online repository. Version 0.6.0-alpha.3 validates the portable mechanism with synthetic data, an immutable hosted artifact and a separately injected Actions secret on a fresh runner. It does not certify the user's production repository, real offline-key custody or long-term artifact retention. Keep production recovery keys and repository copies on independently recoverable systems and remove plaintext staging after verification.
+
+The Phase 6 [media-management module](docs/media-management-module.md) contains no provider, indexer, download-client or Jellyfin credential. Published UIs are loopback-only, qBittorrent peer ports are omitted and FlareSolverr is internal-only with bounded scratch space; do not expose FlareSolverr through a tunnel or public proxy. The recovery runner uses an internal network and generated state, stops applications before capture and removes its disposable projects. The [Jellyfin acceleration module](docs/jellyfin-acceleration-module.md) accepts only generated video and does not read Jellyfin configuration or production media. A synthetic QSV pass is not permission to enable HDR, low-power encoding, NVENC or additional concurrency.
 
 Never publish plaintext credentials, keys or production recovery bundles in issues, pull requests, screenshots, logs or workflow artifacts. The short-lived 0.6.0-alpha.3 artifact contains only encrypted generated test data and a nonsecret fingerprint manifest. If a credential is exposed, revoke or rotate it first; deleting the file or commit is not sufficient.
 

@@ -1,0 +1,26 @@
+{
+  "kind": "homelab-media-management-selection",
+  "contract": "phase6-media-management-v1",
+  "target_platform": "windows",
+  "selected": [],
+  "config_root": "C:\\HomeLab\\media-management",
+  "data_root": "D:\\Media",
+  "timezone": "Etc/UTC",
+  "uid": 1000,
+  "gid": 1000,
+  "ports": {
+    "bazarr": 16767,
+    "lidarr": 18686,
+    "prowlarr": 19696,
+    "qbittorrent": 18080,
+    "radarr": 17878,
+    "seerr": 15055,
+    "sonarr": 18989
+  },
+  "automatic_actions": {
+    "automatic_search": false,
+    "downloads": false,
+    "real_library_scan": false,
+    "rss": false
+  }
+}

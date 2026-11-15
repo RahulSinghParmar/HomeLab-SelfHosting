@@ -1,0 +1,14 @@
+{
+  "kind": "homelab-media-management-recovery-contract",
+  "contract": "phase6-media-management-v1",
+  "backup_mode": "all-selected-services-stopped",
+  "database_check": "sqlite-quick-check",
+  "shared_storage_checks": [
+    "hardlink",
+    "atomic-move",
+    "content-hash-after-restore"
+  ],
+  "restore": "independent-synthetic-root",
+  "network": "internal-no-external-egress",
+  "production_state": "prohibited"
+}

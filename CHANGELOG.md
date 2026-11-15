@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0 — 2026-11-15
+
+- Added eight individually selectable, digest-pinned media-management integrations with dependency validation, loopback/internal access, resource limits and no implicit provider or download activity.
+- Proved stopped-state configuration recovery across all eight integrations using two low-memory internal-network rehearsals, 24 SQLite checks, shared `/data` hardlink/atomic-move validation and independent healthy restores.
+- Added a separate native Jellyfin acceleration contract: Intel QSV passed CPU, single-stream, two-stream and HEVC synthetic output validation while retaining CPU fallback.
+- Kept the reference GeForce GT 730 NVENC path blocked at driver 391.35, below Jellyfin's current Windows requirement; HDR, low-power encoding and four-stream concurrency remain unapproved.
+- Revalidated retained Jellyfin application and encrypted off-host media recovery evidence, preserved prior Immich clean-runner evidence, and added a final Phase 6 closure validator.
+- Left the existing production media stack, Jellyfin configuration, personal media, external providers and private credentials unchanged.
+
 ## 0.7.0-alpha.6 — 2026-11-11
 
 - Added a strict Jellyfin recovery set containing the built-in application archive and a separately managed synthetic media original, each bound by SHA-256.

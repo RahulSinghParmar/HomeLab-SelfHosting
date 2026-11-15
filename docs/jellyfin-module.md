@@ -95,16 +95,16 @@ CPU is the only selected mode. GPU/device access stays absent until a separately
 4. a non-personal fixture actually transcodes; and
 5. CPU, GPU, memory and output integrity are measured.
 
-The reference Windows host has a GeForce GT 730 with driver 391.35. Jellyfin's current NVIDIA Windows guidance requires driver 522.25 or newer, so GPU acceleration is not eligible there. Merely seeing a GPU or NVIDIA Docker runtime is not evidence of working NVENC/NVDEC.
+The reference Windows host has a GeForce GT 730 with driver 391.35. Jellyfin's current NVIDIA Windows guidance requires driver 522.25 or newer, so NVENC is not eligible there. The later [native acceleration module](jellyfin-acceleration-module.md) separately proves Intel UHD 730 QSV with generated video; merely seeing a GPU or compiled backend remains insufficient evidence.
 
 ## Not yet delivered
 
 - No native installation, update, tray/service conversion or service restart.
 - No production configuration, library, plugin, user, playlist or media mutation.
 - No container pull/start or Windows/macOS container support.
-- Synthetic static direct play and same-version application recovery are proven; transcoding, client compatibility and concurrency are not.
-- No production backup/restore, encryption or off-host Jellyfin/media recovery.
-- No production-adoption or stable Phase 6 claim.
+- Synthetic static direct play, same-version application recovery and bounded one-/two-stream QSV are proven; representative production clients and libraries are not.
+- Synthetic encrypted off-host application/media recovery is proven; no owner production backup destination or schedule is adopted.
+- Stable Phase 6 describes the public synthetic toolkit, not production adoption.
 
 Upstream references:
 

@@ -22,7 +22,7 @@ The correct reviewed selection for this host is therefore `native`, adopting the
 
 ## Acceleration result
 
-The refreshed read-only NVIDIA query returned GeForce GT 730 with driver 391.35. Current Jellyfin Windows NVIDIA guidance requires 522.25 or newer. The plan therefore selects CPU and leaves device access disabled. No synthetic transcode was run after the prerequisite failure.
+The alpha.4 review queried only the GeForce GT 730 path. Driver 391.35 was below Jellyfin's Windows NVENC requirement, so that backend stayed blocked and no device access was granted by the deployment plan. The later [Jellyfin acceleration validation](jellyfin-acceleration.md) separately audits Intel UHD 730 and proves QSV with generated video while retaining CPU fallback.
 
 ## Safety result
 
@@ -31,6 +31,6 @@ No native service, container, database, configuration, plugin, account, playlist
 ## Remaining gates
 
 - The nonempty built-in backup, same-version independent restore, synthetic direct play and restart-persistence gates subsequently passed in [0.7.0-alpha.5 validation](jellyfin-recovery.md).
-- Run one bounded synthetic transcode and measure CPU/memory; enable a GPU only on eligible hardware after codec-level proof.
-- Test representative clients and concurrent streams.
-- Add encrypted off-host recovery and owner scheduling before production-adoption claims.
+- The bounded CPU/QSV workload and two-stream measurement subsequently passed in [0.7.0 validation](jellyfin-acceleration.md).
+- Representative production clients, HDR/low-power paths and higher concurrency remain installation-specific gates.
+- Encrypted synthetic off-host recovery subsequently passed; owner storage and scheduling remain required before production-adoption claims.

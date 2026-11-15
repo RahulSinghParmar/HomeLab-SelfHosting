@@ -520,6 +520,32 @@ def main(arguments=None) -> int:
     media_plan = media_actions.add_parser('plan')
     media_plan.add_argument('--policy', type=Path, required=True)
     media_plan.add_argument('--output', type=Path, required=True)
+    media_management = sub.add_parser(
+        'media-management',
+        help='Plan selected media integrations or validate synthetic recovery evidence')
+    media_management_actions = media_management.add_subparsers(
+        dest='action', required=True)
+    media_management_plan = media_management_actions.add_parser('plan')
+    media_management_plan.add_argument('--selection', type=Path, required=True)
+    media_management_plan.add_argument('--output', type=Path, required=True)
+    media_management_compose = media_management_actions.add_parser('render-compose')
+    media_management_compose.add_argument('--plan', type=Path, required=True)
+    media_management_compose.add_argument('--output', type=Path, required=True)
+    media_management_recovery = media_management_actions.add_parser(
+        'validate-recovery')
+    media_management_recovery.add_argument('--plan', type=Path, required=True)
+    media_management_recovery.add_argument('--evidence', type=Path, required=True)
+    jellyfin_acceleration = sub.add_parser(
+        'jellyfin-acceleration',
+        help='Audit native Jellyfin acceleration or validate a synthetic proof')
+    jellyfin_acceleration_actions = jellyfin_acceleration.add_subparsers(
+        dest='action', required=True)
+    jellyfin_acceleration_audit = jellyfin_acceleration_actions.add_parser('audit')
+    jellyfin_acceleration_audit.add_argument('--ffmpeg', type=Path, required=True)
+    jellyfin_acceleration_audit.add_argument('--output', type=Path)
+    jellyfin_acceleration_proof = jellyfin_acceleration_actions.add_parser(
+        'validate-proof')
+    jellyfin_acceleration_proof.add_argument('--evidence', type=Path, required=True)
     jellyfin = sub.add_parser(
         'jellyfin', help='Review Jellyfin, select deployment or validate recovery evidence')
     jellyfin_actions = jellyfin.add_subparsers(dest='action', required=True)
@@ -648,6 +674,38 @@ def main(arguments=None) -> int:
                 result = module.make_plan(module.validate_policy(load_json(args.policy)),
                                           capability)
                 write_private(args.output, result)
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'media-management':
+            from . import media_management as module
+            if args.action == 'plan':
+                result = module.make_plan(module.load_selection(args.selection))
+                write_private(args.output, result)
+            elif args.action == 'render-compose':
+                plan = module.validate_plan(load_json(args.plan))
+                rendered = module.compose(plan)
+                write_private(args.output, rendered)
+                result = {
+                    'kind': 'homelab-media-management-compose-render',
+                    'contract': module.CONTRACT,
+                    'plan_id': plan['plan_id'],
+                    'selected': plan['selected'],
+                    'output': '<private-compose-file>',
+                    'deployment_performed': False,
+                }
+            else:
+                result = module.validate_recovery_evidence(
+                    load_json(args.evidence), load_json(args.plan))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'jellyfin-acceleration':
+            from . import jellyfin_acceleration as module
+            if args.action == 'audit':
+                result = module.audit(args.ffmpeg)
+                if args.output:
+                    write_private(args.output, result)
+            else:
+                result = module.validate_proof(load_json(args.evidence))
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command == 'jellyfin':

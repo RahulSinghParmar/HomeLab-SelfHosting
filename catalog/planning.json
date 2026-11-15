@@ -229,7 +229,7 @@
           "span": 1
         }
       ],
-      "manual": "Application templates, image locks and restore tests are pending."
+      "manual": "Use the separate explicit-selection adapter; providers, downloads and production adoption remain owner-operated."
     },
     "jellyfin": {
       "memory_mib": 1024,
