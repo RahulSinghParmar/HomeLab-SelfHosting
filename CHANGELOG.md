@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0-alpha.3 — 2026-11-16
+
+- Added a read-only existing-instance Coolify adapter for the reviewed Windows Docker Desktop topology without claiming upstream production support or fresh-install capability.
+- Recorded separate lifecycle ownership for the five root Compose services, Coolify-generated Traefik proxy and scheduler-managed Sentinel instead of relabeling them as one Compose project.
+- Audited all seven live components, both Compose definitions, the loopback health endpoint and the latest control-plane backup without reading `.env`, `APP_KEY`, credentials or managed application data.
+- Kept updates manual and blocked update-readiness until encrypted off-host control-plane recovery is proven; each managed application's data remains outside the Coolify instance-backup claim.
+
 ## 0.8.0-alpha.2 — 2026-11-16
 
 - Added digest-pinned multi-architecture Synapse 1.164.2, PostgreSQL 15.19 and Element Web 1.12.35 planning with a loopback-only, resource-bounded Compose renderer.

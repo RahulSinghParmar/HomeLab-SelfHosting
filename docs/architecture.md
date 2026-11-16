@@ -55,6 +55,8 @@ Version `0.6.0` closes the Phase 5 public recovery-toolkit contract without comb
 
 Coolify-managed proxy, sentinel, and generated applications must remain under their actual lifecycle owner. A single top-level command can coordinate them without relabeling or fighting the upstream control plane.
 
+Version `0.8.0-alpha.3` implements that boundary as a read-only existing-instance adapter. It validates root/proxy Compose state, seven sanitized component identities, loopback dashboard health and control-plane backup presence. It has no apply or automatic-update operation, never adopts the generated proxy or Sentinel, and does not represent Coolify instance backup as protection for managed application databases or volumes.
+
 ## Planned user workflow
 
 In 0.3.0, `python -m homelab configure`, `validate`, `doctor` and `plan` are implemented. See the [planning guide](planning.md). They save explicit settings/reports and query the host read-only; they do not implement the deployment coordinator, ownership journal or recovery system shown above. The complete workflow remains a design target:

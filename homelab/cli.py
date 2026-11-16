@@ -572,6 +572,19 @@ def main(arguments=None) -> int:
     matrix_evidence = matrix_actions.add_parser('validate-evidence')
     matrix_evidence.add_argument('--plan', type=Path, required=True)
     matrix_evidence.add_argument('--evidence', type=Path, required=True)
+    coolify = sub.add_parser(
+        'coolify',
+        help='Audit an existing Coolify instance and plan without adopting generated resources')
+    coolify_actions = coolify.add_subparsers(dest='action', required=True)
+    coolify_audit = coolify_actions.add_parser('audit')
+    coolify_audit.add_argument('--policy', type=Path, required=True)
+    coolify_audit.add_argument('--output', type=Path)
+    coolify_plan = coolify_actions.add_parser('plan')
+    coolify_plan.add_argument('--policy', type=Path, required=True)
+    coolify_plan.add_argument('--audit', type=Path, required=True)
+    coolify_plan.add_argument('--output', type=Path, required=True)
+    coolify_validate = coolify_actions.add_parser('validate-audit')
+    coolify_validate.add_argument('--audit', type=Path, required=True)
     jellyfin = sub.add_parser(
         'jellyfin', help='Review Jellyfin, select deployment or validate recovery evidence')
     jellyfin_actions = jellyfin.add_subparsers(dest='action', required=True)
@@ -774,6 +787,21 @@ def main(arguments=None) -> int:
             else:
                 result = module.validate_evidence(
                     load_json(args.evidence), load_json(args.plan))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'coolify':
+            from . import coolify_adapter as module
+            if args.action == 'audit':
+                result = module.audit(module.load_policy(args.policy))
+                if args.output:
+                    write_private(args.output, result)
+            elif args.action == 'plan':
+                result = module.make_plan(
+                    module.load_policy(args.policy),
+                    module.validate_audit(load_json(args.audit)))
+                write_private(args.output, result)
+            else:
+                result = module.validate_audit(load_json(args.audit))
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command == 'jellyfin':

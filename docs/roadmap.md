@@ -149,6 +149,8 @@ Exit achieved for the synthetic public toolkit: verified original-file integrity
 
 Reproduce the code-server build, extension/settings persistence and architecture-correct toolchain downloads. Preserve private workspaces and authentication. Implement Matrix identity/key handling, Element and TURN tests; bridges remain optional.
 
+The `0.8.0-alpha.3` milestone adds a non-owning existing-instance Coolify adapter for the reference Windows Docker Desktop installation. It records real lifecycle owners and update/recovery blockers without offering an unsupported fresh install or adopting generated resources.
+
 Handle Coolify as its own controller. Document upstream Linux support and prove any Windows adapter separately. Do not absorb dynamically managed projects into generic Compose ownership.
 
 Finish native startup/scheduling adapters, Glances and optional VPN integrations. Task definitions and startup recovery must survive reboot tests on actual platforms.

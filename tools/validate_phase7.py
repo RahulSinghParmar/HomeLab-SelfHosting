@@ -9,10 +9,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from homelab import code_server, matrix
+from homelab import code_server, coolify_adapter, matrix
 
 
-RELEASE = "0.8.0-alpha.2"
+RELEASE = "0.8.0-alpha.3"
 
 
 def require(condition: bool, message: str) -> None:
@@ -145,11 +145,32 @@ def validate_phase7(root: Path = ROOT) -> str:
                    "cleanup_completed"):
         require(marker in matrix_trial, f"Matrix trial gate missing {marker}")
 
+    coolify_policy = coolify_adapter.load_policy(
+        root / "modules/coolify/policy.example.json")
+    require(coolify_policy["platform"]
+            == "windows-docker-desktop-existing-instance"
+            and coolify_policy["backup"]["encrypted_off_host_required"] is True
+            and coolify_policy["backup"]["managed_application_data_included"] is False,
+            "Coolify support or backup boundary changed")
+    require(coolify_policy["components"] == {
+        name: {"owner": coolify_adapter.OWNERS[name],
+               "docker_control": name in coolify_adapter.DOCKER_CONTROL}
+        for name in coolify_adapter.COMPONENTS
+    }, "Coolify component ownership changed")
+    coolify_source = (root / "homelab/coolify_adapter.py").read_text(
+        encoding="utf-8")
+    for marker in ("experimental-existing-instance-only", "update_ready",
+                   "managed_application_recovery_included",
+                   "generated_resources_adopted", "changes_performed"):
+        require(marker in coolify_source,
+                f"Coolify non-owning adapter gate missing {marker}")
+
     cli = (root / "homelab/cli.py").read_text(encoding="utf-8")
     require("'code-server'" in cli and "from . import code_server as module" in cli
             and "'matrix'" in cli and "from . import matrix as module" in cli
+            and "'coolify'" in cli and "from . import coolify_adapter as module" in cli
             and "render-compose" in cli and "validate-evidence" in cli,
-            "Phase 7 code-server/Matrix CLI is not wired")
+            "Phase 7 code-server/Matrix/Coolify CLI is not wired")
     workflow = (root / ".github/workflows/validate.yml").read_text(
         encoding="utf-8")
     require("python tools/validate_phase7.py" in workflow,
@@ -172,11 +193,17 @@ def validate_phase7(root: Path = ROOT) -> str:
         "modules/matrix/selection.example.json",
         "tests/test_matrix.py",
         "tools/matrix_trial.py",
+        "docs/coolify-adapter.md",
+        "docs/validation/coolify-adapter.md",
+        "docs/releases/v0.8.0-alpha.3.md",
+        "homelab/coolify_adapter.py",
+        "modules/coolify/policy.example.json",
+        "tests/test_coolify_adapter.py",
     ):
         require((root / relative).is_file(), f"Missing Phase 7 artifact: {relative}")
-    return ("PASS: Phase 7 0.8.0-alpha.2 provides pinned multiarchitecture "
-            "code-server and Matrix foundations, immutable Matrix identity, "
-            "client-E2EE separation and actual room/message/media recovery proof")
+    return ("PASS: Phase 7 0.8.0-alpha.3 provides code-server and Matrix "
+            "foundations plus a non-owning existing-instance Coolify adapter "
+            "with explicit generated-resource and recovery boundaries")
 
 
 def main() -> int:

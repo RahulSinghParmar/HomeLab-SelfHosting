@@ -1,0 +1,33 @@
+{
+  "kind": "homelab-coolify-policy",
+  "contract": "phase7-coolify-adapter-v1",
+  "platform": "windows-docker-desktop-existing-instance",
+  "root": "C:\\Docker\\coolify",
+  "dashboard": {
+    "health_url": "http://127.0.0.1:8000/api/health",
+    "loopback_only": true
+  },
+  "components": {
+    "coolify": {"owner": "root-compose", "docker_control": false},
+    "coolify-db": {"owner": "root-compose", "docker_control": false},
+    "coolify-redis": {"owner": "root-compose", "docker_control": false},
+    "coolify-realtime": {"owner": "root-compose", "docker_control": false},
+    "coolify-testing-host": {"owner": "root-compose", "docker_control": true},
+    "coolify-proxy": {"owner": "coolify-generated-proxy-compose", "docker_control": true},
+    "coolify-sentinel": {"owner": "coolify-scheduler", "docker_control": true}
+  },
+  "backup": {
+    "directory": "backups-host",
+    "script": "maintenance\\Backup-Coolify.ps1",
+    "scheduled_task": "Coolify-Daily-Backup",
+    "maximum_age_hours": 36,
+    "encrypted_off_host_required": true,
+    "managed_application_data_included": false
+  },
+  "updates": {
+    "automatic": false,
+    "backup_required": true,
+    "active_deployments_check": true,
+    "rollback": "matching-version-database-restore"
+  }
+}
