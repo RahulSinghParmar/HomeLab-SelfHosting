@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0-alpha.4 — 2026-11-16
+
+- Added a deterministic, nonexecuting code-server migration policy and strict evidence validator bound to the reviewed 4.145.0/Node 24.19.0 candidate and Restic 0.19.1 checksums.
+- Created a stopped-state encrypted snapshot of production config, editor state, Linux secure volume, workspace and build metadata; repository data was fully read and the recovery key was placed on a physical disk separate from the repository and source.
+- Restored the encrypted snapshot into an independent temporary root, verified archive hashes, 20 persisted extensions, server-side compilation, HTTP health and restart persistence, then removed every plaintext staging/restore copy.
+- Migrated the live container from the mismatched 4.144.0 tag/4.131.0 binary to exact 4.145.0, retained all four mounts and 6 CPU/6 GiB/512 MiB/2,048 PID limits, bound port 8443 to loopback, and passed local/public health after a Compose restart.
+
 ## 0.8.0-alpha.3 — 2026-11-16
 
 - Added a read-only existing-instance Coolify adapter for the reviewed Windows Docker Desktop topology without claiming upstream production support or fresh-install capability.

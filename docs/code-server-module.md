@@ -62,6 +62,10 @@ python -m homelab code-server validate-evidence `
   --evidence C:\private\code-server-evidence.json
 ```
 
-## Production adoption boundary
+## Reference production migration
 
-The observed production container stayed running and healthy during this work. Its local image tag says `4.144.0`, while the binary reports `4.131.0`; this is a tag/version provenance defect, not an active outage. Do not replace it until its real state has an encrypted backup and this candidate is tested through the public domain with the owner's actual but private repositories and authentication workflow.
+Version `0.8.0-alpha.4` closes the previously recorded tag/version blocker on the reference Windows host. Production state was captured while code-server was stopped, encrypted using the reviewed Restic 0.19.1 binary and fully checked. The recovery key and repository live on different physical disks. An independent restored 4.145.0 candidate passed exact runtime identity, 20 persisted extensions, server-side compilation, HTTP health and restart persistence before production changed.
+
+The live container now uses the reviewed `localhost/homelab-code-server:4.145.0-amd64` image, retains all four state mounts and the existing resource ceilings, and publishes `127.0.0.1:8443` only. Local and public health passed after cutover and a Compose restart. The old image, exact Compose rollback copy and encrypted state recovery remain available. See the [controlled migration runbook](code-server-migration.md).
+
+This is reference-host evidence, not automatic adoption permission for another installation. The encrypted repository and key are on separate local disks but are not yet off-machine or offline custody.

@@ -44,11 +44,15 @@ Observed trial samples were approximately 130.1 MiB idle and 130.2 MiB during th
 
 The first recovery attempt discovered a Windows ACL translation failure while copying a Linux-created Java extension tree from the host. It stopped without claiming success. The final workflow archives and restores inside a Linux helper container, preserving permissions; that corrected trial passed.
 
+## Production migration result
+
+On 2026-11-16 the reference deployment completed the separately gated encrypted migration documented in [code-server migration validation](code-server-migration.md). The old tag/binary mismatch is no longer the live runtime: production now reports exact code-server `4.145.0` and Node `24.19.0`, retains 20 extensions and all four prior persistence scopes, and binds host port 8443 to loopback. Local and public health returned HTTP 200 after a controlled Compose restart.
+
 ## Remaining Phase 7 gates
 
-- Encrypted off-host recovery with owner-managed development credentials.
 - Real browser autosave and reconnect across a client disconnect.
-- Production migration/rollback approval and public-domain WebSocket test.
+- Public-domain authenticated WebSocket/browser reconnect validation.
+- Off-machine repository copy and offline recovery-key custody.
 - Actual arm64 build and runtime exercise.
 - Matrix/Element identity-safe recovery and optional TURN tests.
 - Coolify controller adapter without taking ownership of generated resources.

@@ -559,6 +559,18 @@ def main(arguments=None) -> int:
     code_server_evidence = code_server_actions.add_parser('validate-evidence')
     code_server_evidence.add_argument('--plan', type=Path, required=True)
     code_server_evidence.add_argument('--evidence', type=Path, required=True)
+    code_server_migration = sub.add_parser(
+        'code-server-migration',
+        help='Plan or validate a backup-gated code-server production migration')
+    code_server_migration_actions = code_server_migration.add_subparsers(
+        dest='action', required=True)
+    code_server_migration_plan = code_server_migration_actions.add_parser('plan')
+    code_server_migration_plan.add_argument('--policy', type=Path, required=True)
+    code_server_migration_plan.add_argument('--output', type=Path, required=True)
+    code_server_migration_evidence = code_server_migration_actions.add_parser(
+        'validate-evidence')
+    code_server_migration_evidence.add_argument('--plan', type=Path, required=True)
+    code_server_migration_evidence.add_argument('--evidence', type=Path, required=True)
     matrix = sub.add_parser(
         'matrix',
         help='Plan an identity-safe Matrix core or validate isolated recovery evidence')
@@ -763,6 +775,16 @@ def main(arguments=None) -> int:
                     'output': '<private-compose-file>',
                     'deployment_performed': False,
                 }
+            else:
+                result = module.validate_evidence(
+                    load_json(args.evidence), load_json(args.plan))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'code-server-migration':
+            from . import code_server_migration as module
+            if args.action == 'plan':
+                result = module.make_plan(module.load_policy(args.policy))
+                write_private(args.output, result)
             else:
                 result = module.validate_evidence(
                     load_json(args.evidence), load_json(args.plan))

@@ -1,0 +1,63 @@
+{
+  "kind": "homelab-code-server-migration-policy",
+  "contract": "phase7-code-server-migration-v1",
+  "platform": "windows-docker-desktop-amd64",
+  "source": {
+    "configured_image": "local/code-server-dev:4.144.0",
+    "actual_code_server_version": "4.131.0"
+  },
+  "candidate": {
+    "image": "localhost/homelab-code-server:4.145.0-amd64",
+    "code_server_version": "4.145.0",
+    "node_version": "24.19.0",
+    "architecture": "amd64",
+    "platform_digest": "sha256:b1da9efc3f8ca7ec9d772c4a81024b2dfa8a418644ea8db26924c649cc9be96c"
+  },
+  "persistence": {
+    "scopes": ["config", "local", "secure", "workspace"],
+    "mount_targets": [
+      "/home/coder/.config",
+      "/home/coder/.local",
+      "/home/coder/.secure",
+      "/home/coder/project"
+    ]
+  },
+  "network": {
+    "source_publish": "0.0.0.0:8443",
+    "target_publish": "127.0.0.1:8443",
+    "public_validation_required": true
+  },
+  "limits": {
+    "cpus": 6.0,
+    "memory_mib": 6144,
+    "memory_reservation_mib": 512,
+    "pids": 2048
+  },
+  "backup": {
+    "tool": {
+      "name": "restic",
+      "version": "0.19.1",
+      "executable_sha256": "b0dd1fd21eea5d8fe1325f55f7118213c21f36de8a261e04c0624a5ab9fd7830"
+    },
+    "services_stopped": true,
+    "included": ["config", "local", "secure", "workspace", "compose", "build-metadata"],
+    "repository_separate_physical_disk": true,
+    "recovery_key_separate_physical_disk": true,
+    "full_data_check": true,
+    "remove_plaintext_staging": true
+  },
+  "recovery": {
+    "independent_root_required": true,
+    "archive_hashes_required": true,
+    "server_side_compile_required": true,
+    "restart_required": true
+  },
+  "migration": {
+    "compose_backup_required": true,
+    "force_recreate": true,
+    "local_health_required": true,
+    "public_health_required": true,
+    "automatic_rollback_on_failed_gate": true,
+    "old_image_retained": true
+  }
+}

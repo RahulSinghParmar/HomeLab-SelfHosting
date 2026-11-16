@@ -61,3 +61,4 @@ Never reuse a version or move an existing tag. If a published release needs corr
 - [0.8.0-alpha.1](v0.8.0-alpha.1.md) — Phase 7 reproducible code-server foundation
 - [0.8.0-alpha.2](v0.8.0-alpha.2.md) — Matrix identity and application-aware recovery foundation
 - [0.8.0-alpha.3](v0.8.0-alpha.3.md) — Non-owning existing-instance Coolify adapter
+- [0.8.0-alpha.4](v0.8.0-alpha.4.md) — Encrypted code-server production migration

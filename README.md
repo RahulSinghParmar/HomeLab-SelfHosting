@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Version 0.8.0-alpha.3 adds a non-owning Coolify adapter to Phase 7.** It audits the existing Windows Docker Desktop instance without reading secrets, records the separate lifecycle owners for the root Compose project, generated proxy and scheduler-managed Sentinel, and blocks update-readiness until encrypted off-host control-plane recovery is proven. Coolify-managed application data remains the responsibility of each application module.
+**Version 0.8.0-alpha.4 completes a backup-gated code-server production migration on the reference Windows host.** A checksum-locked Restic snapshot captured config, editor state, secure volume, workspace and build metadata while stopped; a separate-disk recovery key decrypted it into an independent 4.145.0 candidate that compiled and survived restart. Production now uses the verified candidate on loopback-only port 8443 with the original mounts and limits, and both local and public health passed after restart.
 
 ## What this project is building
 
@@ -97,6 +97,9 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [Coolify deployment adapter](docs/coolify-adapter.md) | Existing-instance audit, generated-resource ownership and controlled-update boundary |
 | [Coolify validation record](docs/validation/coolify-adapter.md) | Sanitized live topology, health and backup classification |
 | [0.8.0-alpha.3 release review](docs/releases/v0.8.0-alpha.3.md) | Coolify adapter scope and remaining recovery gate |
+| [code-server controlled migration](docs/code-server-migration.md) | Encrypted backup, independent restore and rollback-gated production workflow |
+| [code-server migration validation](docs/validation/code-server-migration.md) | Reference Windows backup, restore and live cutover evidence |
+| [0.8.0-alpha.4 release review](docs/releases/v0.8.0-alpha.4.md) | Production migration result and remaining portability boundary |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -164,7 +167,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.8.0-alpha.3 release review](docs/releases/v0.8.0-alpha.3.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.8.0-alpha.4 release review](docs/releases/v0.8.0-alpha.4.md).
 
 ## License
 

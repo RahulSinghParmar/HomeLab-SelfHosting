@@ -151,6 +151,8 @@ Reproduce the code-server build, extension/settings persistence and architecture
 
 The `0.8.0-alpha.3` milestone adds a non-owning existing-instance Coolify adapter for the reference Windows Docker Desktop installation. It records real lifecycle owners and update/recovery blockers without offering an unsupported fresh install or adopting generated resources.
 
+The `0.8.0-alpha.4` milestone closes the reference Windows code-server migration gate. It uses separate physical disks for source, encrypted repository and recovery key, proves an independent decrypted candidate before cutover, removes plaintext trials, and retains both encrypted state recovery and the prior Compose/image rollback path. Off-machine key custody and non-Windows production migration remain future gates.
+
 Handle Coolify as its own controller. Document upstream Linux support and prove any Windows adapter separately. Do not absorb dynamically managed projects into generic Compose ownership.
 
 Finish native startup/scheduling adapters, Glances and optional VPN integrations. Task definitions and startup recovery must survive reboot tests on actual platforms.

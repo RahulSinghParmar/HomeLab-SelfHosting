@@ -9,10 +9,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from homelab import code_server, coolify_adapter, matrix
+from homelab import code_server, code_server_migration, coolify_adapter, matrix
 
 
-RELEASE = "0.8.0-alpha.3"
+RELEASE = "0.8.0-alpha.4"
 
 
 def require(condition: bool, message: str) -> None:
@@ -165,10 +165,23 @@ def validate_phase7(root: Path = ROOT) -> str:
         require(marker in coolify_source,
                 f"Coolify non-owning adapter gate missing {marker}")
 
+    migration_policy = code_server_migration.load_policy(
+        root / "modules/code-server/migration.example.json")
+    migration_plan = code_server_migration.make_plan(migration_policy)
+    require(migration_plan["backup"]["full_data_check"] is True
+            and migration_plan["backup"]["repository_separate_physical_disk"] is True
+            and migration_plan["backup"]["recovery_key_separate_physical_disk"] is True
+            and migration_plan["network"]["target_publish"] == "127.0.0.1:8443"
+            and migration_plan["production_change_authorized"] is False
+            and migration_plan["execution_performed"] is False,
+            "Code-server encrypted migration gates changed")
+
     cli = (root / "homelab/cli.py").read_text(encoding="utf-8")
     require("'code-server'" in cli and "from . import code_server as module" in cli
             and "'matrix'" in cli and "from . import matrix as module" in cli
             and "'coolify'" in cli and "from . import coolify_adapter as module" in cli
+            and "'code-server-migration'" in cli
+            and "from . import code_server_migration as module" in cli
             and "render-compose" in cli and "validate-evidence" in cli,
             "Phase 7 code-server/Matrix/Coolify CLI is not wired")
     workflow = (root / ".github/workflows/validate.yml").read_text(
@@ -199,11 +212,18 @@ def validate_phase7(root: Path = ROOT) -> str:
         "homelab/coolify_adapter.py",
         "modules/coolify/policy.example.json",
         "tests/test_coolify_adapter.py",
+        "docs/code-server-migration.md",
+        "docs/validation/code-server-migration.md",
+        "docs/releases/v0.8.0-alpha.4.md",
+        "homelab/code_server_migration.py",
+        "modules/code-server/migration.example.json",
+        "modules/code-server/restic.json",
+        "tests/test_code_server_migration.py",
     ):
         require((root / relative).is_file(), f"Missing Phase 7 artifact: {relative}")
-    return ("PASS: Phase 7 0.8.0-alpha.3 provides code-server and Matrix "
-            "foundations plus a non-owning existing-instance Coolify adapter "
-            "with explicit generated-resource and recovery boundaries")
+    return ("PASS: Phase 7 0.8.0-alpha.4 provides code-server and Matrix "
+            "foundations, a non-owning Coolify adapter, and backup-gated "
+            "encrypted code-server production migration evidence")
 
 
 def main() -> int:
