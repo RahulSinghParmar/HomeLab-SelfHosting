@@ -9,10 +9,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from homelab import code_server, code_server_migration, coolify_adapter, matrix
+from homelab import (code_server, code_server_migration, coolify_adapter,
+                     matrix, matrix_integration)
 
 
-RELEASE = "0.8.0-alpha.4"
+RELEASE = "0.8.0-alpha.5"
 
 
 def require(condition: bool, message: str) -> None:
@@ -176,12 +177,41 @@ def validate_phase7(root: Path = ROOT) -> str:
             and migration_plan["execution_performed"] is False,
             "Code-server encrypted migration gates changed")
 
+    integration_policy = matrix_integration.load_policy(
+        root / "modules/matrix/integration.example.json")
+    require(integration_policy["identity"] == {
+        "server_name": "matrix.parmar.homes", "immutable": True}
+        and integration_policy["network"]["matrix_target_binding"]
+            == "127.0.0.1:8008"
+        and integration_policy["network"]["element_target_binding"]
+            == "127.0.0.1:8089"
+        and integration_policy["network"]["turn_dns_mode"]
+            == "direct-dns-only"
+        and integration_policy["network"]
+            ["cloudflare_tunnel_supports_turn"] is False
+        and integration_policy["turn"]["optional"] is True,
+        "Matrix/Element or optional TURN integration policy changed")
+    probe = (root / "tools/matrix_turn_probe.py").read_text(encoding="utf-8")
+    for marker in ("BINDING_REQUEST", "BINDING_SUCCESS",
+                   "mapped_address_present", "address_value_disclosed",
+                   "credential_used"):
+        require(marker in probe, f"Matrix TURN probe gate missing: {marker}")
+    turn_workflow = (root / ".github/workflows/matrix-turn-probe.yml").read_text(
+        encoding="utf-8")
+    for marker in ("workflow_dispatch", "permissions:", "contents: read",
+                   "MATRIX_TURN_TEST_USERNAME", "MATRIX_TURN_TEST_PASSWORD",
+                   "turnutils_uclient"):
+        require(marker in turn_workflow,
+                f"Matrix external TURN workflow gate missing: {marker}")
+
     cli = (root / "homelab/cli.py").read_text(encoding="utf-8")
     require("'code-server'" in cli and "from . import code_server as module" in cli
             and "'matrix'" in cli and "from . import matrix as module" in cli
             and "'coolify'" in cli and "from . import coolify_adapter as module" in cli
             and "'code-server-migration'" in cli
             and "from . import code_server_migration as module" in cli
+            and "'matrix-integration'" in cli
+            and "from . import matrix_integration as module" in cli
             and "render-compose" in cli and "validate-evidence" in cli,
             "Phase 7 code-server/Matrix/Coolify CLI is not wired")
     workflow = (root / ".github/workflows/validate.yml").read_text(
@@ -219,11 +249,20 @@ def validate_phase7(root: Path = ROOT) -> str:
         "modules/code-server/migration.example.json",
         "modules/code-server/restic.json",
         "tests/test_code_server_migration.py",
+        "docs/matrix-integration.md",
+        "docs/validation/matrix-integration.md",
+        "docs/releases/v0.8.0-alpha.5.md",
+        "homelab/matrix_integration.py",
+        "modules/matrix/integration.example.json",
+        "tests/test_matrix_integration.py",
+        "tools/matrix_turn_probe.py",
+        ".github/workflows/matrix-turn-probe.yml",
     ):
         require((root / relative).is_file(), f"Missing Phase 7 artifact: {relative}")
-    return ("PASS: Phase 7 0.8.0-alpha.4 provides code-server and Matrix "
-            "foundations, a non-owning Coolify adapter, and backup-gated "
-            "encrypted code-server production migration evidence")
+    return ("PASS: Phase 7 0.8.0-alpha.5 provides code-server and Matrix "
+            "foundations, a non-owning Coolify adapter, backup-gated "
+            "code-server production migration, and strict "
+            "Matrix/Element/TURN integration gates")
 
 
 def main() -> int:

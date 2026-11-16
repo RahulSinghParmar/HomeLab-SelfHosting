@@ -1,0 +1,77 @@
+{
+  "kind": "homelab-matrix-integration-policy",
+  "contract": "phase7-matrix-integration-v1",
+  "platform": "windows-docker-desktop-amd64",
+  "ownership": {
+    "compose_project": "matrix-synapse",
+    "compose_file": "C:\\Docker\\matrix-synapse\\docker-compose.yml",
+    "native_tunnel_service": "Cloudflared"
+  },
+  "identity": {
+    "server_name": "matrix.parmar.homes",
+    "immutable": true
+  },
+  "endpoints": {
+    "matrix": "https://matrix.parmar.homes/",
+    "element": "https://chat.parmar.homes/",
+    "turn": "turn.parmar.homes"
+  },
+  "runtime": {
+    "synapse": {
+      "version": "1.164.2",
+      "configured_image": "matrixdotorg/synapse:latest",
+      "image_id": "sha256:1909bcc07d4180945464712a7f4d4bb6f644c4c1774d026d77cdadc196b91eb8"
+    },
+    "element": {
+      "version": "1.12.33",
+      "configured_image": "vectorim/element-web:latest",
+      "image_id": "sha256:b0aa4b5a4fc1afaaff62e2dbd0c92d57e2b20724f3ccb2fef53aae949088c3d2"
+    },
+    "coturn": {
+      "version": "4.18.0",
+      "configured_image": "coturn/coturn:latest",
+      "image_id": "sha256:bbefd3e1fdfdc0d58770fe01b581fd8b00d9f3a5580d00acb77cf719a6bc78e3"
+    }
+  },
+  "network": {
+    "matrix_source_binding": "0.0.0.0:8008",
+    "matrix_target_binding": "127.0.0.1:8008",
+    "element_source_binding": "0.0.0.0:8089",
+    "element_target_binding": "127.0.0.1:8089",
+    "admin_binding": "127.0.0.1:8448",
+    "turn_port": 3478,
+    "relay_min_port": 49160,
+    "relay_max_port": 49200,
+    "turn_transports": [
+      "udp",
+      "tcp"
+    ],
+    "turn_dns_mode": "direct-dns-only",
+    "cloudflare_tunnel_supports_turn": false
+  },
+  "turn": {
+    "optional": true,
+    "configured": true,
+    "shared_secret_match": true,
+    "ddns_required": true,
+    "external_stun_required": true,
+    "external_relay_required": true,
+    "real_call_required": true
+  },
+  "validation": {
+    "local_matrix": true,
+    "public_matrix": true,
+    "public_element": true,
+    "well_known_client": true,
+    "well_known_server": true,
+    "element_config": true,
+    "restart_persistence": true
+  },
+  "safety": {
+    "server_name_change": false,
+    "signing_key_replacement": false,
+    "federation_change": false,
+    "bridge_change": false,
+    "automatic_image_pull": false
+  }
+}

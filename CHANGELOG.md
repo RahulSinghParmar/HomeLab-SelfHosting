@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0-alpha.5 — 2026-11-16
+
+- Added a strict Matrix/Element integration plan and evidence contract that preserves the server name and signing key, requires loopback direct HTTP bindings, and validates public endpoints after restart.
+- Added a secret-free UDP/TCP STUN probe plus a manual external workflow with optional temporary authenticated relay credentials; selected TURN cannot pass without independent relay and real audio/video call evidence.
+- Validated the live Synapse 1.164.2, Element 1.12.33, `.well-known`, native Cloudflare Tunnel, coturn 4.18.0 and shared-secret parity without reading accounts, messages, media or secret values.
+- Restricted live Synapse and Element direct ports to loopback with an exact rollback copy and no image pull, then passed local/public health, identity, signing-key equality and controlled-restart checks.
+- Diagnosed the public TURN failure as a stale direct DNS record caused by the dedicated DDNS token's client-IP restriction after the ISP address changed; TURN remains explicitly uncertified.
+
 ## 0.8.0-alpha.4 — 2026-11-16
 
 - Added a deterministic, nonexecuting code-server migration policy and strict evidence validator bound to the reviewed 4.145.0/Node 24.19.0 candidate and Restic 0.19.1 checksums.

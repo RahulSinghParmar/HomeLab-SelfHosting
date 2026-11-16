@@ -153,6 +153,8 @@ The `0.8.0-alpha.3` milestone adds a non-owning existing-instance Coolify adapte
 
 The `0.8.0-alpha.4` milestone closes the reference Windows code-server migration gate. It uses separate physical disks for source, encrypted repository and recovery key, proves an independent decrypted candidate before cutover, removes plaintext trials, and retains both encrypted state recovery and the prior Compose/image rollback path. Off-machine key custody and non-Windows production migration remain future gates.
 
+The `0.8.0-alpha.5` milestone adds live Matrix/Element HTTPS integration and optional TURN validation gates. It preserves the server identity, separates tunnelled HTTP from direct TURN networking, adds secret-free external STUN checks and refuses to certify TURN without authenticated relay and real cross-network call evidence. The reference TURN record remains blocked by its dedicated DDNS credential until the owner repairs the token's client-IP policy.
+
 Handle Coolify as its own controller. Document upstream Linux support and prove any Windows adapter separately. Do not absorb dynamically managed projects into generic Compose ownership.
 
 Finish native startup/scheduling adapters, Glances and optional VPN integrations. Task definitions and startup recovery must survive reboot tests on actual platforms.

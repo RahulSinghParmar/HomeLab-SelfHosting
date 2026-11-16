@@ -1,0 +1,76 @@
+name: Matrix external TURN probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: Direct DNS-only TURN hostname
+        required: true
+        default: turn.parmar.homes
+        type: string
+      port:
+        description: TURN listener port
+        required: true
+        default: "3478"
+        type: string
+      require_relay:
+        description: Require temporary authenticated relay credentials
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: matrix-turn-probe
+  cancel-in-progress: false
+
+jobs:
+  external-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate destination
+        shell: bash
+        env:
+          TURN_HOST: ${{ inputs.host }}
+          TURN_PORT: ${{ inputs.port }}
+        run: |
+          set -euo pipefail
+          [[ "$TURN_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
+          [[ "$TURN_PORT" =~ ^[0-9]+$ ]]
+          (( TURN_PORT >= 1 && TURN_PORT <= 65535 ))
+
+      - name: Probe external UDP and TCP STUN
+        shell: bash
+        env:
+          TURN_HOST: ${{ inputs.host }}
+          TURN_PORT: ${{ inputs.port }}
+        run: |
+          set -euo pipefail
+          python tools/matrix_turn_probe.py --host "$TURN_HOST" --port "$TURN_PORT" --transport udp
+          python tools/matrix_turn_probe.py --host "$TURN_HOST" --port "$TURN_PORT" --transport tcp
+
+      - name: Probe temporary authenticated relay
+        if: ${{ inputs.require_relay }}
+        shell: bash
+        env:
+          TURN_HOST: ${{ inputs.host }}
+          TURN_PORT: ${{ inputs.port }}
+          TURN_USERNAME: ${{ secrets.MATRIX_TURN_TEST_USERNAME }}
+          TURN_PASSWORD: ${{ secrets.MATRIX_TURN_TEST_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$TURN_USERNAME"
+          test -n "$TURN_PASSWORD"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq coturn
+          timeout 60s turnutils_uclient -y -c -n 3 -p "$TURN_PORT" \
+            -u "$TURN_USERNAME" -w "$TURN_PASSWORD" "$TURN_HOST"

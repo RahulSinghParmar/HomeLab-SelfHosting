@@ -59,6 +59,8 @@ Version `0.8.0-alpha.3` implements that boundary as a read-only existing-instanc
 
 Version `0.8.0-alpha.4` adds a separate code-server production-migration contract. Its public plan cannot execute a change; evidence is accepted only after a stopped-state encrypted backup, full repository-data check, independent restored runtime/compile/restart proof, Compose rollback copy, loopback cutover, local/public health and production restart. The reference execution preserves the four application state scopes rather than replacing a healthy workspace with the synthetic candidate state.
 
+Version `0.8.0-alpha.5` adds a separate Matrix/Element integration contract. It binds the live HTTPS endpoints to the immutable Matrix identity, distinguishes Cloudflare Tunnel HTTP routing from direct TURN UDP/TCP, and requires external STUN, authenticated relay and real-call evidence when TURN is selected. A failed dedicated DDNS credential is represented as a blocker, never as an inferred relay success.
+
 ## Planned user workflow
 
 In 0.3.0, `python -m homelab configure`, `validate`, `doctor` and `plan` are implemented. See the [planning guide](planning.md). They save explicit settings/reports and query the host read-only; they do not implement the deployment coordinator, ownership journal or recovery system shown above. The complete workflow remains a design target:

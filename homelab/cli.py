@@ -584,6 +584,23 @@ def main(arguments=None) -> int:
     matrix_evidence = matrix_actions.add_parser('validate-evidence')
     matrix_evidence.add_argument('--plan', type=Path, required=True)
     matrix_evidence.add_argument('--evidence', type=Path, required=True)
+    matrix_integration = sub.add_parser(
+        'matrix-integration',
+        help='Plan Matrix/Element integration or validate optional TURN evidence')
+    matrix_integration_actions = matrix_integration.add_subparsers(
+        dest='action', required=True)
+    matrix_integration_plan = matrix_integration_actions.add_parser('plan')
+    matrix_integration_plan.add_argument('--policy', type=Path, required=True)
+    matrix_integration_plan.add_argument('--audit', type=Path, required=True)
+    matrix_integration_plan.add_argument('--output', type=Path, required=True)
+    matrix_integration_audit = matrix_integration_actions.add_parser(
+        'validate-audit')
+    matrix_integration_audit.add_argument('--audit', type=Path, required=True)
+    matrix_integration_evidence = matrix_integration_actions.add_parser(
+        'validate-evidence')
+    matrix_integration_evidence.add_argument('--plan', type=Path, required=True)
+    matrix_integration_evidence.add_argument(
+        '--evidence', type=Path, required=True)
     coolify = sub.add_parser(
         'coolify',
         help='Audit an existing Coolify instance and plan without adopting generated resources')
@@ -806,6 +823,20 @@ def main(arguments=None) -> int:
                     'output': '<private-compose-file>',
                     'deployment_performed': False,
                 }
+            else:
+                result = module.validate_evidence(
+                    load_json(args.evidence), load_json(args.plan))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'matrix-integration':
+            from . import matrix_integration as module
+            if args.action == 'plan':
+                result = module.make_plan(
+                    module.load_policy(args.policy),
+                    module.validate_audit(load_json(args.audit)))
+                write_private(args.output, result)
+            elif args.action == 'validate-audit':
+                result = module.validate_audit(load_json(args.audit))
             else:
                 result = module.validate_evidence(
                     load_json(args.evidence), load_json(args.plan))
