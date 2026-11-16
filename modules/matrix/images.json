@@ -1,0 +1,28 @@
+{
+  "kind": "homelab-matrix-images",
+  "contract": "phase7-matrix-v1",
+  "synapse": {
+    "version": "1.164.2",
+    "image": "ghcr.io/element-hq/synapse:v1.164.2@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842",
+    "platform_digests": {
+      "amd64": "sha256:ba02cd17718aa4c5a7865d247d7d806dccb1e3917a7c153ff76a6f5ea70ff66a",
+      "arm64": "sha256:37090b4e5f26171922321a6acd1acf2675cb862f3b0cdf368f0dbbae6a70439a"
+    }
+  },
+  "database": {
+    "version": "15.19.0",
+    "image": "postgres:15.19-alpine@sha256:eab009ce9447a891d9482702d370bbf132c18563bb87cfdcc2b815c6d3b0372f",
+    "platform_digests": {
+      "amd64": "sha256:d3ab4e7f0ca6e34e8135c95defd881673f7edddfacf63231eeb89caf6db2c1c9",
+      "arm64": "sha256:6af19180051a10f0ecded721d6e8717eabfb878d6121de38bba009548aeeb73e"
+    }
+  },
+  "element": {
+    "version": "1.12.35",
+    "image": "ghcr.io/element-hq/element-web:v1.12.35@sha256:406b48b80153818284a235fa3600b2a5b5b6b0aa0e4ef4896b36d8d3461352f3",
+    "platform_digests": {
+      "amd64": "sha256:63889e896e1d9d17d45ac44fcb27a1a37c18d6f4415a636e191026753df51a59",
+      "arm64": "sha256:40295f986fd91bd20abea686a23bb683e0e968c5635e8f1818b3b901db87e015"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # matrix
 
-Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope; deployment and restore certification remain planned.
+Phase 1 reference runbook, observed 2026-10-03. The separately isolated Phase 7 candidate and recovery evidence are documented in the [Matrix module](../matrix-module.md) and [validation record](../validation/matrix.md); the existing production deployment has not been adopted, restarted or upgraded.
 
 ## Evidence and ownership
 

@@ -559,6 +559,19 @@ def main(arguments=None) -> int:
     code_server_evidence = code_server_actions.add_parser('validate-evidence')
     code_server_evidence.add_argument('--plan', type=Path, required=True)
     code_server_evidence.add_argument('--evidence', type=Path, required=True)
+    matrix = sub.add_parser(
+        'matrix',
+        help='Plan an identity-safe Matrix core or validate isolated recovery evidence')
+    matrix_actions = matrix.add_subparsers(dest='action', required=True)
+    matrix_plan = matrix_actions.add_parser('plan')
+    matrix_plan.add_argument('--selection', type=Path, required=True)
+    matrix_plan.add_argument('--output', type=Path, required=True)
+    matrix_compose = matrix_actions.add_parser('render-compose')
+    matrix_compose.add_argument('--plan', type=Path, required=True)
+    matrix_compose.add_argument('--output', type=Path, required=True)
+    matrix_evidence = matrix_actions.add_parser('validate-evidence')
+    matrix_evidence.add_argument('--plan', type=Path, required=True)
+    matrix_evidence.add_argument('--evidence', type=Path, required=True)
     jellyfin = sub.add_parser(
         'jellyfin', help='Review Jellyfin, select deployment or validate recovery evidence')
     jellyfin_actions = jellyfin.add_subparsers(dest='action', required=True)
@@ -732,6 +745,27 @@ def main(arguments=None) -> int:
                 write_private(args.output, rendered)
                 result = {
                     'kind': 'homelab-code-server-compose-render',
+                    'contract': module.CONTRACT,
+                    'plan_id': plan['plan_id'],
+                    'output': '<private-compose-file>',
+                    'deployment_performed': False,
+                }
+            else:
+                result = module.validate_evidence(
+                    load_json(args.evidence), load_json(args.plan))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'matrix':
+            from . import matrix as module
+            if args.action == 'plan':
+                result = module.make_plan(module.load_selection(args.selection))
+                write_private(args.output, result)
+            elif args.action == 'render-compose':
+                plan = module.validate_plan(load_json(args.plan))
+                rendered = module.compose(plan)
+                write_private(args.output, rendered)
+                result = {
+                    'kind': 'homelab-matrix-compose-render',
                     'contract': module.CONTRACT,
                     'plan_id': plan['plan_id'],
                     'output': '<private-compose-file>',

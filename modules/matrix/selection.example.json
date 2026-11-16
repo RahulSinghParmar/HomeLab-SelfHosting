@@ -1,0 +1,47 @@
+{
+  "kind": "homelab-matrix-selection",
+  "contract": "phase7-matrix-v1",
+  "installation_id": "homelab-matrix",
+  "target_platform": "windows",
+  "architecture": "amd64",
+  "server_name": "matrix.example.invalid",
+  "public_base_url": "https://matrix.example.invalid/",
+  "element_base_url": "https://chat.example.invalid/",
+  "state_root": "C:\\Homelab\\matrix-state",
+  "media_root": "D:\\Homelab\\matrix-media",
+  "ports": {
+    "synapse": 18008,
+    "element": 18089
+  },
+  "timezone": "UTC",
+  "access": "loopback",
+  "limits": {
+    "database": {
+      "cpus": 0.75,
+      "memory_mib": 768,
+      "memory_reservation_mib": 128,
+      "pids": 192
+    },
+    "synapse": {
+      "cpus": 2.0,
+      "memory_mib": 2048,
+      "memory_reservation_mib": 384,
+      "pids": 512
+    },
+    "element": {
+      "cpus": 0.5,
+      "memory_mib": 256,
+      "memory_reservation_mib": 64,
+      "pids": 128
+    }
+  },
+  "features": {
+    "element": true,
+    "federation": false,
+    "open_registration": false,
+    "turn": false,
+    "bridges": false,
+    "admin_ui": false,
+    "metrics": false
+  }
+}

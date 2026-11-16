@@ -43,7 +43,7 @@ The [media and acceleration foundation](phase6-media-foundation.md) defines auth
 
 ## Phase 7 development, chat and native lifecycle
 
-The [code-server development module](code-server-module.md) begins Phase 7 with a pinned multiarchitecture build, versioned extensions, copy-once editor persistence and a restricted loopback Compose renderer. Its [validation record](validation/code-server.md) documents the live tag/binary provenance defect plus an isolated compile, recreation, stopped-backup and independent-root recovery proof. Production migration, arm64 runtime execution, Matrix/Element, Coolify and native reboot/startup gates remain open.
+The [code-server development module](code-server-module.md) begins Phase 7 with a pinned multiarchitecture build, versioned extensions, copy-once editor persistence and a restricted loopback Compose renderer. Its [validation record](validation/code-server.md) documents the live tag/binary provenance defect plus an isolated compile, recreation, stopped-backup and independent-root recovery proof. The [Matrix identity and recovery module](matrix-module.md) adds immutable Synapse/PostgreSQL/Element inputs, server-name/signing-key preservation and an application-aware synthetic room/message/media restore; its [validation record](validation/matrix.md) keeps client E2EE recovery, federation, TURN, bridges and production adoption explicitly open. Coolify and native reboot/startup gates also remain open.
 
 ## Operations and recovery
 

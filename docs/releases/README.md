@@ -59,3 +59,4 @@ Never reuse a version or move an existing tag. If a published release needs corr
 - [0.7.0-alpha.6](v0.7.0-alpha.6.md) — Jellyfin encrypted application and owner-managed media recovery candidate
 - [0.7.0](v0.7.0.md) — completed Phase 6 media recovery and acceleration kit
 - [0.8.0-alpha.1](v0.8.0-alpha.1.md) — Phase 7 reproducible code-server foundation
+- [0.8.0-alpha.2](v0.8.0-alpha.2.md) — Matrix identity and application-aware recovery foundation

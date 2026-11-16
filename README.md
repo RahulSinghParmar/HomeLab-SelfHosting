@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Version 0.8.0-alpha.1 starts Phase 7 with a reproducible code-server candidate.** The build pins code-server and architecture-specific Node inputs, seeds versioned extensions and editor persistence without overwriting user state, renders a restricted loopback deployment, and has passed an isolated compile/recreation/recovery trial. The healthy production editor remains unchanged pending encrypted backup and real-client migration checks.
+**Version 0.8.0-alpha.2 adds an identity-safe Matrix recovery foundation to Phase 7.** Synapse, PostgreSQL and Element use immutable multi-architecture inputs; the recovery contract preserves the server name, signing key, database and media together. An isolated login/room/text/media exercise passed independent-root restore, while the healthy production chat stack remains unchanged and client E2EE recovery stays a separate owner gate.
 
 ## What this project is building
 
@@ -91,6 +91,9 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [code-server development module](docs/code-server-module.md) | Multiarchitecture build, pinned extensions, persistence and restricted Compose planning |
 | [code-server validation](docs/validation/code-server.md) | Live provenance audit and isolated compile/recreation/recovery evidence |
 | [0.8.0-alpha.1 release review](docs/releases/v0.8.0-alpha.1.md) | First Phase 7 scope, production boundary and remaining gates |
+| [Matrix identity and recovery module](docs/matrix-module.md) | Immutable server identity, restricted Compose planning and client-E2EE boundary |
+| [Matrix validation](docs/validation/matrix.md) | Synthetic room/message/media backup and independent-root restore evidence |
+| [0.8.0-alpha.2 release review](docs/releases/v0.8.0-alpha.2.md) | Matrix foundation scope, production boundary and remaining gates |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -126,6 +129,8 @@ python -m homelab jellyfin-acceleration audit --ffmpeg /path/to/jellyfin-ffmpeg
 python -m homelab jellyfin audit
 python -m homelab jellyfin validate-recovery --evidence /private/jellyfin-recovery.json
 python -m homelab jellyfin-vault validate-proof --proof /private/jellyfin-off-host-proof.json
+python -m homelab matrix plan --selection /private/matrix-selection.json --output /private/matrix-plan.json
+python -m homelab matrix validate-evidence --plan /private/matrix-plan.json --evidence /private/matrix-evidence.json
 python -m unittest discover -s tests -v
 ```
 
@@ -135,7 +140,7 @@ Windows also supports `./bootstrap.ps1 catalog`; Linux/macOS supports `sh ./boot
 
 For the opt-in Windows/PowerShell 7 read-only metadata collector, see [evidence and privacy instructions](docs/discovery/evidence.md). Its report belongs outside Git. Windows collector regression tests use mocks and can be run with `./tests/Test-ReferenceCollector.ps1`.
 
-General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault`, `affine`, `affine-vault`, `nextcloud`, `nextcloud-vault`, `firefly`, `firefly-vault`, `vaultwarden`, `vaultwarden-vault`, `karakeep`, `karakeep-vault`, `immich` and `immich-vault` candidates are bounded execution paths; they do not enable the general planner. `owner-backup` and `media` only audit, validate or save disabled private designs. `media-management` plans/renders an explicit selection and validates synthetic recovery evidence without deploying it. `jellyfin` validates application recovery, `jellyfin-vault` validates encrypted application/media recovery, and `jellyfin-acceleration` audits or validates a synthetic transcode proof; execution tools require exact confirmation and disposable paths. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
+General application deployment and recovery remain future capabilities described in [architecture](docs/architecture.md#planned-user-workflow). Separate experimental `glance`, `kuma`, `beszel`, `stirling`, opt-in `portainer`, `paperless`, `paperless-vault`, `affine`, `affine-vault`, `nextcloud`, `nextcloud-vault`, `firefly`, `firefly-vault`, `vaultwarden`, `vaultwarden-vault`, `karakeep`, `karakeep-vault`, `immich`, `immich-vault`, `code-server` and `matrix` candidates are bounded execution or planning paths; they do not enable the general planner. `owner-backup` and `media` only audit, validate or save disabled private designs. `media-management` plans/renders an explicit selection and validates synthetic recovery evidence without deploying it. `jellyfin` validates application recovery, `jellyfin-vault` validates encrypted application/media recovery, and `jellyfin-acceleration` audits or validates a synthetic transcode proof; execution tools require exact confirmation and disposable paths. The Portainer candidate controls only its disposable nested engine and cannot see host workloads. Do not run a remotely downloaded script with administrator privileges on trust alone.
 
 ## Service families
 
@@ -156,7 +161,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.8.0-alpha.1 release review](docs/releases/v0.8.0-alpha.1.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.8.0-alpha.2 release review](docs/releases/v0.8.0-alpha.2.md).
 
 ## License
 

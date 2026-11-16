@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0-alpha.2 — 2026-11-16
+
+- Added digest-pinned multi-architecture Synapse 1.164.2, PostgreSQL 15.19 and Element Web 1.12.35 planning with a loopback-only, resource-bounded Compose renderer.
+- Made the Matrix server name and signing key explicit immutable recovery material and kept client E2EE-key recovery as a separate owner-validated responsibility.
+- Passed an isolated account/login, private-room, text-event and exact-media exercise followed by quiesced PostgreSQL backup, source deletion and independent-root recovery.
+- Audited the healthy seven-container production Matrix stack read-only, recorded its floating-image risk and left its users, rooms, messages, credentials, media, bridges, TURN and public routing unchanged.
+
 ## 0.8.0-alpha.1 — 2026-11-16
 
 - Started Phase 7 with a digest-pinned, architecture-aware code-server 4.145.0 build and verified Node 24.19.0 archives for amd64 and arm64.

@@ -9,10 +9,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from homelab import code_server
+from homelab import code_server, matrix
 
 
-RELEASE = "0.8.0-alpha.1"
+RELEASE = "0.8.0-alpha.2"
 
 
 def require(condition: bool, message: str) -> None:
@@ -96,10 +96,60 @@ def validate_phase7(root: Path = ROOT) -> str:
                    "production_credentials_used", "cleanup_completed"):
         require(marker in trial, f"Code-server trial gate missing {marker}")
 
+    matrix_images = matrix.load_images(root / "modules/matrix/images.json")
+    require(matrix_images["synapse"]["version"] == "1.164.2"
+            and matrix_images["database"]["version"] == "15.19.0"
+            and matrix_images["element"]["version"] == "1.12.35",
+            "Reviewed Matrix component versions changed")
+    require(all(set(matrix_images[role]["platform_digests"])
+                == {"amd64", "arm64"} and "@sha256:" in
+                matrix_images[role]["image"] for role in matrix.ROLES),
+            "Matrix immutable multiarchitecture inputs changed")
+    matrix_selection = matrix.load_selection(
+        root / "modules/matrix/selection.example.json")
+    matrix_plan = matrix.make_plan(matrix_selection, matrix_images)
+    matrix_spec = matrix.compose(matrix_plan)
+    require(matrix_plan["identity"] == {
+        "server_name": "matrix.example.invalid",
+        "renamable_after_restore": False,
+        "signing_key_required": True,
+    } and matrix_plan["client_e2ee_recovery"]
+        == "separate-owner-validated-key-backup"
+        and matrix_plan["production_state_adopted"] is False
+        and matrix_plan["deployment_performed"] is False,
+        "Matrix identity or review-only boundary changed")
+    require(matrix_plan["features"] == matrix.FEATURES
+            and not any(matrix_plan["features"][name] for name in
+                        ("federation", "open_registration", "turn", "bridges",
+                         "admin_ui", "metrics")),
+            "Optional Matrix integrations must remain separately gated")
+    require(matrix_spec["services"]["synapse"]["ports"] == [{
+        "target": 8008, "published": "18008", "host_ip": "127.0.0.1",
+        "protocol": "tcp"}]
+        and matrix_spec["services"]["element"]["ports"] == [{
+            "target": 80, "published": "18089", "host_ip": "127.0.0.1",
+            "protocol": "tcp"}]
+        and matrix_spec["networks"]["backend"]["internal"] is True
+        and matrix_spec["services"]["database"]["environment"]
+            ["POSTGRES_PASSWORD_FILE"] == "/run/secrets/postgres_password",
+        "Matrix loopback, database-network or secret-file policy changed")
+    matrix_text = json.dumps(matrix_spec).casefold()
+    require("docker.sock" not in matrix_text and "privileged" not in matrix_text
+            and "registration_shared_secret" not in matrix_text
+            and "macaroon_secret_key" not in matrix_text,
+            "Matrix Compose leaked control or production secret material")
+    matrix_trial = (root / "tools/matrix_trial.py").read_text(encoding="utf-8")
+    for marker in ("RUN-ISOLATED-MATRIX-TRIAL", "pg_dump", "pg_restore",
+                   "signing_key_sha256_before", "source_removed",
+                   "client_key_backup_tested", "production_messages_read",
+                   "cleanup_completed"):
+        require(marker in matrix_trial, f"Matrix trial gate missing {marker}")
+
     cli = (root / "homelab/cli.py").read_text(encoding="utf-8")
     require("'code-server'" in cli and "from . import code_server as module" in cli
+            and "'matrix'" in cli and "from . import matrix as module" in cli
             and "render-compose" in cli and "validate-evidence" in cli,
-            "Code-server CLI is not wired")
+            "Phase 7 code-server/Matrix CLI is not wired")
     workflow = (root / ".github/workflows/validate.yml").read_text(
         encoding="utf-8")
     require("python tools/validate_phase7.py" in workflow,
@@ -115,11 +165,18 @@ def validate_phase7(root: Path = ROOT) -> str:
         "modules/code-server/image/settings.json",
         "tests/test_code_server.py",
         "tools/code_server_trial.py",
+        "docs/matrix-module.md",
+        "docs/validation/matrix.md",
+        "docs/releases/v0.8.0-alpha.2.md",
+        "modules/matrix/images.json",
+        "modules/matrix/selection.example.json",
+        "tests/test_matrix.py",
+        "tools/matrix_trial.py",
     ):
         require((root / relative).is_file(), f"Missing Phase 7 artifact: {relative}")
-    return ("PASS: Phase 7 0.8.0-alpha.1 provides a pinned multiarchitecture "
-            "code-server build, copy-once developer persistence, restricted "
-            "Compose rendering and isolated compile/recreation/recovery proof")
+    return ("PASS: Phase 7 0.8.0-alpha.2 provides pinned multiarchitecture "
+            "code-server and Matrix foundations, immutable Matrix identity, "
+            "client-E2EE separation and actual room/message/media recovery proof")
 
 
 def main() -> int:
