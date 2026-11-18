@@ -155,6 +155,8 @@ The `0.8.0-alpha.4` milestone closes the reference Windows code-server migration
 
 The `0.8.0-alpha.5` milestone adds live Matrix/Element HTTPS integration and optional TURN validation gates. It preserves the server identity, separates tunnelled HTTP from direct TURN networking, adds secret-free external STUN checks and refuses to certify TURN without authenticated relay and real cross-network call evidence. The reference TURN record remains blocked by its dedicated DDNS credential until the owner repairs the token's client-IP policy.
 
+The `0.8.0-alpha.6` milestone adds the [Docker update manager](docker-update-manager.md). It makes registry checking read-only, binds each plan to one audited Compose service and exact target image, requires a reviewed backup policy and full plan-ID confirmation, and refuses Coolify-generated, unknown or database services until their own recovery gates exist. It intentionally does not provide unattended whole-host updates.
+
 Handle Coolify as its own controller. Document upstream Linux support and prove any Windows adapter separately. Do not absorb dynamically managed projects into generic Compose ownership.
 
 Finish native startup/scheduling adapters, Glances and optional VPN integrations. Task definitions and startup recovery must survive reboot tests on actual platforms.

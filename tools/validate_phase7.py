@@ -10,10 +10,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from homelab import (code_server, code_server_migration, coolify_adapter,
-                     matrix, matrix_integration)
+                     docker_updates, matrix, matrix_integration)
 
 
-RELEASE = "0.8.0-alpha.5"
+RELEASE = "0.8.0-alpha.6"
 
 
 def require(condition: bool, message: str) -> None:
@@ -204,6 +204,21 @@ def validate_phase7(root: Path = ROOT) -> str:
         require(marker in turn_workflow,
                 f"Matrix external TURN workflow gate missing: {marker}")
 
+    update_policy = docker_updates.load_policy(
+        root / "modules/docker-updates/policy.example.json")
+    require(update_policy["defaults"]["mode"] == "audit-only"
+            and update_policy["projects"]["example-stack"]["mode"] == "manual"
+            and update_policy["projects"]["controller-owned-example"]["mode"]
+            == "controller-managed",
+            "Docker update ownership defaults changed")
+    update_source = (root / "homelab/docker_updates.py").read_text(
+        encoding="utf-8")
+    for marker in ("ROLLING_TAGS", "compose_sha256", "source_image_id",
+                   "backup_required", "manual-recovery-required",
+                   "--force-recreate", "plan_id"):
+        require(marker in update_source,
+                f"Docker update safety gate missing: {marker}")
+
     cli = (root / "homelab/cli.py").read_text(encoding="utf-8")
     require("'code-server'" in cli and "from . import code_server as module" in cli
             and "'matrix'" in cli and "from . import matrix as module" in cli
@@ -212,6 +227,8 @@ def validate_phase7(root: Path = ROOT) -> str:
             and "from . import code_server_migration as module" in cli
             and "'matrix-integration'" in cli
             and "from . import matrix_integration as module" in cli
+            and "'docker-updates'" in cli
+            and "from . import docker_updates as module" in cli
             and "render-compose" in cli and "validate-evidence" in cli,
             "Phase 7 code-server/Matrix/Coolify CLI is not wired")
     workflow = (root / ".github/workflows/validate.yml").read_text(
@@ -257,12 +274,19 @@ def validate_phase7(root: Path = ROOT) -> str:
         "tests/test_matrix_integration.py",
         "tools/matrix_turn_probe.py",
         ".github/workflows/matrix-turn-probe.yml",
+        "docs/docker-update-manager.md",
+        "docs/validation/docker-update-manager.md",
+        "docs/releases/v0.8.0-alpha.6.md",
+        "homelab/docker_updates.py",
+        "modules/docker-updates/policy.example.json",
+        "tests/test_docker_updates.py",
     ):
         require((root / relative).is_file(), f"Missing Phase 7 artifact: {relative}")
-    return ("PASS: Phase 7 0.8.0-alpha.5 provides code-server and Matrix "
+    return ("PASS: Phase 7 0.8.0-alpha.6 provides code-server and Matrix "
             "foundations, a non-owning Coolify adapter, backup-gated "
             "code-server production migration, and strict "
-            "Matrix/Element/TURN integration gates")
+            "Matrix/Element/TURN integration gates plus explicit Docker "
+            "update management")
 
 
 def main() -> int:

@@ -614,6 +614,27 @@ def main(arguments=None) -> int:
     coolify_plan.add_argument('--output', type=Path, required=True)
     coolify_validate = coolify_actions.add_parser('validate-audit')
     coolify_validate.add_argument('--audit', type=Path, required=True)
+    docker_updates = sub.add_parser(
+        'docker-updates',
+        help='Audit Docker image drift and apply one explicit backup-gated update')
+    docker_update_actions = docker_updates.add_subparsers(dest='action', required=True)
+    docker_update_audit = docker_update_actions.add_parser('audit')
+    docker_update_audit.add_argument('--policy', type=Path, required=True)
+    docker_update_audit.add_argument('--online', action='store_true')
+    docker_update_audit.add_argument('--workers', type=int, default=4)
+    docker_update_audit.add_argument('--output', type=Path, required=True)
+    docker_update_inspect = docker_update_actions.add_parser('inspect-remote')
+    docker_update_inspect.add_argument('--image', required=True)
+    docker_update_plan = docker_update_actions.add_parser('plan')
+    docker_update_plan.add_argument('--policy', type=Path, required=True)
+    docker_update_plan.add_argument('--audit', type=Path, required=True)
+    docker_update_plan.add_argument('--project', required=True)
+    docker_update_plan.add_argument('--service', required=True)
+    docker_update_plan.add_argument('--target-image', required=True)
+    docker_update_plan.add_argument('--output', type=Path, required=True)
+    docker_update_apply = docker_update_actions.add_parser('apply')
+    docker_update_apply.add_argument('--plan', type=Path, required=True)
+    docker_update_apply.add_argument('--confirm', required=True)
     jellyfin = sub.add_parser(
         'jellyfin', help='Review Jellyfin, select deployment or validate recovery evidence')
     jellyfin_actions = jellyfin.add_subparsers(dest='action', required=True)
@@ -855,6 +876,23 @@ def main(arguments=None) -> int:
                 write_private(args.output, result)
             else:
                 result = module.validate_audit(load_json(args.audit))
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'docker-updates':
+            from . import docker_updates as module
+            if args.action == 'audit':
+                result = module.audit(
+                    module.load_policy(args.policy), online=args.online, workers=args.workers)
+                write_private(args.output, result)
+            elif args.action == 'inspect-remote':
+                result = module.inspect_remote(args.image)
+            elif args.action == 'plan':
+                result = module.make_plan(
+                    load_json(args.audit), module.load_policy(args.policy),
+                    args.project, args.service, args.target_image)
+                write_private(args.output, result)
+            else:
+                result = module.apply(load_json(args.plan), args.confirm)
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command == 'jellyfin':

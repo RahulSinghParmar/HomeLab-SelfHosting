@@ -47,6 +47,7 @@ The [code-server development module](code-server-module.md) begins Phase 7 with 
 
 ## Operations and recovery
 
+- [Docker update manager](docker-update-manager.md)
 - [Service requirements](services.md)
 - [Backup and recovery design](recovery.md)
 - [Owner-operated Phase 5 backup design](owner-operated-backups.md)

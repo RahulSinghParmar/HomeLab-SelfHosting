@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Version 0.8.0-alpha.5 adds strict Matrix/Element integration and optional TURN gates.** The live Matrix and Element HTTPS path, identity, discovery documents and shared TURN-secret parity were validated without reading private chat content. A secret-free external STUN probe and optional authenticated-relay workflow are included, while a stale direct TURN record caused by the dedicated DDNS token's client-IP restriction remains an explicit blocker rather than a false call-readiness claim.
+**Version 0.8.0-alpha.6 adds an explicit Docker update manager.** It inventories every Compose project, checks registry digests without pulling, refuses rolling target tags, keeps controller-owned and unreviewed stacks audit-only, and applies only one backup-gated service update after full plan-ID confirmation. It is a controlled operator tool, not an unattended auto-updater.
 
 ## What this project is building
 
@@ -103,6 +103,9 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [Matrix, Element and optional TURN integration](docs/matrix-integration.md) | Identity-safe HTTPS integration, loopback policy and real relay/call gates |
 | [Matrix integration validation](docs/validation/matrix-integration.md) | Live endpoint evidence and diagnosed TURN DDNS blocker |
 | [0.8.0-alpha.5 release review](docs/releases/v0.8.0-alpha.5.md) | External probe scope and explicit TURN no-go boundary |
+| [Docker update manager](docs/docker-update-manager.md) | Read-only image audit, exact-version planning and one-service backup-gated apply |
+| [Docker update-manager validation](docs/validation/docker-update-manager.md) | Offline contracts and sanitized reference-host exercise |
+| [0.8.0-alpha.6 release review](docs/releases/v0.8.0-alpha.6.md) | Controlled-update scope and explicit automation limits |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -170,7 +173,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.8.0-alpha.5 release review](docs/releases/v0.8.0-alpha.5.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.8.0-alpha.6 release review](docs/releases/v0.8.0-alpha.6.md).
 
 ## License
 

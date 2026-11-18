@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0-alpha.6 — 2026-11-18
+
+- Added a cross-platform Docker Compose update manager with read-only project/image inventory, optional remote digest checks and exact remote OCI version inspection.
+- Separated audit, plan and apply; rejected rolling target tags, repository switches, changed Compose files, changed running images, unreviewed services and controller-managed projects.
+- Added stopped application-path backups with byte-hash verification, exact single-service image pinning, Compose validation, bounded recreation, health checks, update locks and retained recovery journals.
+- Recorded a sanitized 19-project/56-service Windows reference audit while keeping private paths, reports, plans, application data and credentials outside Git.
+- Exercised the workflow on the ARR stack with exact image targets, isolated recovery sets and successful HTTP/log/database validation; this is installation evidence, not automatic production adoption for other stacks.
+
 ## 0.8.0-alpha.5 — 2026-11-16
 
 - Added a strict Matrix/Element integration plan and evidence contract that preserves the server name and signing key, requires loopback direct HTTP bindings, and validates public endpoints after restart.

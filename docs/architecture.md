@@ -61,6 +61,8 @@ Version `0.8.0-alpha.4` adds a separate code-server production-migration contrac
 
 Version `0.8.0-alpha.5` adds a separate Matrix/Element integration contract. It binds the live HTTPS endpoints to the immutable Matrix identity, distinguishes Cloudflare Tunnel HTTP routing from direct TURN UDP/TCP, and requires external STUN, authenticated relay and real-call evidence when TURN is selected. A failed dedicated DDNS credential is represented as a blocker, never as an inferred relay success.
 
+Version `0.8.0-alpha.6` adds an operator-controlled Docker update layer. Registry audits remain read-only; every mutable plan selects one audited Compose service, exact target image, reviewed backup scope and health policy. Coolify-generated, unknown and backup-unprepared services remain outside generic update ownership.
+
 ## Planned user workflow
 
 In 0.3.0, `python -m homelab configure`, `validate`, `doctor` and `plan` are implemented. See the [planning guide](planning.md). They save explicit settings/reports and query the host read-only; they do not implement the deployment coordinator, ownership journal or recovery system shown above. The complete workflow remains a design target:
