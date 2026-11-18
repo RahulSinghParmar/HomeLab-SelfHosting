@@ -157,6 +157,8 @@ The `0.8.0-alpha.5` milestone adds live Matrix/Element HTTPS integration and opt
 
 The `0.8.0-alpha.6` milestone adds the [Docker update manager](docker-update-manager.md). It makes registry checking read-only, binds each plan to one audited Compose service and exact target image, requires a reviewed backup policy and full plan-ID confirmation, and refuses Coolify-generated, unknown or database services until their own recovery gates exist. It intentionally does not provide unattended whole-host updates.
 
+The `0.8.0-alpha.7` milestone adds the [Coolify controller integration](coolify-controller.md). The central operator command now audits the existing controller without taking over its resources, validates Windows Docker Desktop/WSL/task/shim assumptions, discovers the official stable channel and detects the Soketi-to-Reverb boundary. The reference update remains blocked until encrypted instance recovery, active-deployment API visibility and a disposable migration rehearsal pass.
+
 Handle Coolify as its own controller. Document upstream Linux support and prove any Windows adapter separately. Do not absorb dynamically managed projects into generic Compose ownership.
 
 Finish native startup/scheduling adapters, Glances and optional VPN integrations. Task definitions and startup recovery must survive reboot tests on actual platforms.

@@ -251,6 +251,7 @@ def audit(policy: dict, *, online: bool = False, workers: int = 4) -> dict:
             "config_files": files,
             "owner": rule["owner"],
             "mode": rule["mode"],
+            "controller": rule.get("controller"),
             "services": services,
         })
     return {
@@ -278,8 +279,11 @@ def make_plan(audit_report: dict, policy: dict, project: str, service: str,
     service_row = service_rows[0]
     rule = policy.get("projects", {}).get(project, {})
     service_rule = rule.get("services", {}).get(service)
+    if project_row.get("owner") == "controller":
+        controller = project_row.get("controller") or "its owning controller"
+        raise ConfigError(f"Project is controller-managed; use {controller}")
     if project_row.get("owner") != "operator" or rule.get("mode") != "manual":
-        raise ConfigError("Project is audit-only or controller-managed")
+        raise ConfigError("Project is audit-only")
     if not service_rule or not service_rule.get("enabled", False):
         raise ConfigError("Service has not been explicitly enabled for managed updates")
     if not _exact_target(target_image):

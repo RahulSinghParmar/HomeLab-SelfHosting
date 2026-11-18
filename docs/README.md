@@ -43,11 +43,12 @@ The [media and acceleration foundation](phase6-media-foundation.md) defines auth
 
 ## Phase 7 development, chat and native lifecycle
 
-The [code-server development module](code-server-module.md) begins Phase 7 with a pinned multiarchitecture build, versioned extensions, copy-once editor persistence and a restricted loopback Compose renderer. Its [controlled migration](code-server-migration.md) adds encrypted reference-host recovery and cutover evidence. The [Matrix identity and recovery module](matrix-module.md) preserves the server name/signing key and proves synthetic room/message/media recovery. The separate [Matrix, Element and optional TURN integration](matrix-integration.md) validates the live HTTPS path and provides independent STUN/relay gates; its [validation record](validation/matrix-integration.md) keeps TURN uncertified while the dedicated DDNS credential is blocked. Coolify production recovery and native reboot/startup gates remain open.
+The [code-server development module](code-server-module.md) begins Phase 7 with a pinned multiarchitecture build, versioned extensions, copy-once editor persistence and a restricted loopback Compose renderer. Its [controlled migration](code-server-migration.md) adds encrypted reference-host recovery and cutover evidence. The [Matrix identity and recovery module](matrix-module.md) preserves the server name/signing key and proves synthetic room/message/media recovery. The separate [Matrix, Element and optional TURN integration](matrix-integration.md) validates the live HTTPS path and provides independent STUN/relay gates; its [validation record](validation/matrix-integration.md) keeps TURN uncertified while the dedicated DDNS credential is blocked. The [Coolify controller integration](coolify-controller.md) adds a safe controller handoff and Windows compatibility audit; its [validation record](validation/coolify-controller.md) keeps the 4.7.5 update blocked pending recovery, API and Reverb-migration proof. Native reboot/startup gates remain open.
 
 ## Operations and recovery
 
 - [Docker update manager](docker-update-manager.md)
+- [Coolify controller integration](coolify-controller.md)
 - [Service requirements](services.md)
 - [Backup and recovery design](recovery.md)
 - [Owner-operated Phase 5 backup design](owner-operated-backups.md)

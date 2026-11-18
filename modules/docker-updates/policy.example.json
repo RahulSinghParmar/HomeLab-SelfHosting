@@ -25,7 +25,8 @@
     },
     "controller-owned-example": {
       "owner": "controller",
-      "mode": "controller-managed"
+      "mode": "controller-managed",
+      "controller": "coolify"
     }
   }
 }

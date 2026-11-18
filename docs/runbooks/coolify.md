@@ -1,6 +1,6 @@
 # coolify
 
-Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope; deployment and restore certification remain planned.
+Phase 1 reference runbook, refreshed by the Phase 7 controller audit on 2026-11-18. Inventory coverage is complete at the declared scope; encrypted off-host restore certification remains open.
 
 ## Evidence and ownership
 
@@ -20,7 +20,7 @@ Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete a
 
 ## Observed configuration
 
-Live/root Compose app 4.3.23; resolving source Compose set reports 4.3.19. Proxy 3.7; sentinel 1.0.1. Loopback 8000/6001/6002; proxy 80/443.
+Live/root Compose app 4.5.3, realtime 1.0.19, proxy 3.7.12 and Sentinel 1.1.5. Loopback dashboard/realtime ports remain separate from proxy ingress 80/443. The official stable feed reported 4.7.5 during the latest audit.
 
 ## Installation and dependencies
 
@@ -44,7 +44,7 @@ Never publish actual values, database records, private keys or generated content
 
 Use the actual owning Compose project/service or native manager above. Read-only Docker checks are `docker ps -a`, `docker inspect --format '{{.State.Status}}' CONTAINER`, and `docker stats --no-stream`; substitute a verified container, not a guessed generated name. Do not paste unfiltered inspect/log output into public issues. Native status uses the OS service/task manager and the verified listener.
 
-No start, stop, restart, migration, backup or restore was executed for Phase 1. Those operations must preserve deliberately stopped/paused state and require the later module's tested workflow.
+Use `C:\Docker\maintenance\Manage-HomelabUpdates.ps1 -Action Controller` for the secret-free controller audit and fail-closed update plan. No start, stop, restart, image pull, migration, backup or restore is performed by that command.
 
 ## Backup and recovery
 
@@ -54,7 +54,7 @@ Follow the [recovery contract](../recovery.md); reported task success and old ve
 
 ## Update and rollback
 
-Capture a consistent backup and required secrets, resolve the exact image/build and configuration inputs, and test the target release against isolated restored state. If database migration is incompatible, roll back the whole consistent state, not only the image. Do not use blanket pull/up commands against a custom or floating build.
+Capture a consistent backup and required secrets, resolve the exact image/build and configuration inputs, and test the target release against isolated restored state. The current 4.5.3-to-4.7.5 route crosses the Soketi-to-Reverb boundary and must be rehearsed with the custom Compose override. If database migration is incompatible, roll back the whole consistent state, not only the image. Do not use blanket pull/up commands against a custom or floating build.
 
 ## Acceptance checks
 

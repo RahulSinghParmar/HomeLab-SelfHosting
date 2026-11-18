@@ -2,7 +2,9 @@
 
 This Phase 7 adapter reviews the existing Coolify installation on Windows Docker Desktop. It does not install Coolify, merge its generated resources into a new Compose project, or take ownership of deployments created through the Coolify UI.
 
-Coolify documents Linux as the supported self-hosted server platform. The reviewed Windows topology is therefore an experimental home-lab integration, not a supported high-availability production host. See the [Coolify self-hosted installation requirements](https://coolify.io/docs/get-started/installation) and [instance update guidance](https://coolify.io/docs/knowledge-base/server/upgrade).
+Coolify documents Linux as the supported self-hosted server platform. The reviewed Windows topology is therefore an experimental home-lab integration, not a supported high-availability production host. See the [Coolify self-hosted installation requirements](https://coolify.io/docs/start-with-self-hosted) and [instance update guidance](https://coolify.io/docs/core/instance-management/update).
+
+The separate [Coolify controller integration](coolify-controller.md) now provides stable-channel discovery, Windows compatibility checks and a central owner handoff. It still has no update apply operation.
 
 ## Ownership model
 
@@ -37,7 +39,7 @@ The audit emits only sanitized image, state, health, port, Compose-owner and Doc
 
 The local owner script captures the Coolify PostgreSQL database, configuration, SSH material and deployment metadata. Those files include secrets and are not encrypted merely because they are called a backup. A same-disk copy protects against some operator mistakes, not disk or machine loss.
 
-Coolify's instance backup does not protect applications, databases or volumes deployed through Coolify. Each workload needs its own application-consistent backup and verified restore. See Coolify's [instance backup](https://coolify.io/docs/knowledge-base/backup/restore-coolify) and [database backup](https://coolify.io/docs/knowledge-base/database/backups) guidance.
+Coolify's instance backup does not protect applications, databases or volumes deployed through Coolify. Each workload needs its own application-consistent backup and verified restore. See Coolify's [instance backup](https://coolify.io/docs/core/backup-and-recovery/instance-backup) and [instance restore](https://coolify.io/docs/core/backup-and-recovery/instance-restore) guidance.
 
 Updates remain owner-operated and manual:
 

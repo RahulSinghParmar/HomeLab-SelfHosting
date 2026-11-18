@@ -614,6 +614,17 @@ def main(arguments=None) -> int:
     coolify_plan.add_argument('--output', type=Path, required=True)
     coolify_validate = coolify_actions.add_parser('validate-audit')
     coolify_validate.add_argument('--audit', type=Path, required=True)
+    coolify_controller_audit = coolify_actions.add_parser('controller-audit')
+    coolify_controller_audit.add_argument('--policy', type=Path, required=True)
+    coolify_controller_audit.add_argument('--api-token-file', type=Path)
+    coolify_controller_audit.add_argument('--output', type=Path, required=True)
+    coolify_controller_validate = coolify_actions.add_parser(
+        'validate-controller-audit')
+    coolify_controller_validate.add_argument('--audit', type=Path, required=True)
+    coolify_controller_plan = coolify_actions.add_parser('controller-plan')
+    coolify_controller_plan.add_argument('--policy', type=Path, required=True)
+    coolify_controller_plan.add_argument('--audit', type=Path, required=True)
+    coolify_controller_plan.add_argument('--output', type=Path, required=True)
     docker_updates = sub.add_parser(
         'docker-updates',
         help='Audit Docker image drift and apply one explicit backup-gated update')
@@ -874,8 +885,22 @@ def main(arguments=None) -> int:
                     module.load_policy(args.policy),
                     module.validate_audit(load_json(args.audit)))
                 write_private(args.output, result)
-            else:
+            elif args.action == 'validate-audit':
                 result = module.validate_audit(load_json(args.audit))
+            else:
+                from . import coolify_controller as controller
+                if args.action == 'controller-audit':
+                    result = controller.audit(
+                        controller.load_policy(args.policy),
+                        token_file=args.api_token_file)
+                    write_private(args.output, result)
+                elif args.action == 'validate-controller-audit':
+                    result = controller.validate_audit(load_json(args.audit))
+                else:
+                    result = controller.make_plan(
+                        controller.load_policy(args.policy),
+                        controller.validate_audit(load_json(args.audit)))
+                    write_private(args.output, result)
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command == 'docker-updates':

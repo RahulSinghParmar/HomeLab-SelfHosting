@@ -120,6 +120,26 @@ class DockerUpdateManagerTests(unittest.TestCase):
         self.assertEqual(controller["mode"], "controller-managed")
         self.assertEqual(unknown["owner"], "unreviewed")
 
+    def test_named_controller_is_visible_and_generic_plan_redirects(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            compose = root / "docker-compose.yml"
+            compose.write_text(COMPOSE, encoding="utf-8")
+            (root / "seerr-config").mkdir()
+            audit = self.audit(compose)
+            audit["projects"][0].update({
+                "owner": "controller", "mode": "controller-managed",
+                "controller": "coolify",
+            })
+            policy = self.policy(root)
+            policy["projects"]["arr-stack"] = {
+                "owner": "controller", "mode": "controller-managed",
+                "controller": "coolify",
+            }
+            with self.assertRaisesRegex(ConfigError, "use coolify"):
+                updates.make_plan(audit, policy, "arr-stack", "seerr",
+                                  "ghcr.io/seerr-team/seerr:v3.5.2", REMOTE)
+
     def test_policy_accepts_platform_absolute_examples_and_rejects_relative_state(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)

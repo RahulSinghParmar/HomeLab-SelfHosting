@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0-alpha.7 — 2026-11-18
+
+- Added a dedicated Coolify controller audit and fail-closed plan with official stable-channel discovery, Windows Docker Desktop/WSL compatibility checks, scheduled-task validation, updater-shim anchor checks and Sentinel resource-limit verification.
+- Made controller ownership explicit in generic Docker audits and redirected root, proxy and generated Coolify projects away from generic apply planning.
+- Added a central PowerShell controller action with optional transient token-file support for aggregate active-deployment checks; no credential is persisted.
+- Validated the healthy 4.5.3 reference instance against stable 4.7.5 while correctly blocking update readiness on upstream Windows support, encrypted off-host recovery, missing API visibility and the Soketi-to-Reverb migration.
+- Reapplied and verified existing Sentinel limits after controller recreation; no Coolify image pull, restart, update or migration was performed.
+
 ## 0.8.0-alpha.6 — 2026-11-18
 
 - Added a cross-platform Docker Compose update manager with read-only project/image inventory, optional remote digest checks and exact remote OCI version inspection.

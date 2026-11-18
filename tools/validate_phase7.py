@@ -10,10 +10,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from homelab import (code_server, code_server_migration, coolify_adapter,
-                     docker_updates, matrix, matrix_integration)
+                     coolify_controller, docker_updates, matrix,
+                     matrix_integration)
 
 
-RELEASE = "0.8.0-alpha.6"
+RELEASE = "0.8.0-alpha.7"
 
 
 def require(condition: bool, message: str) -> None:
@@ -166,6 +167,27 @@ def validate_phase7(root: Path = ROOT) -> str:
         require(marker in coolify_source,
                 f"Coolify non-owning adapter gate missing {marker}")
 
+    controller_policy = coolify_controller.load_policy(
+        root / "modules/coolify/controller.example.json")
+    require(controller_policy["updates"] == {
+        "owner": "coolify-dashboard",
+        "automatic": False,
+        "generic_updater_allowed": False,
+        "fresh_backup_required": True,
+        "active_deployments_required": True,
+        "off_host_restore_required": True,
+        "reverb_review_required": True,
+    } and controller_policy["windows"]["docker_context"] == "desktop-linux",
+            "Coolify controller ownership or Windows boundary changed")
+    controller_source = (root / "homelab/coolify_controller.py").read_text(
+        encoding="utf-8")
+    for marker in ("phase7-coolify-controller-v1", "secret_persisted",
+                   "generic_update_manager_allowed", "active_deployments",
+                   "soketi-to-reverb-migration-requires-windows-rehearsal",
+                   "update_ready"):
+        require(marker in controller_source,
+                f"Coolify controller safety gate missing {marker}")
+
     migration_policy = code_server_migration.load_policy(
         root / "modules/code-server/migration.example.json")
     migration_plan = code_server_migration.make_plan(migration_policy)
@@ -209,7 +231,9 @@ def validate_phase7(root: Path = ROOT) -> str:
     require(update_policy["defaults"]["mode"] == "audit-only"
             and update_policy["projects"]["example-stack"]["mode"] == "manual"
             and update_policy["projects"]["controller-owned-example"]["mode"]
-            == "controller-managed",
+            == "controller-managed"
+            and update_policy["projects"]["controller-owned-example"]
+            ["controller"] == "coolify",
             "Docker update ownership defaults changed")
     update_source = (root / "homelab/docker_updates.py").read_text(
         encoding="utf-8")
@@ -229,6 +253,8 @@ def validate_phase7(root: Path = ROOT) -> str:
             and "from . import matrix_integration as module" in cli
             and "'docker-updates'" in cli
             and "from . import docker_updates as module" in cli
+            and "controller-audit" in cli
+            and "from . import coolify_controller as controller" in cli
             and "render-compose" in cli and "validate-evidence" in cli,
             "Phase 7 code-server/Matrix/Coolify CLI is not wired")
     workflow = (root / ".github/workflows/validate.yml").read_text(
@@ -280,13 +306,19 @@ def validate_phase7(root: Path = ROOT) -> str:
         "homelab/docker_updates.py",
         "modules/docker-updates/policy.example.json",
         "tests/test_docker_updates.py",
+        "docs/coolify-controller.md",
+        "docs/validation/coolify-controller.md",
+        "docs/releases/v0.8.0-alpha.7.md",
+        "homelab/coolify_controller.py",
+        "modules/coolify/controller.example.json",
+        "tests/test_coolify_controller.py",
     ):
         require((root / relative).is_file(), f"Missing Phase 7 artifact: {relative}")
-    return ("PASS: Phase 7 0.8.0-alpha.6 provides code-server and Matrix "
+    return ("PASS: Phase 7 0.8.0-alpha.7 provides code-server and Matrix "
             "foundations, a non-owning Coolify adapter, backup-gated "
             "code-server production migration, and strict "
             "Matrix/Element/TURN integration gates plus explicit Docker "
-            "update management")
+            "update management and a fail-closed Coolify controller handoff")
 
 
 def main() -> int:

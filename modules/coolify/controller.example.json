@@ -1,0 +1,36 @@
+{
+  "kind": "homelab-coolify-controller-policy",
+  "contract": "phase7-coolify-controller-v1",
+  "platform": "windows-docker-desktop-existing-instance",
+  "root": "C:\\Docker\\coolify",
+  "channel": "stable",
+  "versions_url": "https://cdn.coollabs.io/coolify/versions.json",
+  "upgrade_script_url": "https://cdn.coollabs.io/coolify/upgrade.sh",
+  "api": {
+    "base_url": "http://127.0.0.1:8000/api/v1",
+    "deployments_endpoint": "/deployments",
+    "token_required_for_update": true
+  },
+  "windows": {
+    "docker_context": "desktop-linux",
+    "server_os": "linux",
+    "server_arch": "amd64",
+    "wsl_distribution": "docker-desktop",
+    "host_mount": "/mnt/host/c/Docker/coolify",
+    "custom_compose": "source\\docker-compose.custom.yml",
+    "scheduled_tasks": [
+      "Coolify-Daily-Backup",
+      "Coolify-Startup-Reconcile",
+      "Coolify-Weekly-Optimize"
+    ]
+  },
+  "updates": {
+    "owner": "coolify-dashboard",
+    "automatic": false,
+    "generic_updater_allowed": false,
+    "fresh_backup_required": true,
+    "active_deployments_required": true,
+    "off_host_restore_required": true,
+    "reverb_review_required": true
+  }
+}

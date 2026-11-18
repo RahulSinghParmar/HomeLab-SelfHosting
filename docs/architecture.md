@@ -63,6 +63,8 @@ Version `0.8.0-alpha.5` adds a separate Matrix/Element integration contract. It 
 
 Version `0.8.0-alpha.6` adds an operator-controlled Docker update layer. Registry audits remain read-only; every mutable plan selects one audited Compose service, exact target image, reviewed backup scope and health policy. Coolify-generated, unknown and backup-unprepared services remain outside generic update ownership.
 
+Version `0.8.0-alpha.7` makes that Coolify exclusion actionable: the central tool names the owning controller and runs a separate, read-only compatibility plan. It validates Windows/WSL/task/shim/resource-limit assumptions and the official stable target, but retains update ownership in the Coolify dashboard. The plan cannot become update-ready while upstream host support, encrypted instance recovery, active-deployment visibility or a crossed Reverb migration remain unresolved.
+
 ## Planned user workflow
 
 In 0.3.0, `python -m homelab configure`, `validate`, `doctor` and `plan` are implemented. See the [planning guide](planning.md). They save explicit settings/reports and query the host read-only; they do not implement the deployment coordinator, ownership journal or recovery system shown above. The complete workflow remains a design target:
