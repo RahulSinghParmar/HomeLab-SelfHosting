@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Version 0.8.0-alpha.7 adds a dedicated Coolify controller integration.** It keeps Coolify-generated resources outside generic update ownership, discovers the official stable target without pulling it, validates the Windows Docker Desktop adapter, and blocks updates until active deployments, encrypted recovery and the Soketi-to-Reverb migration are proven safe.
+**Version 0.8.0-alpha.8 adds a dedicated Coolify controller integration.** It keeps Coolify-generated resources outside generic update ownership, discovers the official stable target without pulling it, validates the Windows Docker Desktop adapter, and blocks updates until active deployments, encrypted recovery and the Soketi-to-Reverb migration are proven safe. Alpha.8 also makes Windows-style adapter paths deterministic on Linux and macOS validation hosts.
 
 ## What this project is building
 
@@ -109,6 +109,7 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [Coolify controller integration](docs/coolify-controller.md) | Controller ownership, Windows compatibility checks and fail-closed update gates |
 | [Coolify controller validation](docs/validation/coolify-controller.md) | Sanitized live 4.5.3-to-4.7.5 compatibility result and blockers |
 | [0.8.0-alpha.7 release review](docs/releases/v0.8.0-alpha.7.md) | Existing-instance controller scope and Reverb/recovery boundary |
+| [0.8.0-alpha.8 release review](docs/releases/v0.8.0-alpha.8.md) | Cross-platform path correction and final controller candidate |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -176,7 +177,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.8.0-alpha.7 release review](docs/releases/v0.8.0-alpha.7.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.8.0-alpha.8 release review](docs/releases/v0.8.0-alpha.8.md).
 
 ## License
 

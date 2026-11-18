@@ -14,7 +14,7 @@ from homelab import (code_server, code_server_migration, coolify_adapter,
                      matrix_integration)
 
 
-RELEASE = "0.8.0-alpha.7"
+RELEASE = "0.8.0-alpha.8"
 
 
 def require(condition: bool, message: str) -> None:
@@ -309,12 +309,13 @@ def validate_phase7(root: Path = ROOT) -> str:
         "docs/coolify-controller.md",
         "docs/validation/coolify-controller.md",
         "docs/releases/v0.8.0-alpha.7.md",
+        "docs/releases/v0.8.0-alpha.8.md",
         "homelab/coolify_controller.py",
         "modules/coolify/controller.example.json",
         "tests/test_coolify_controller.py",
     ):
         require((root / relative).is_file(), f"Missing Phase 7 artifact: {relative}")
-    return ("PASS: Phase 7 0.8.0-alpha.7 provides code-server and Matrix "
+    return ("PASS: Phase 7 0.8.0-alpha.8 provides code-server and Matrix "
             "foundations, a non-owning Coolify adapter, backup-gated "
             "code-server production migration, and strict "
             "Matrix/Element/TURN integration gates plus explicit Docker "

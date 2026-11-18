@@ -15,7 +15,7 @@ from homelab import (immich, immich_vault, jellyfin, jellyfin_vault,
                      jellyfin_acceleration, media_management)
 
 
-RELEASE = "0.8.0-alpha.7"
+RELEASE = "0.8.0-alpha.8"
 DIGEST = re.compile(r"^[^@\s]+@sha256:[0-9a-f]{64}$")
 
 

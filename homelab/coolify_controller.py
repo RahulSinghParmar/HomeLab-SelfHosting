@@ -11,7 +11,7 @@ import shutil
 import subprocess
 import urllib.error
 import urllib.request
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any
 
 from . import coolify_adapter
@@ -238,7 +238,8 @@ def inspect_updater_shim(policy: dict) -> dict:
 
 def inspect_custom_compose(policy: dict, installed: str | None,
                            target: str | None) -> dict:
-    path = Path(policy["root"]) / policy["windows"]["custom_compose"]
+    relative = Path(*PureWindowsPath(policy["windows"]["custom_compose"]).parts)
+    path = Path(policy["root"]) / relative
     need(path.is_file() and not path.is_symlink() and path.stat().st_size <= 1_000_000,
          "Coolify custom Compose file is unavailable or unsafe")
     body = path.read_bytes()

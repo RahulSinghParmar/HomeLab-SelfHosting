@@ -159,6 +159,8 @@ The `0.8.0-alpha.6` milestone adds the [Docker update manager](docker-update-man
 
 The `0.8.0-alpha.7` milestone adds the [Coolify controller integration](coolify-controller.md). The central operator command now audits the existing controller without taking over its resources, validates Windows Docker Desktop/WSL/task/shim assumptions, discovers the official stable channel and detects the Soketi-to-Reverb boundary. The reference update remains blocked until encrypted instance recovery, active-deployment API visibility and a disposable migration rehearsal pass.
 
+The `0.8.0-alpha.8` milestone corrects cross-platform interpretation of the reviewed Windows custom-Compose locator after Linux/macOS CI rejected alpha.7. It does not loosen any controller or update gate.
+
 Handle Coolify as its own controller. Document upstream Linux support and prove any Windows adapter separately. Do not absorb dynamically managed projects into generic Compose ownership.
 
 Finish native startup/scheduling adapters, Glances and optional VPN integrations. Task definitions and startup recovery must survive reboot tests on actual platforms.

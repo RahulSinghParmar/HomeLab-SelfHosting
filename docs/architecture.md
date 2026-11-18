@@ -65,6 +65,8 @@ Version `0.8.0-alpha.6` adds an operator-controlled Docker update layer. Registr
 
 Version `0.8.0-alpha.7` makes that Coolify exclusion actionable: the central tool names the owning controller and runs a separate, read-only compatibility plan. It validates Windows/WSL/task/shim/resource-limit assumptions and the official stable target, but retains update ownership in the Coolify dashboard. The plan cannot become update-ready while upstream host support, encrypted instance recovery, active-deployment visibility or a crossed Reverb migration remain unresolved.
 
+Version `0.8.0-alpha.8` retains that contract and normalizes the policy's Windows-style custom-Compose locator before joining it to a platform-local root. The correction was found by Linux/macOS CI and changes no live controller behavior.
+
 ## Planned user workflow
 
 In 0.3.0, `python -m homelab configure`, `validate`, `doctor` and `plan` are implemented. See the [planning guide](planning.md). They save explicit settings/reports and query the host read-only; they do not implement the deployment coordinator, ownership journal or recovery system shown above. The complete workflow remains a design target:

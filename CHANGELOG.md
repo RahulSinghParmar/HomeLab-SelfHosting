@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.0-alpha.8 — 2026-11-18
+
+- Normalized the reviewed Windows custom-Compose path with `PureWindowsPath` before joining it to a test/runtime root, preserving Windows behavior while making the controller contract portable on Linux and macOS validators.
+- Superseded the alpha.7 candidate after GitHub CI exposed the platform-specific path interpretation; no live Coolify state or controller policy changed.
+
 ## 0.8.0-alpha.7 — 2026-11-18
 
 - Added a dedicated Coolify controller audit and fail-closed plan with official stable-channel discovery, Windows Docker Desktop/WSL compatibility checks, scheduled-task validation, updater-shim anchor checks and Sentinel resource-limit verification.
