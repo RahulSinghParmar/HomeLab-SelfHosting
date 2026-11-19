@@ -161,9 +161,11 @@ The `0.8.0-alpha.7` milestone adds the [Coolify controller integration](coolify-
 
 The `0.8.0-alpha.8` milestone corrects cross-platform interpretation of the reviewed Windows custom-Compose locator after Linux/macOS CI rejected alpha.7. It does not loosen any controller or update gate.
 
+The `0.8.0-rc.1` milestone adds the [native Windows lifecycle adapter](native-lifecycle.md). The reference host passed a blocker-free current-boot audit and a corrected controlled Glances/resource restart. Stable `0.8.0` remains gated on the owner-controlled two-snapshot reboot proof; the tool deliberately cannot initiate that reboot.
+
 Handle Coolify as its own controller. Document upstream Linux support and prove any Windows adapter separately. Do not absorb dynamically managed projects into generic Compose ownership.
 
-Finish native startup/scheduling adapters, Glances and optional VPN integrations. Task definitions and startup recovery must survive reboot tests on actual platforms.
+Native startup/scheduling and Glances are implemented for the reviewed interactive Windows Docker Desktop host. Optional VPN deployment remains Phase 8; native task definitions and configuration are fingerprinted across the explicit reboot workflow.
 
 Exit: editing/compilation/session persistence, chat and call behavior where enabled, controlled deployment and reboot recovery evidence.
 

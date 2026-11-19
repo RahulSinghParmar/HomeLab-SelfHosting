@@ -1,6 +1,6 @@
 # glances
 
-Phase 1 reference runbook, observed 2026-10-03. Inventory coverage is complete at the declared scope; deployment and restore certification remain planned.
+Phase 1 reference runbook, observed 2026-10-03 and superseded operationally by the [Phase 7 native-lifecycle module](../native-lifecycle.md). Inventory coverage remains historical; version 0.8.0-rc.1 adds live startup, privacy and controlled-restart evidence for the reviewed Windows host.
 
 ## Evidence and ownership
 
@@ -19,7 +19,7 @@ Native Python listener confirmed on loopback 61208; task running.
 
 ## Installation and dependencies
 
-There is no installer/template for this module in this release. Reproduce the observed component set only in a separately approved disposable project, using compatible pinned releases and the [platform matrix](../platform-support.md). Existing state must not be implicitly adopted.
+The Phase 7 adapter audits an existing installation and supplies an example policy plus reboot-evidence workflow; it still does not install Glances or implicitly adopt an unknown host. Review the exact version, listener, flags, task and paths against the [platform matrix](../platform-support.md).
 
 ## Configuration mapping
 
@@ -39,7 +39,7 @@ Never publish actual values, database records, private keys or generated content
 
 Use the actual owning Compose project/service or native manager above. Read-only Docker checks are `docker ps -a`, `docker inspect --format '{{.State.Status}}' CONTAINER`, and `docker stats --no-stream`; substitute a verified container, not a guessed generated name. Do not paste unfiltered inspect/log output into public issues. Native status uses the OS service/task manager and the verified listener.
 
-No start, stop, restart, migration, backup or restore was executed for Phase 1. Those operations must preserve deliberately stopped/paused state and require the later module's tested workflow.
+Phase 1 performed no lifecycle action. Phase 7 later exported the task definitions and passed a controlled restart of Glances and the resource collector after correcting direct process ownership. Use the [native lifecycle workflow](../native-lifecycle.md), which never restarts hosted applications or Windows automatically.
 
 ## Backup and recovery
 

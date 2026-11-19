@@ -11,7 +11,7 @@ The five bounded Phase 4 adapters have module-specific Windows Docker Desktop Li
 | Synthetic file executor | Actual Windows ACL/lock tests | Actual POSIX mode/lock tests in CI | Actual POSIX mode/lock tests in CI |
 | Read-only doctor | Live local Docker Desktop check plus mocked tests | Probe implementation; mocked tests only | Probe implementation; mocked tests only |
 | Docker application installation | Five isolated Phase 4 candidates plus Paperless-ngx, AFFiNE, Nextcloud, Firefly III and Vaultwarden have bounded live evidence; see module records | Code and mocked tests only; runtime unverified | Code and mocked tests only; runtime unverified |
-| Native metrics / startup / scheduling | PowerShell, services, Task Scheduler adapter planned | Native tools and systemd adapter planned | Native tools and launchd adapter planned |
+| Native metrics / startup / scheduling | Experimental interactive-host adapter; live service/startup/task/Glances audit and controlled task recovery passed in 0.8.0-rc.1; full two-snapshot reboot pending | Native tools and systemd adapter planned | Native tools and launchd adapter planned |
 | GPU acceleration | Conditional, driver/runtime/app dependent | Conditional, driver/runtime/app dependent | Not assumed; CPU fallback |
 | Coolify | Existing custom integration; not a portable supported baseline | Upstream-supported installation target | Explicit Linux VM/remote Linux host path |
 | ARM64 application images | Unverified | Unverified | Unverified, especially Apple Silicon |

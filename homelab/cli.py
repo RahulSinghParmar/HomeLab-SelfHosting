@@ -625,6 +625,24 @@ def main(arguments=None) -> int:
     coolify_controller_plan.add_argument('--policy', type=Path, required=True)
     coolify_controller_plan.add_argument('--audit', type=Path, required=True)
     coolify_controller_plan.add_argument('--output', type=Path, required=True)
+    native_lifecycle = sub.add_parser(
+        'native-lifecycle',
+        help='Audit Windows services, Glances, owner tasks and reboot recovery')
+    native_actions = native_lifecycle.add_subparsers(dest='action', required=True)
+    native_audit = native_actions.add_parser('audit')
+    native_audit.add_argument('--policy', type=Path, required=True)
+    native_audit.add_argument('--output', type=Path, required=True)
+    native_validate = native_actions.add_parser('validate-audit')
+    native_validate.add_argument('--audit', type=Path, required=True)
+    native_checkpoint = native_actions.add_parser('checkpoint')
+    native_checkpoint.add_argument('--audit', type=Path, required=True)
+    native_checkpoint.add_argument('--output', type=Path, required=True)
+    native_reboot = native_actions.add_parser('validate-reboot')
+    native_reboot.add_argument('--before', type=Path, required=True)
+    native_reboot.add_argument('--after', type=Path, required=True)
+    native_reboot.add_argument('--output', type=Path, required=True)
+    native_evidence = native_actions.add_parser('validate-reboot-evidence')
+    native_evidence.add_argument('--evidence', type=Path, required=True)
     docker_updates = sub.add_parser(
         'docker-updates',
         help='Audit Docker image drift and apply one explicit backup-gated update')
@@ -901,6 +919,25 @@ def main(arguments=None) -> int:
                         controller.load_policy(args.policy),
                         controller.validate_audit(load_json(args.audit)))
                     write_private(args.output, result)
+            print(json.dumps(result, sort_keys=True, indent=2))
+            return 0
+        if args.command == 'native-lifecycle':
+            from . import native_lifecycle as module
+            if args.action == 'audit':
+                result = module.audit(module.load_policy(args.policy))
+                write_private(args.output, result)
+            elif args.action == 'validate-audit':
+                result = module.validate_audit(load_json(args.audit))
+            elif args.action == 'checkpoint':
+                result = module.checkpoint(module.validate_audit(load_json(args.audit)))
+                write_private(args.output, result)
+            elif args.action == 'validate-reboot':
+                result = module.reboot_evidence(
+                    module.validate_checkpoint(load_json(args.before)),
+                    module.validate_audit(load_json(args.after)))
+                write_private(args.output, result)
+            else:
+                result = module.validate_reboot_evidence(load_json(args.evidence))
             print(json.dumps(result, sort_keys=True, indent=2))
             return 0
         if args.command == 'docker-updates':

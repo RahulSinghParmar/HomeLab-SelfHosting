@@ -1,0 +1,69 @@
+{
+  "kind": "homelab-native-lifecycle-policy",
+  "contract": "phase7-native-lifecycle-v1",
+  "platform": "windows-interactive-docker-desktop",
+  "root": "C:\\Docker",
+  "glances": {
+    "version": "4.5.7",
+    "status_url": "http://127.0.0.1:61208/glances/api/4/status",
+    "all_url": "http://127.0.0.1:61208/glances/api/4/all",
+    "ui_url": "http://127.0.0.1:61208/glances/",
+    "listener": "127.0.0.1:61208",
+    "task": "Parmar Home - Glances Monitor",
+    "start_script": "glance\\glances\\Start-Glances.ps1",
+    "configuration": "glance\\glances\\glances.conf",
+    "required_flags": [
+      "--bind 127.0.0.1",
+      "--disable-process",
+      "--disable-plugin ip,processlist",
+      "--disable-autodiscover",
+      "--disable-config-exec",
+      "--disable-check-update",
+      "--hide-public-info"
+    ]
+  },
+  "samples": [
+    {"name": "resources.json", "max_age_seconds": 180},
+    {"name": "applications.json", "max_age_seconds": 600},
+    {"name": "media-development.json", "max_age_seconds": 600},
+    {"name": "security.json", "max_age_seconds": 2400},
+    {"name": "storage.json", "max_age_seconds": 1200}
+  ],
+  "services": [
+    {"name": "BeszelAgent", "start_mode": "Auto", "required": true},
+    {"name": "Cloudflared", "start_mode": "Auto", "required": true},
+    {"name": "Tailscale", "start_mode": "Auto", "required": true},
+    {"name": "WSLService", "start_mode": "Auto", "required": true}
+  ],
+  "startup": [
+    {"name": "Docker Desktop", "process": "com.docker.backend", "required": true},
+    {"name": "JellyfinTray", "process": "jellyfin", "required": true},
+    {"name": "Tailscale", "process": "tailscale-ipn", "required": true}
+  ],
+  "tasks": [
+    {"name": "Parmar Home - Glances Monitor", "role": "long-running", "action_marker": "glance\\glances\\.venv\\Scripts\\python.exe", "triggers": ["logon"], "state_mode": "running", "result_mode": "running", "start_when_available": true, "restart_count_min": 3, "first_day_gate": null},
+    {"name": "Parmar Home - Glance Resources", "role": "long-running", "action_marker": "glance\\maintenance\\resource_collector.py", "triggers": ["logon"], "state_mode": "running", "result_mode": "running", "start_when_available": true, "restart_count_min": 3, "first_day_gate": null},
+    {"name": "Parmar Home - Kuma Windows Checks", "role": "monitor", "action_marker": "glance\\maintenance\\Run-KumaWindows-Hidden.vbs", "triggers": ["time", "logon"], "state_mode": "ready", "result_mode": "success", "start_when_available": true, "restart_count_min": 0, "first_day_gate": null},
+    {"name": "Coolify-Startup-Reconcile", "role": "startup", "action_marker": "coolify\\maintenance\\Start-CoolifyWhenDockerReady.ps1", "triggers": ["logon"], "state_mode": "ready", "result_mode": "success", "start_when_available": true, "restart_count_min": 0, "first_day_gate": null},
+    {"name": "Coolify-Daily-Backup", "role": "backup", "action_marker": "coolify\\maintenance\\Scheduled-CoolifyBackup.ps1", "triggers": ["daily"], "state_mode": "ready", "result_mode": "success", "start_when_available": true, "restart_count_min": 0, "first_day_gate": null},
+    {"name": "Coolify-Weekly-Optimize", "role": "maintenance", "action_marker": "coolify\\maintenance\\Manage-Coolify.ps1", "triggers": ["weekly"], "state_mode": "ready", "result_mode": "success", "start_when_available": true, "restart_count_min": 0, "first_day_gate": null},
+    {"name": "Firefly III Daily Backup", "role": "backup", "action_marker": "firefly\\firefly-backup.ps1", "triggers": ["daily"], "state_mode": "ready", "result_mode": "success", "start_when_available": true, "restart_count_min": 0, "first_day_gate": null},
+    {"name": "ArrStackBackup", "role": "backup", "action_marker": "arr-stack\\backup-arr.ps1", "triggers": ["daily"], "state_mode": "ready", "result_mode": "success", "start_when_available": true, "restart_count_min": 0, "first_day_gate": null},
+    {"name": "AFFiNE Backup Daily", "role": "backup", "action_marker": "affine\\maintenance\\Invoke-ScheduledAffineBackup.ps1", "triggers": ["daily"], "state_mode": "ready", "result_mode": "success", "start_when_available": true, "restart_count_min": 0, "first_day_gate": null},
+    {"name": "AFFiNE Backup Weekly", "role": "backup", "action_marker": "affine\\maintenance\\Invoke-ScheduledAffineBackup.ps1", "triggers": ["weekly"], "state_mode": "ready", "result_mode": "success", "start_when_available": true, "restart_count_min": 0, "first_day_gate": null},
+    {"name": "AFFiNE Backup Monthly", "role": "backup", "action_marker": "affine\\maintenance\\Invoke-ScheduledAffineBackup.ps1", "triggers": ["daily"], "state_mode": "ready", "result_mode": "success", "start_when_available": true, "restart_count_min": 0, "first_day_gate": "affine\\maintenance\\Invoke-ScheduledAffineBackup.ps1"},
+    {"name": "Paperless Backup Daily", "role": "backup", "action_marker": "paperless-ngx\\maintenance\\Invoke-ScheduledPaperlessBackup.ps1", "triggers": ["daily"], "state_mode": "ready", "result_mode": "success", "start_when_available": true, "restart_count_min": 0, "first_day_gate": null},
+    {"name": "Paperless Backup Weekly", "role": "backup", "action_marker": "paperless-ngx\\maintenance\\Invoke-ScheduledPaperlessBackup.ps1", "triggers": ["weekly"], "state_mode": "ready", "result_mode": "success", "start_when_available": true, "restart_count_min": 0, "first_day_gate": null},
+    {"name": "Paperless Backup Monthly", "role": "backup", "action_marker": "paperless-ngx\\maintenance\\Invoke-ScheduledPaperlessBackup.ps1", "triggers": ["daily"], "state_mode": "ready", "result_mode": "success", "start_when_available": true, "restart_count_min": 0, "first_day_gate": "paperless-ngx\\maintenance\\Invoke-ScheduledPaperlessBackup.ps1"}
+  ],
+  "recovery": {
+    "requires_user_logon": true,
+    "unattended_boot_supported": false,
+    "automatic_reboot_allowed": false,
+    "required_boot_tasks": [
+      "Parmar Home - Glances Monitor",
+      "Parmar Home - Glance Resources",
+      "Coolify-Startup-Reconcile"
+    ]
+  }
+}

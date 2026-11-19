@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0-rc.1 — 2026-11-19
+
+- Added a strict Windows native-lifecycle audit for automatic services, interactive startup entries, Scheduled Tasks, Docker Desktop, private Glances and five dashboard collector samples.
+- Added hash-bound, secret-free current-boot audits, before-reboot checkpoints and two-snapshot reboot evidence; same-boot checks fail and no command performs the reboot.
+- Corrected ArrStack backup catch-up behavior and made Task Scheduler directly own the Glances Python process after the first controlled restart exposed an orphaned-child defect.
+- Passed the repeated Glances/resource controlled restart and a blocker-free current-boot audit while keeping task exports, host paths, process data and live reports outside Git.
+- Kept stable `0.8.0` gated on the owner-controlled checkpoint/reboot/verify sequence.
+
 ## 0.8.0-alpha.8 — 2026-11-18
 
 - Normalized the reviewed Windows custom-Compose path with `PureWindowsPath` before joining it to a test/runtime root, preserving Windows behavior while making the controller contract portable on Linux and macOS validators.

@@ -11,10 +11,10 @@ sys.path.insert(0, str(ROOT))
 
 from homelab import (code_server, code_server_migration, coolify_adapter,
                      coolify_controller, docker_updates, matrix,
-                     matrix_integration)
+                     matrix_integration, native_lifecycle)
 
 
-RELEASE = "0.8.0-alpha.8"
+RELEASE = "0.8.0-rc.1"
 
 
 def require(condition: bool, message: str) -> None:
@@ -243,6 +243,103 @@ def validate_phase7(root: Path = ROOT) -> str:
         require(marker in update_source,
                 f"Docker update safety gate missing: {marker}")
 
+    native_policy = native_lifecycle.load_policy(
+        root / "modules/native-lifecycle/windows.example.json")
+    require(native_policy["recovery"] == {
+        "requires_user_logon": True,
+        "unattended_boot_supported": False,
+        "automatic_reboot_allowed": False,
+        "required_boot_tasks": [
+            "Parmar Home - Glances Monitor",
+            "Parmar Home - Glance Resources",
+            "Coolify-Startup-Reconcile",
+        ],
+    }, "Native lifecycle reboot boundary changed")
+    glances_task = next(row for row in native_policy["tasks"]
+                        if row["name"] == "Parmar Home - Glances Monitor")
+    require(glances_task["action_marker"]
+            == "glance\\glances\\.venv\\Scripts\\python.exe",
+            "Glances must remain directly owned by Task Scheduler")
+    native_host = {
+        "boot_utc": "2026-11-18T00:00:00+00:00",
+        "uptime_seconds": 3600,
+        "user_signed_in": True,
+        "services": [{
+            "name": row["name"], "exists": True, "state": "Running",
+            "start_mode": row["start_mode"],
+        } for row in native_policy["services"]],
+        "startup": [{
+            "name": row["name"], "entry_present": True,
+            "process_running": True,
+        } for row in native_policy["startup"]],
+        "tasks": [{
+            "name": row["name"], "exists": True, "enabled": True,
+            "state": row["state_mode"], "last_result": (
+                native_lifecycle.TASK_RESULT_RUNNING
+                if row["result_mode"] == "running" else 0),
+            "result_class": row["result_mode"],
+            "last_run": "2026-11-18T00:30:00+00:00",
+            "last_run_after_boot": True, "action_matches": True,
+            "triggers": row["triggers"], "logon_type": "Interactive",
+            "run_level": "Limited",
+            "start_when_available": row["start_when_available"],
+            "restart_count": row["restart_count_min"],
+            "definition_fingerprint": f"{index + 1:064x}",
+            "first_day_gate": True if row["first_day_gate"] else None,
+        } for index, row in enumerate(native_policy["tasks"])],
+        "listener": {"loopback_only": True, "listening": True},
+        "glances_process": {"present": True, "required_flags": {
+            flag: True for flag in native_policy["glances"]["required_flags"]}},
+        "docker": {"context": "desktop-linux", "server_version": "29.9.3",
+                   "ready": True},
+    }
+    native_glances = {
+        "status": "checked", "status_http": 200, "ui_http": 200,
+        "all_http": 200, "version": native_policy["glances"]["version"],
+        "required_plugins": {name: True for name in
+                             ("cpu", "mem", "load", "processcount",
+                              "diskio", "network")},
+        "ui_nonempty": True, "raw_values_persisted": False,
+    }
+    native_samples = [{
+        "name": row["name"], "exists": True, "valid_json": True,
+        "age_seconds": 1, "fresh": True, "source_statuses_ready": True,
+    } for row in native_policy["samples"]]
+    native_config = {"start_script_sha256": "a" * 64,
+                     "configuration_sha256": "b" * 64}
+    native_audit = native_lifecycle.build_audit(
+        native_policy, native_host, native_glances, native_samples,
+        generated_at="2026-11-18T01:00:00+00:00",
+        configuration=native_config)
+    native_lifecycle.validate_audit(native_audit)
+    require(native_audit["readiness"]["observed_reboot_recovery"]
+            and not native_audit["blockers"]
+            and native_audit["safety"]["automatic_reboot_performed"] is False,
+            "Native lifecycle synthetic current-boot audit failed")
+    native_before = native_lifecycle.checkpoint(native_audit)
+    same_boot = native_lifecycle.reboot_evidence(native_before, native_audit)
+    require(same_boot["passed"] is False
+            and "windows-boot-identifier-did-not-change" in same_boot["blockers"],
+            "Native reboot evidence accepted a same-boot snapshot")
+    after_host = json.loads(json.dumps(native_host))
+    after_host["boot_utc"] = "2026-11-19T00:00:00+00:00"
+    after_audit = native_lifecycle.build_audit(
+        native_policy, after_host, native_glances, native_samples,
+        generated_at="2026-11-19T01:00:00+00:00",
+        configuration=native_config)
+    reboot_proof = native_lifecycle.reboot_evidence(native_before, after_audit)
+    native_lifecycle.validate_reboot_evidence(reboot_proof)
+    require(reboot_proof["passed"]
+            and reboot_proof["actual_reboot_observed"]
+            and reboot_proof["automatic_reboot_performed"] is False,
+            "Native two-snapshot reboot proof contract failed")
+    native_wrapper = (root / "tools/Manage-NativeLifecycle.ps1").read_text(
+        encoding="utf-8")
+    for marker in ("AutomaticRebootPerformed = $false", "$proof.passed",
+                   "Reboot verification failed", "BeforeCheckpoint"):
+        require(marker in native_wrapper,
+                f"Native lifecycle operator gate missing: {marker}")
+
     cli = (root / "homelab/cli.py").read_text(encoding="utf-8")
     require("'code-server'" in cli and "from . import code_server as module" in cli
             and "'matrix'" in cli and "from . import matrix as module" in cli
@@ -255,6 +352,8 @@ def validate_phase7(root: Path = ROOT) -> str:
             and "from . import docker_updates as module" in cli
             and "controller-audit" in cli
             and "from . import coolify_controller as controller" in cli
+            and "'native-lifecycle'" in cli
+            and "from . import native_lifecycle as module" in cli
             and "render-compose" in cli and "validate-evidence" in cli,
             "Phase 7 code-server/Matrix/Coolify CLI is not wired")
     workflow = (root / ".github/workflows/validate.yml").read_text(
@@ -313,13 +412,21 @@ def validate_phase7(root: Path = ROOT) -> str:
         "homelab/coolify_controller.py",
         "modules/coolify/controller.example.json",
         "tests/test_coolify_controller.py",
+        "docs/native-lifecycle.md",
+        "docs/validation/native-lifecycle.md",
+        "docs/releases/v0.8.0-rc.1.md",
+        "homelab/native_lifecycle.py",
+        "modules/native-lifecycle/windows.example.json",
+        "tests/test_native_lifecycle.py",
+        "tools/Manage-NativeLifecycle.ps1",
     ):
         require((root / relative).is_file(), f"Missing Phase 7 artifact: {relative}")
-    return ("PASS: Phase 7 0.8.0-alpha.8 provides code-server and Matrix "
+    return ("PASS: Phase 7 0.8.0-rc.1 provides code-server and Matrix "
             "foundations, a non-owning Coolify adapter, backup-gated "
             "code-server production migration, and strict "
             "Matrix/Element/TURN integration gates plus explicit Docker "
-            "update management and a fail-closed Coolify controller handoff")
+            "update management, a fail-closed Coolify controller handoff, "
+            "and secret-safe native Windows lifecycle/reboot evidence")
 
 
 def main() -> int:
