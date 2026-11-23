@@ -1,6 +1,6 @@
 # glances
 
-Phase 1 reference runbook, observed 2026-10-03 and superseded operationally by the [Phase 7 native-lifecycle module](../native-lifecycle.md). Inventory coverage remains historical; version 0.8.0-rc.1 adds live startup, privacy and controlled-restart evidence for the reviewed Windows host.
+Phase 1 reference runbook, observed 2026-10-03 and superseded operationally by the [Phase 7 native-lifecycle module](../native-lifecycle.md). Inventory coverage remains historical; version 0.8.0 adds live startup, privacy, controlled-restart and actual reboot evidence for the reviewed Windows host.
 
 ## Evidence and ownership
 

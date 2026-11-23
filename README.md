@@ -4,7 +4,7 @@ A reproducible, local-first homelab: deploy what you need, choose where your dat
 
 This project grows out of a working Windows Docker Desktop homelab with personal cloud, documents, photos, development, communication, and monitoring services. Its goal is to turn that operational experience into documented, testable deployment modules for Windows, Linux, and macOS.
 
-**Version 0.8.0-rc.1 is the integrated Phase 7 candidate.** It combines the existing code-server, Matrix/Element, Coolify and controlled-update contracts with a strict Windows native-lifecycle adapter for services, interactive startup, Scheduled Tasks, Docker Desktop, private Glances and dashboard samples. Current-boot recovery and controlled monitor restart are proven; stable `0.8.0` remains gated on an owner-controlled checkpoint/reboot/verify sequence.
+**Version 0.8.0 completes Phase 7.** It combines code-server, Matrix/Element, Coolify and controlled-update contracts with a strict Windows native-lifecycle adapter for services, interactive startup, Scheduled Tasks, Docker Desktop, private Glances and dashboard samples. Current-boot, controlled-monitor and actual two-snapshot reboot recovery are proven on the reference host; optional TURN and unsafe Coolify updates remain independently blocked.
 
 ## What this project is building
 
@@ -113,6 +113,7 @@ One entry point does **not** mean one giant container or one shared database. Ea
 | [Native Windows lifecycle module](docs/native-lifecycle.md) | Private Glances, services, startup, tasks and explicit reboot proof |
 | [Native lifecycle validation](docs/validation/native-lifecycle.md) | Live current-boot audit and corrected controlled monitor restart |
 | [0.8.0-rc.1 release review](docs/releases/v0.8.0-rc.1.md) | Integrated Phase 7 candidate and final owner-controlled reboot gate |
+| [0.8.0 release review](docs/releases/v0.8.0.md) | Completed Phase 7 and actual Windows reboot-recovery proof |
 | [Phase 4 integrated validation](docs/validation/phase4-integrated.md) | Combined release gates, live Windows evidence and unresolved manual checks |
 | [0.5.0-rc.1 release review](docs/releases/v0.5.0-rc.1.md) | Exact candidate scope, support boundaries and stable-release decision |
 | [Architecture](docs/architecture.md) | Components, installation modes, storage, security boundaries |
@@ -180,7 +181,7 @@ The machine-readable [catalog](catalog/services.json) describes 21 modules whose
 - Database migrations may make an image-only rollback unsafe. Recovery must be application-aware.
 - Cross-platform support is earned through tests; Docker alone does not make every application portable.
 
-See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.8.0-rc.1 release review](docs/releases/v0.8.0-rc.1.md).
+See [SECURITY.md](SECURITY.md), [contribution guidance](CONTRIBUTING.md), and the [0.8.0 release review](docs/releases/v0.8.0.md).
 
 ## License
 

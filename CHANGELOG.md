@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0 — 2026-11-23
+
+- Completed Phase 7 with an actual two-snapshot Windows reboot proof: the boot identifier advanced while task fingerprints and Glances configuration hashes persisted.
+- Verified post-reboot recovery of automatic native services, interactive startup applications, all declared Scheduled Tasks, Docker Desktop, private Glances and all five dashboard samples.
+- Made the reference storage collector tolerate an intentionally null pending recovery-test timestamp instead of suppressing the entire storage sample.
+- Moved AFFiNE table-count capture after application quiescence, then passed a real scheduled backup, independent restore test and healthy application restart.
+- Retained optional TURN and unsafe Coolify updates behind their independent fail-closed gates; neither is falsely certified by the Phase 7 release.
+
 ## 0.8.0-rc.1 — 2026-11-19
 
 - Added a strict Windows native-lifecycle audit for automatic services, interactive startup entries, Scheduled Tasks, Docker Desktop, private Glances and five dashboard collector samples.

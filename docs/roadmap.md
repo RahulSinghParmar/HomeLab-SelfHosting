@@ -163,11 +163,15 @@ The `0.8.0-alpha.8` milestone corrects cross-platform interpretation of the revi
 
 The `0.8.0-rc.1` milestone adds the [native Windows lifecycle adapter](native-lifecycle.md). The reference host passed a blocker-free current-boot audit and a corrected controlled Glances/resource restart. Stable `0.8.0` remains gated on the owner-controlled two-snapshot reboot proof; the tool deliberately cannot initiate that reboot.
 
+The `0.8.0` release closes Phase 7 after a later real Windows boot advanced the checkpoint identifier while task/configuration fingerprints persisted. Post-reboot services, user startup, all scheduled tasks, private Glances and collector samples passed. A pending-backup timestamp parser and AFFiNE quiescence race found by the first audit were corrected and revalidated before the final proof.
+
 Handle Coolify as its own controller. Document upstream Linux support and prove any Windows adapter separately. Do not absorb dynamically managed projects into generic Compose ownership.
 
 Native startup/scheduling and Glances are implemented for the reviewed interactive Windows Docker Desktop host. Optional VPN deployment remains Phase 8; native task definitions and configuration are fingerprinted across the explicit reboot workflow.
 
 Exit: editing/compilation/session persistence, chat and call behavior where enabled, controlled deployment and reboot recovery evidence.
+
+Exit achieved for the declared Phase 7 scope. Optional TURN remains disabled without relay/real-call proof, and blocked Coolify updates remain correctly blocked rather than being treated as completed deployments.
 
 ## Phase 8 — Remote access
 

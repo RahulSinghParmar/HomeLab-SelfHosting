@@ -1,10 +1,10 @@
 # Native lifecycle validation
 
-Validated on the Windows Docker Desktop reference host on 2026-11-19.
+Validated on the Windows Docker Desktop reference host from 2026-11-19 through 2026-11-23.
 
 ## Result
 
-Pass for the `0.8.0-rc.1` native-lifecycle candidate. The final live audit had no blockers and reported ready native services, user startup, Scheduled Tasks, Glances, Docker Desktop and dashboard samples. It also proved that the required logon tasks ran after the current Windows boot on 2026-11-16.
+Pass for stable `0.8.0`. The final live audit had no blockers and reported ready native services, user startup, Scheduled Tasks, Glances, Docker Desktop and dashboard samples. The first candidate audit proved that required logon tasks ran after the 2026-11-16 boot; the final proof compared that prior-boot checkpoint with a real Windows boot on 2026-11-23.
 
 A controlled restart of only the two monitoring tasks then passed:
 
@@ -25,8 +25,12 @@ The adapter also corrected two evidence interpretations found by live testing:
 - an active Explorer session is used to detect an interactive sign-in when the audit itself runs non-interactively; and
 - the storage collector's intentional `reported` physical-health state is accepted alongside `ok`, while unknown states still fail closed.
 
+The first post-reboot audit found two genuine operational defects. The storage collector assumed a pending backup's null `testedUtc` value was a string and stopped publishing its aggregate sample. The AFFiNE backup captured table counts before stopping the application, allowing a normal background row to race the dump. Rollback copies were retained; parsing was made null-safe and the count capture was moved after application quiescence. A real scheduled AFFiNE backup then exited `0`, passed its independent restore test and returned the application container to `running|healthy`.
+
 Private task XML, local reports, process details and reboot checkpoint remain outside Git. No credential, raw Glances metric, account, document, media item, message, workspace or application database was read.
 
-## Reboot evidence boundary
+## Reboot evidence
 
-The current boot provides observed recovery evidence, and controlled monitoring-task recovery passed. A new secret-free checkpoint is ready for the stronger two-snapshot test, but Windows was not rebooted implicitly. Stable `0.8.0` remains gated on the owner performing a normal restart and running `VerifyReboot` with that prior-boot checkpoint. A same-boot check cannot pass.
+The owner-controlled reboot proof passed on 2026-11-23. The Windows boot timestamp advanced; task-definition fingerprints and Glances configuration hashes remained unchanged; native services, user startup, Scheduled Tasks, Glances and samples all recovered. Evidence identifier: `99c470b0e7fa55cf2b2c21ce0e50e7ea66d060dc41b5fcadf12b72ba64360972`.
+
+No command initiated the reboot. A same-boot check remains rejected, and the evidence format still contains no credentials, local paths, identities or raw metrics.

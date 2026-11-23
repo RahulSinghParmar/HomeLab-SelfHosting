@@ -67,3 +67,4 @@ Never reuse a version or move an existing tag. If a published release needs corr
 - [0.8.0-alpha.7](v0.8.0-alpha.7.md) — Coolify controller handoff and Windows compatibility validation
 - [0.8.0-alpha.8](v0.8.0-alpha.8.md) — Cross-platform Coolify controller path correction
 - [0.8.0-rc.1](v0.8.0-rc.1.md) — Integrated Phase 7 candidate and native lifecycle validation
+- [0.8.0](v0.8.0.md) — Completed Phase 7 with actual Windows reboot recovery
